@@ -1,6 +1,6 @@
-package com.ticketflow.identity;
+package com.ticketflow.service;
 import java.util.Locale;
-import com.ticketflow.shared.BusinessException;
+import com.ticketflow.common.exception.BusinessException;
 public final class AccountRules {
  private AccountRules() {}
  public static String username(String value) {

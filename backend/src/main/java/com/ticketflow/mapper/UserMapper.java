@@ -1,4 +1,6 @@
-package com.ticketflow.identity;
+package com.ticketflow.mapper;
+
+import com.ticketflow.model.entity.UserAccount;
 import org.apache.ibatis.annotations.*;
 @Mapper
 public interface UserMapper {

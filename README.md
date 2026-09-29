@@ -54,6 +54,7 @@ Pop-Location
 ## 文档与交付
 
 - [工程文档索引](docs/README.md)
+- [架构与编码规范](docs/架构与编码规范.md)
 - [已实现接口](docs/api/README.md) / [OpenAPI](docs/api/openapi.json)
 - [测试报告](docs/04_测试计划与测试报告.md)
 - [开发进度](docs/开发进度.md)

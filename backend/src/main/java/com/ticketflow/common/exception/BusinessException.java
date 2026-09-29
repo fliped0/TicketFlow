@@ -1,4 +1,4 @@
-package com.ticketflow.shared;
+package com.ticketflow.common.exception;
 public class BusinessException extends RuntimeException {
  private final int status;
  private final String code;

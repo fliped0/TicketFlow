@@ -1,6 +1,6 @@
-package com.ticketflow.infrastructure;
-import com.ticketflow.identity.*;
-import com.ticketflow.shared.ApiResponse;
+package com.ticketflow.config;
+import com.ticketflow.security.DatabaseJwtAuthenticationConverter;
+import com.ticketflow.common.response.ApiResponse;
 import java.nio.file.*;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
@@ -13,14 +13,14 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.*;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import org.springframework.security.crypto.password.*;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.jwt.*;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
 import org.springframework.security.web.SecurityFilterChain;
 import tools.jackson.databind.json.JsonMapper;
 @Configuration
@@ -47,19 +47,14 @@ public class SecurityConfiguration {
   decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(new JwtTimestampValidator(Duration.ofSeconds(30)),new JwtIssuerValidator("ticketflow"),audience));
   return decoder;
  }
- @Bean SecurityFilterChain security(HttpSecurity http,UserMapper users,JsonMapper json) throws Exception {
+ @Bean SecurityFilterChain security(HttpSecurity http,DatabaseJwtAuthenticationConverter authenticationConverter,JsonMapper json) throws Exception {
   http.csrf(csrf->csrf.disable()).sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
   http.authorizeHttpRequests(auth->auth
    .requestMatchers("/actuator/health").permitAll()
    .requestMatchers(HttpMethod.POST,"/api/v1/auth/register","/api/v1/auth/login").permitAll()
    .requestMatchers(HttpMethod.GET,"/api/v1/events","/api/v1/events/*","/api/v1/events/*/sessions","/api/v1/sessions/*/tiers").permitAll()
    .requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated());
-  http.oauth2ResourceServer(resource->resource.jwt(jwt->jwt.jwtAuthenticationConverter(token->{
-   UserAccount user;
-   try {user=users.byId(Long.parseLong(token.getSubject()));} catch(NumberFormatException e) {throw new BadCredentialsException("Invalid subject");}
-   if(user==null || !user.enabled()) throw new BadCredentialsException("Inactive account");
-   return new JwtAuthenticationToken(token,List.of(new SimpleGrantedAuthority("ROLE_"+user.role())),user.id().toString());
-  })).authenticationEntryPoint((req,res,e)->{
+  http.oauth2ResourceServer(resource->resource.jwt(jwt->jwt.jwtAuthenticationConverter(authenticationConverter)).authenticationEntryPoint((req,res,e)->{
    res.setStatus(401);res.setContentType("application/json;charset=UTF-8");
    res.getWriter().write(json.writeValueAsString(ApiResponse.error("UNAUTHENTICATED","请先登录")));
   }));

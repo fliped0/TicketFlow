@@ -1,4 +1,7 @@
-package com.ticketflow.identity;
+package com.ticketflow.config;
+
+import com.ticketflow.mapper.UserMapper;
+import com.ticketflow.service.AccountRules;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;

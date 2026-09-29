@@ -1,6 +1,6 @@
-package com.ticketflow.identity;
+package com.ticketflow.service;
 import org.junit.jupiter.api.Test;
-import com.ticketflow.shared.BusinessException;
+import com.ticketflow.common.exception.BusinessException;
 import static org.junit.jupiter.api.Assertions.*;
 class AccountRulesTest {
  @Test void normalizesAsciiOnlyAndRejectsInvalidNames() {

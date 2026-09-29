@@ -1,4 +1,7 @@
-package com.ticketflow.identity;
+package com.ticketflow.config;
+
+import com.ticketflow.mapper.UserMapper;
+import com.ticketflow.model.entity.UserAccount;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;

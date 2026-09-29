@@ -1,6 +1,6 @@
 package com.ticketflow;
 
-import com.ticketflow.identity.UserMapper;
+import com.ticketflow.mapper.UserMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPairGenerator;

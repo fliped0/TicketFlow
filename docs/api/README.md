@@ -78,3 +78,7 @@ Authorization: Bearer <JWT>
 ## 4. 更新规则
 
 每个模块完成时同步修改代码、OpenAPI、示例和测试报告，通过测试后提交并推送。未实现接口不在本规范中承诺可调用。
+
+## 5. 实现结构记录
+
+2026-09-29 调整为统一 controller/service/mapper/model 分层，请求对象为 CredentialsDTO，返回对象为 UserVO、TokenVO。URL、JSON 字段及成功响应状态保持 0.1.0 契约；当前用户查询由 Service 统一校验账号状态。

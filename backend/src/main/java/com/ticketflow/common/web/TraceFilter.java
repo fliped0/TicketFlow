@@ -1,4 +1,4 @@
-package com.ticketflow.infrastructure;
+package com.ticketflow.common.web;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;

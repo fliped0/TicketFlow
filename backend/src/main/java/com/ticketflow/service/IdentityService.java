@@ -1,6 +1,11 @@
-package com.ticketflow.identity;
+package com.ticketflow.service;
 
-import com.ticketflow.shared.BusinessException;
+import com.ticketflow.mapper.UserMapper;
+import com.ticketflow.model.entity.UserAccount;
+import com.ticketflow.model.vo.UserVO;
+import com.ticketflow.model.vo.TokenVO;
+
+import com.ticketflow.common.exception.BusinessException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -24,7 +29,7 @@ public class IdentityService {
         this.dummyHash = passwords.encode(UUID.randomUUID().toString());
     }
 
-    public UserView register(String username, String password) {
+    public UserVO register(String username, String password) {
         String normalized = AccountRules.username(username);
         AccountRules.password(password);
         try {
@@ -33,10 +38,17 @@ public class IdentityService {
             throw new BusinessException(409, "USERNAME_EXISTS", "账号已存在");
         }
         UserAccount user = users.byUsername(normalized);
-        return new UserView(user.id().toString(), user.username(), user.role());
+        return new UserVO(user.id().toString(), user.username(), user.role());
     }
 
-    public TokenView login(String username, String password) {
+    public UserVO getCurrentUser(long userId) {
+        UserAccount user = users.byId(userId);
+        if (user == null || !user.enabled()) {
+            throw new BusinessException(401, "UNAUTHENTICATED", "请先登录");
+        }
+        return new UserVO(user.id().toString(), user.username(), user.role());
+    }
+    public TokenVO login(String username, String password) {
         String normalized = AccountRules.username(username);
         AccountRules.password(password);
         UserAccount user = users.byUsername(normalized);
@@ -51,9 +63,7 @@ public class IdentityService {
                 .issuedAt(now).notBefore(now).expiresAt(now.plusSeconds(1800)).build();
         String token = encoder.encode(JwtEncoderParameters.from(
                 JwsHeader.with(SignatureAlgorithm.RS256).build(), claims)).getTokenValue();
-        return new TokenView(token, "Bearer", 1800);
+        return new TokenVO(token, "Bearer", 1800);
     }
 
-    public record UserView(String userId, String username, String role) {}
-    public record TokenView(String accessToken, String tokenType, int expiresIn) {}
 }

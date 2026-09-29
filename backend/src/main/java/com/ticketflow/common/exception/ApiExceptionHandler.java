@@ -1,5 +1,5 @@
-package com.ticketflow.infrastructure;
-import com.ticketflow.shared.*;
+package com.ticketflow.common.exception;
+import com.ticketflow.common.response.ApiResponse;
 import org.springframework.dao.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
