@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: ticketflow
+  datasource:
+    url: jdbc:mysql://${TF_DB_HOST:127.0.0.1}:${TF_DB_PORT:3306}/${TF_DB_NAME:ticketflow_dev}?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    username: ${TF_DB_USER}
+    password: ${TF_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      connection-timeout: 3000
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      connection-init-sql: SET SESSION innodb_lock_wait_timeout=2
+  flyway:
+    clean-disabled: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+mybatis-plus:
+  configuration:
+    cache-enabled: false
+    local-cache-scope: STATEMENT
+    map-underscore-to-camel-case: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+server:
+  port: ${TF_PORT:8080}
+  shutdown: graceful
+ticketflow:
+  jwt:
+    private-key: ${TF_JWT_PRIVATE_KEY}
+    public-key: ${TF_JWT_PUBLIC_KEY}
+  admin:
+    username: ${TF_ADMIN_USERNAME:}
+    password: ${TF_ADMIN_PASSWORD:}

@@ -1,0 +1,13 @@
+backend/target/
+.tools/
+.idea/
+*.iml
+config/local/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.log
