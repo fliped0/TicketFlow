@@ -1,6 +1,7 @@
 package com.ticketflow;
 
 import com.ticketflow.mapper.UserMapper;
+import com.ticketflow.mapper.CatalogMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPairGenerator;
@@ -63,6 +64,7 @@ class IdentityIntegrationIT {
     @Autowired JwtEncoder encoder;
     @Autowired PlatformTransactionManager transactionManager;
     @Autowired UserMapper users;
+    @Autowired CatalogMapper catalog;
     final JsonMapper json = JsonMapper.builder().build();
     final HttpClient http = HttpClient.newHttpClient();
     final String password = "Test_" + UUID.randomUUID();
@@ -242,5 +244,158 @@ class IdentityIntegrationIT {
         });
         assertTrue(users.byId(Long.parseLong(id)).enabled());
         assertEquals("REJECTED", db.queryForObject("SELECT state FROM tf_request WHERE user_id=? AND request_key=?", String.class, Long.parseLong(id), key));
+    }
+
+    String adminToken() throws Exception {
+        String user = username(), id = register(user, password);
+        db.update("UPDATE tf_user SET role='ADMIN' WHERE id=?", Long.parseLong(id));
+        return login(user, password);
+    }
+    JsonNode data(HttpResponse<String> response, int status) {
+        assertEquals(status, response.statusCode(), response.body());
+        return body(response).path("data");
+    }
+    String createCatalogEvent(String admin, String name) throws Exception {
+        return data(request("POST","/api/v1/admin/events",Map.of("name",name,"description","A show","category","music","city","Beijing","venue","Hall"),admin),201).path("id").asString();
+    }
+    Map<String,Object> times(int saleHours, int endHours, int startHours) {
+        Instant base=Instant.now().plusSeconds(3600).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        return Map.of("saleStartAt",base.plusSeconds(saleHours*3600L).toString(),"saleEndAt",base.plusSeconds(endHours*3600L).toString(),"startsAt",base.plusSeconds(startHours*3600L).toString());
+    }
+    String createCatalogSession(String admin,String eventId,Map<String,Object> times) throws Exception {
+        return data(request("POST","/api/v1/admin/events/"+eventId+"/sessions",times,admin),201).path("id").asString();
+    }
+    String createCatalogTier(String admin,String sessionId,int capacity) throws Exception {
+        return data(request("POST","/api/v1/admin/sessions/"+sessionId+"/tiers",Map.of("name","Standard","priceFen",58000,"capacity",capacity),admin),201).path("id").asString();
+    }
+    long eventVersion(String admin,String id) throws Exception {
+        return data(request("GET","/api/v1/admin/events/"+id,null,admin),200).path("version").asLong();
+    }
+
+    @Test void catalogPublishRequiresCompleteHierarchyAndPublicVisibility() throws Exception {
+        String admin=adminToken(), event=createCatalogEvent(admin,"Show_"+UUID.randomUUID());
+        assertEquals(404,request("GET","/api/v1/events/"+event,null,null).statusCode());
+        assertEquals("INCOMPLETE_CATALOG",body(request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","ON_SALE","expectedVersion",0),admin)).path("code").asString());
+        String session=createCatalogSession(admin,event,times(1,2,3));
+        assertEquals(409,request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","ON_SALE","expectedVersion",0),admin).statusCode());
+        String tier=createCatalogTier(admin,session,0);
+        assertEquals(0,db.queryForObject("SELECT available FROM tf_stock WHERE tier_id=?",Integer.class,Long.parseLong(tier)));
+        data(request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","ON_SALE","expectedVersion",0),admin),200);
+        assertEquals("ON_SALE",data(request("GET","/api/v1/events/"+event,null,null),200).path("status").asString());
+        assertEquals("SALE_NOT_STARTED",data(request("GET","/api/v1/events/"+event+"/sessions",null,null),200).path("items").get(0).path("saleStatus").asString());
+        assertEquals(409,request("POST","/api/v1/admin/events/"+event+"/sessions",times(1,2,3),admin).statusCode());
+        data(request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","OFF_SALE","expectedVersion",1),admin),200);
+        assertEquals(404,request("GET","/api/v1/events/"+event+"/sessions",null,null).statusCode());
+        assertEquals(404,request("GET","/api/v1/sessions/"+session+"/tiers",null,null).statusCode());
+        createCatalogSession(admin,event,times(2,3,4));
+        assertEquals(409,request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","ON_SALE","expectedVersion",2),admin).statusCode());
+        String extra=db.queryForObject("SELECT id FROM tf_session WHERE event_id=? ORDER BY id DESC LIMIT 1",Long.class,Long.parseLong(event)).toString();
+        createCatalogTier(admin,extra,1);
+        data(request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","ON_SALE","expectedVersion",2),admin),200);
+        assertEquals(2,data(request("GET","/api/v1/events/"+event+"/sessions",null,null),200).path("total").asInt());
+        assertEquals(2,db.queryForObject("SELECT COUNT(*) FROM tf_stock WHERE tier_id IN (SELECT id FROM tf_tier WHERE session_id IN (SELECT id FROM tf_session WHERE event_id=?))",Integer.class,Long.parseLong(event)));
+    }
+
+    @Test void catalogPermissionsVersionReplayAndAudit() throws Exception {
+        String ordinary=login(usernameForCatalog(),password), admin=adminToken();
+        assertEquals(403,request("POST","/api/v1/admin/events",Map.of(),ordinary).statusCode());
+        assertEquals(401,request("GET","/api/v1/admin/events",null,null).statusCode());
+        String event=createCatalogEvent(admin,"Version_"+UUID.randomUUID());
+        assertEquals(1,db.queryForObject("SELECT COUNT(*) FROM tf_audit WHERE object_type='EVENT' AND object_id=?",Integer.class,Long.parseLong(event)));
+        var update=Map.of("name","Updated","description","A","category","music","city","Beijing","venue","Hall","expectedVersion",0);
+        data(request("PUT","/api/v1/admin/events/"+event,update,admin),200);
+        assertEquals("VERSION_CONFLICT",body(request("PUT","/api/v1/admin/events/"+event,update,admin)).path("code").asString());
+        assertEquals(2,db.queryForObject("SELECT COUNT(*) FROM tf_audit WHERE object_type='EVENT' AND object_id=?",Integer.class,Long.parseLong(event)));
+        String session=createCatalogSession(admin,event,times(1,2,3));
+        createCatalogTier(admin,session,2);
+        data(request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","ON_SALE","expectedVersion",1),admin),200);
+        data(request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","ON_SALE","expectedVersion",0),admin),200);
+        assertEquals(2,eventVersion(admin,event));
+    }
+    String usernameForCatalog() throws Exception { String user=username(); register(user,password); return user; }
+
+    @Test void catalogSearchPaginationAndLiteralWildcards() throws Exception {
+        String admin=adminToken(), marker=UUID.randomUUID().toString().substring(0,8);
+        String one=createCatalogEvent(admin,"A%_"+marker);
+        String two=createCatalogEvent(admin,"Axx"+marker);
+        for (String id:List.of(one,two)) {
+            String session=createCatalogSession(admin,id,times(1,2,3)); createCatalogTier(admin,session,1);
+            data(request("PUT","/api/v1/admin/events/"+id+"/status",Map.of("status","ON_SALE","expectedVersion",0),admin),200);
+        }
+        var found=data(request("GET","/api/v1/events?keyword=%25_"+marker+"&city=Beijing&category=music&page=1&size=1",null,null),200);
+        assertEquals(1,found.path("total").asInt());
+        assertEquals(one,found.path("items").get(0).path("id").asString());
+        assertEquals(0,data(request("GET","/api/v1/events?keyword=NotFound"+marker,null,null),200).path("items").size());
+        assertEquals(400,request("GET","/api/v1/events?page=0",null,null).statusCode());
+        assertEquals(400,request("GET","/api/v1/events?size=101",null,null).statusCode());
+        assertEquals(2,data(request("GET","/api/v1/admin/events?status=ON_SALE&keyword="+marker,null,admin),200).path("total").asInt());
+    }
+
+    @Test void catalogFrozenTimeCannotMoveForwardAndStockUpdateIsAtomic() throws Exception {
+        String admin=adminToken(), event=createCatalogEvent(admin,"Frozen_"+UUID.randomUUID());
+        Map<String,Object> initial=times(1,2,3);
+        String session=createCatalogSession(admin,event,initial), tier=createCatalogTier(admin,session,1);
+        String originalFreeze=db.queryForObject("SELECT CAST(freeze_at AS CHAR) FROM tf_session WHERE id=?",String.class,Long.parseLong(session));
+        Map<String,Object> later=times(2,3,4);
+        data(request("PUT","/api/v1/admin/sessions/"+session,Map.of("startsAt",later.get("startsAt"),"saleStartAt",later.get("saleStartAt"),"saleEndAt",later.get("saleEndAt"),"expectedVersion",0),admin),200);
+        assertEquals(originalFreeze,db.queryForObject("SELECT CAST(freeze_at AS CHAR) FROM tf_session WHERE id=?",String.class,Long.parseLong(session)));
+        db.update("UPDATE tf_session SET freeze_at=UTC_TIMESTAMP(6)-INTERVAL 1 SECOND WHERE id=?",Long.parseLong(session));
+        var change=Map.of("name","Changed","priceFen",60000,"capacity",2,"expectedVersion",0);
+        assertEquals("CONFIG_FROZEN",body(request("PUT","/api/v1/admin/tiers/"+tier,change,admin)).path("code").asString());
+        assertEquals(1,db.queryForObject("SELECT capacity FROM tf_stock WHERE tier_id=?",Integer.class,Long.parseLong(tier)));
+        assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM tf_audit WHERE object_type='TIER' AND object_id=? AND action='UPDATE'",Integer.class,Long.parseLong(tier)));
+        assertEquals("CONFIG_FROZEN",body(request("PUT","/api/v1/admin/events/"+event,Map.of("name","New","description","A","category","music","city","Shanghai","venue","Hall","expectedVersion",0),admin)).path("code").asString());
+        assertEquals("New Copy",data(request("PUT","/api/v1/admin/events/"+event,Map.of("name","New Copy","description","A","category","music","city","Beijing","venue","Hall","expectedVersion",0),admin),200).path("name").asString());
+    }
+
+    @Test void catalogSaleStatusAndCapacityUpdateFollowDatabaseFacts() throws Exception {
+        String admin=adminToken(), event=createCatalogEvent(admin,"Stock_"+UUID.randomUUID());
+        String session=createCatalogSession(admin,event,times(1,2,3)), tier=createCatalogTier(admin,session,0);
+        data(request("PUT","/api/v1/admin/tiers/"+tier,Map.of("name","Standard","priceFen",58000,"capacity",4,"expectedVersion",0),admin),200);
+        assertEquals(4,db.queryForObject("SELECT available FROM tf_stock WHERE tier_id=?",Integer.class,Long.parseLong(tier)));
+        data(request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","ON_SALE","expectedVersion",0),admin),200);
+        db.update("UPDATE tf_session SET freeze_at=UTC_TIMESTAMP(6)-INTERVAL 1 SECOND,sale_start_at=UTC_TIMESTAMP(6)-INTERVAL 1 SECOND WHERE id=?",Long.parseLong(session));
+        assertEquals("ON_SALE",data(request("GET","/api/v1/sessions/"+session+"/tiers",null,null),200).path("items").get(0).path("saleStatus").asString());
+        db.update("UPDATE tf_stock SET available=0,reserved=4 WHERE tier_id=?",Long.parseLong(tier));
+        assertEquals("SOLD_OUT",data(request("GET","/api/v1/events/"+event+"/sessions",null,null),200).path("items").get(0).path("saleStatus").asString());
+        assertEquals("SOLD_OUT",data(request("GET","/api/v1/sessions/"+session+"/tiers",null,null),200).path("items").get(0).path("saleStatus").asString());
+        assertEquals("CONFIG_FROZEN",body(request("PUT","/api/v1/admin/tiers/"+tier,Map.of("name","Standard","priceFen",58000,"capacity",5,"expectedVersion",1),admin)).path("code").asString());
+        db.update("UPDATE tf_session SET sale_end_at=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",Long.parseLong(session));
+        assertEquals("SALE_ENDED",data(request("GET","/api/v1/events/"+event+"/sessions",null,null),200).path("items").get(0).path("saleStatus").asString());
+        data(request("PUT","/api/v1/admin/events/"+event+"/status",Map.of("status","OFF_SALE","expectedVersion",1),admin),200);
+        assertEquals("NOT_ON_SALE",data(request("GET","/api/v1/admin/events/"+event+"/sessions",null,admin),200).path("items").get(0).path("saleStatus").asString());
+    }
+
+    @Test void catalogStockAndAuditRollbackTogether() throws Exception {
+        String admin=adminToken(), event=createCatalogEvent(admin,"Rollback_"+UUID.randomUUID());
+        String session=createCatalogSession(admin,event,times(1,2,3));
+        long sessionId=Long.parseLong(session);
+        TransactionTemplate tx=new TransactionTemplate(transactionManager);
+        assertThrows(DataAccessException.class,()->tx.executeWithoutResult(status->{
+            long tier=catalog.createTier(sessionId,"Atomic",500,1);
+            catalog.audit(Long.MAX_VALUE,"CREATE","TIER",tier,null,"{}","test-trace");
+        }));
+        assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM tf_tier WHERE session_id=?",Integer.class,sessionId));
+        assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM tf_stock s JOIN tf_tier t ON t.id=s.tier_id WHERE t.session_id=?",Integer.class,sessionId));
+    }
+
+    @Test void catalogRejectsMalformedFieldsAndKeepsPublicQueriesOpen() throws Exception {
+        String admin=adminToken(), event=createCatalogEvent(admin,"Fields_"+UUID.randomUUID());
+        assertEquals(400,request("POST","/api/v1/admin/events/"+event+"/sessions",Map.of("saleStartAt","2026-10-01T10:00:00","saleEndAt","2026-10-01T11:00:00Z","startsAt","2026-10-01T12:00:00Z"),admin).statusCode());
+        assertEquals(400,request("POST","/api/v1/admin/events/"+event+"/sessions",Map.of("saleStartAt","2026-10-01T10:00:00Z","saleEndAt","2026-10-01T11:00:00Z","startsAt","2026-10-01T12:00:00Z","unexpected",true),admin).statusCode());
+        assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM tf_session WHERE event_id=?",Integer.class,Long.parseLong(event)));
+        assertEquals(200,request("GET","/api/v1/events",null,null).statusCode());
+        assertEquals(200,request("GET","/api/v1/admin/events/"+event+"/sessions",null,admin).statusCode());
+    }
+
+    @Test void catalogHistoryPreventsCapacityResetEvenWithZeroBalances() throws Exception {
+        String admin=adminToken(), event=createCatalogEvent(admin,"History_"+UUID.randomUUID());
+        String session=createCatalogSession(admin,event,times(1,2,3)), tier=createCatalogTier(admin,session,1);
+        long owner=Long.parseLong(register(username(),password));
+        db.update("INSERT INTO tf_order(user_id,session_id,tier_id,status,quantity,unit_price_fen,amount_fen,snapshot,starts_at,expires_at,created_at,updated_at) SELECT ?,s.id,t.id,'CANCELLED',1,58000,58000,'{}',s.starts_at,UTC_TIMESTAMP(6)+INTERVAL 30 MINUTE,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6) FROM tf_tier t JOIN tf_session s ON s.id=t.session_id WHERE t.id=?",owner,Long.parseLong(tier));
+        var update=Map.of("name","Standard","priceFen",58000,"capacity",2,"expectedVersion",0);
+        assertEquals("CONFIG_FROZEN",body(request("PUT","/api/v1/admin/tiers/"+tier,update,admin)).path("code").asString());
+        assertEquals(1,db.queryForObject("SELECT capacity FROM tf_stock WHERE tier_id=?",Integer.class,Long.parseLong(tier)));
+        assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM tf_audit WHERE object_type='TIER' AND object_id=? AND action='UPDATE'",Integer.class,Long.parseLong(tier)));
     }
 }

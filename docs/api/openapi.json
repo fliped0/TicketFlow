@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "TicketFlow API",
-    "version": "0.1.0",
-    "description": "仅包含首批已实现接口。票务交易接口待后续模块实现。"
+    "version": "0.2.0",
+    "description": "已实现认证、活动目录管理与公开查询；交易接口待后续批次实现。"
   },
   "servers": [
     {
@@ -249,6 +249,1181 @@
           }
         }
       }
+    },
+    "/api/v1/events": {
+      "get": {
+        "operationId": "listEvents",
+        "summary": "公开活动列表",
+        "tags": [
+          "Catalog"
+        ],
+        "security": null,
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "keyword",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "city",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "maxLength": 32,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{id}": {
+      "get": {
+        "operationId": "getEvent",
+        "summary": "公开活动详情",
+        "tags": [
+          "Catalog"
+        ],
+        "security": null,
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{id}/sessions": {
+      "get": {
+        "operationId": "listEventSessions",
+        "summary": "公开场次列表",
+        "tags": [
+          "Catalog"
+        ],
+        "security": null,
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{id}/tiers": {
+      "get": {
+        "operationId": "listSessionTiers",
+        "summary": "公开票档列表",
+        "tags": [
+          "Catalog"
+        ],
+        "security": null,
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TierPageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/events": {
+      "post": {
+        "operationId": "createEvent",
+        "summary": "创建活动",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listAdminEvents",
+        "summary": "后台活动列表",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "DRAFT",
+                "ON_SALE",
+                "OFF_SALE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "keyword",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/events/{id}": {
+      "put": {
+        "operationId": "updateEvent",
+        "summary": "更新活动",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getAdminEvent",
+        "summary": "后台活动详情",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/events/{id}/status": {
+      "put": {
+        "operationId": "setEventStatus",
+        "summary": "发布或下架活动",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/events/{id}/sessions": {
+      "post": {
+        "operationId": "createSession",
+        "summary": "创建场次",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listAdminSessions",
+        "summary": "后台场次列表",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sessions/{id}": {
+      "put": {
+        "operationId": "updateSession",
+        "summary": "更新场次时间",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sessions/{id}/tiers": {
+      "post": {
+        "operationId": "createTier",
+        "summary": "创建票档和库存",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TierResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listAdminTiers",
+        "summary": "后台票档列表",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TierPageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/tiers/{id}": {
+      "put": {
+        "operationId": "updateTier",
+        "summary": "更新票档和容量",
+        "tags": [
+          "Catalog"
+        ],
+        "security": {
+          "bearerAuth": []
+        },
+        "responses": {
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / INCOMPLETE_CATALOG / TIER_NAME_EXISTS"
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TierResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -407,6 +1582,632 @@
           "replayed": {
             "type": "boolean",
             "const": false
+          }
+        }
+      },
+      "Event": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "category",
+          "city",
+          "venue",
+          "status",
+          "version"
+        ],
+        "properties": {
+          "venue": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "ON_SALE",
+              "OFF_SALE"
+            ],
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "version": {
+            "format": "int64",
+            "type": "integer"
+          }
+        }
+      },
+      "Session": {
+        "type": "object",
+        "required": [
+          "id",
+          "eventId",
+          "startsAt",
+          "saleStartAt",
+          "saleEndAt",
+          "saleStatus",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "saleStartAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          },
+          "saleEndAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          },
+          "version": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "eventId": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "saleStatus": {
+            "enum": [
+              "NOT_ON_SALE",
+              "SALE_NOT_STARTED",
+              "SALE_ENDED",
+              "SOLD_OUT",
+              "ON_SALE"
+            ],
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          }
+        }
+      },
+      "Tier": {
+        "type": "object",
+        "required": [
+          "id",
+          "sessionId",
+          "name",
+          "priceFen",
+          "available",
+          "capacity",
+          "saleStatus",
+          "refundPolicy",
+          "version"
+        ],
+        "properties": {
+          "saleStatus": {
+            "enum": [
+              "NOT_ON_SALE",
+              "SALE_NOT_STARTED",
+              "SALE_ENDED",
+              "SOLD_OUT",
+              "ON_SALE"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sessionId": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "version": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "refundPolicy": {
+            "const": "FULL_BEFORE_START_V1",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "capacity": {
+            "type": "integer"
+          },
+          "available": {
+            "type": "integer"
+          },
+          "priceFen": {
+            "format": "int64",
+            "type": "integer"
+          }
+        }
+      },
+      "EventInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "category",
+          "city",
+          "venue"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "maxLength": 32,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 5000,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "venue": {
+            "maxLength": 255,
+            "type": "string"
+          },
+          "city": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        }
+      },
+      "EventUpdate": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "category",
+          "city",
+          "venue",
+          "expectedVersion"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "venue": {
+            "maxLength": 255,
+            "type": "string"
+          },
+          "expectedVersion": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "description": {
+            "maxLength": 5000,
+            "type": "string"
+          },
+          "category": {
+            "maxLength": 32,
+            "type": "string"
+          },
+          "city": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        }
+      },
+      "StatusInput": {
+        "type": "object",
+        "required": [
+          "status",
+          "expectedVersion"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "ON_SALE",
+              "OFF_SALE"
+            ],
+            "type": "string"
+          }
+        }
+      },
+      "SessionInput": {
+        "type": "object",
+        "required": [
+          "startsAt",
+          "saleStartAt",
+          "saleEndAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "saleEndAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          },
+          "startsAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          },
+          "saleStartAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          }
+        }
+      },
+      "SessionUpdate": {
+        "type": "object",
+        "required": [
+          "startsAt",
+          "saleStartAt",
+          "saleEndAt",
+          "expectedVersion"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "saleEndAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          },
+          "startsAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          },
+          "expectedVersion": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "saleStartAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          }
+        }
+      },
+      "TierInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "priceFen",
+          "capacity"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "priceFen": {
+            "type": "integer",
+            "maximum": 100000000,
+            "minimum": 1
+          },
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "capacity": {
+            "type": "integer",
+            "maximum": 1000000,
+            "minimum": 0
+          }
+        }
+      },
+      "TierUpdate": {
+        "type": "object",
+        "required": [
+          "name",
+          "priceFen",
+          "capacity",
+          "expectedVersion"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "priceFen": {
+            "type": "integer",
+            "maximum": 100000000,
+            "minimum": 1
+          },
+          "expectedVersion": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "capacity": {
+            "type": "integer",
+            "maximum": 1000000,
+            "minimum": 0
+          }
+        }
+      },
+      "EventPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "size",
+          "total"
+        ],
+        "properties": {
+          "total": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "type": "array"
+          },
+          "size": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      },
+      "SessionPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "size",
+          "total"
+        ],
+        "properties": {
+          "total": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Session"
+            },
+            "type": "array"
+          },
+          "size": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      },
+      "TierPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "size",
+          "total"
+        ],
+        "properties": {
+          "total": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Tier"
+            },
+            "type": "array"
+          },
+          "size": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      },
+      "EventResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Event"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "SessionResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Session"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "TierResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Tier"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "EventPageResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EventPage"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "SessionPageResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SessionPage"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "TierPageResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TierPage"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
           }
         }
       }

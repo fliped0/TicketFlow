@@ -1,6 +1,6 @@
 # TicketFlow 接口文档
 
-版本 0.1.0，基地址 `http://localhost:8080`。本批仅实现用户认证与健康检查；其余接口仍属 [详细设计](../03_详细设计.md) 的规划。
+版本 0.2.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录和健康检查；交易接口仍属 [详细设计](../03_详细设计.md) 的规划。
 
 [OpenAPI 3.1 JSON](openapi.json) 可导入 Apifox / Postman。当前不提供在线 Swagger UI。
 
@@ -10,7 +10,7 @@ JSON 请求及响应，ID 使用十进制字符串。业务响应包含 code、m
 
 账号为 4—32 位 ASCII 字母、数字或下划线，注册和登录均转为小写。密码为 8—64 个 Unicode 码点，不删除空格、不截断。请求包含未知字段（如 role）返回 400。
 
-JWT 使用 RS256，有效期 1800 秒，验证签名、issuer、audience、exp、nbf，容差 30 秒。受保护接口携带 `Authorization: Bearer <accessToken>`。每次请求检查账号启用状态和当前角色。不提供刷新令牌、注销或修改密码接口。
+JWT 使用 RS256，有效期 1800 秒，验证签名、issuer、audience、exp、nbf，容差 30 秒。受保护接口携带 `Authorization: Bearer <accessToken>`。每次请求检查账号启用状态和当前角色。不提供刷新令牌、注销或修改密码接口。目录管理写入要求 ADMIN；时间输入为带时区的 ISO 8601 字符串，输出统一为 UTC。分页从 1 开始，默认 20，最多 100。
 
 ## 2. 已实现接口
 
@@ -20,6 +20,12 @@ JWT 使用 RS256，有效期 1800 秒，验证签名、issuer、audience、exp�
 | POST | /api/v1/auth/login | 无 | 200，accessToken、tokenType、expiresIn |
 | GET | /api/v1/users/me | Bearer | 200，userId、username、role |
 | GET | /actuator/health | 无 | 200，status=UP，无组件详情 |
+| GET | /api/v1/events、/api/v1/events/{id} | 无 | 200，仅上架活动；不可见对象 404 |
+| GET | /api/v1/events/{id}/sessions、/api/v1/sessions/{id}/tiers | 无 | 200，仅上架活动的子资源 |
+| POST/PUT | /api/v1/admin/events、/api/v1/admin/events/{id}、/api/v1/admin/events/{id}/status | ADMIN | 创建、更新和上下架活动 |
+| POST/PUT | /api/v1/admin/events/{id}/sessions、/api/v1/admin/sessions/{id} | ADMIN | 创建及更新时间配置 |
+| POST/PUT | /api/v1/admin/sessions/{id}/tiers、/api/v1/admin/tiers/{id} | ADMIN | 创建及更新票档和容量 |
+| GET | /api/v1/admin/events、/api/v1/admin/events/{id}、/api/v1/admin/events/{id}/sessions、/api/v1/admin/sessions/{id}/tiers | ADMIN | 草稿与下架可见的后台查询 |
 
 ### 2.1 注册
 
@@ -61,6 +67,22 @@ Authorization: Bearer <JWT>
 
 成功 data 与注册一致。JWT 无效、缺少令牌或账号已禁用返回 401 / UNAUTHENTICATED。
 
+### 2.4 目录管理与查询
+
+管理员先创建活动，再创建至少一个场次及每场次至少一个票档，最后将活动设为 `ON_SALE`。创建票档时同步建立库存：`available=capacity`、`reserved=sold=0`。上架活动不能新增场次；先下架、补齐场次和票档，再重新上架。
+
+```http
+POST /api/v1/admin/events/{eventId}/sessions
+Authorization: Bearer <ADMIN_JWT>
+Content-Type: application/json
+
+{"startsAt":"2026-12-01T12:00:00+08:00","saleStartAt":"2026-11-01T10:00:00+08:00","saleEndAt":"2026-11-30T10:00:00+08:00"}
+```
+
+更新请求需携带当前 `expectedVersion`；成功更新版本加一。重复提交已处于目标状态的上下架请求返回当前对象，不增加版本。`freeze_at` 初始化为开售时间，修改开售时间时只可能提前；达到冻结时间后，场次时间、票档名称、价格、容量不能修改，也不能追加票档。任一场次冻结后，活动城市和场地不能修改。
+
+公开活动列表支持 `keyword`、`city`、`category` 组合筛选，关键词中的 `%`、`_` 按字面匹配。列表按活动 ID 降序，子资源按 ID 升序，结果为 `{items,page,size,total}`。后台活动列表支持 `status`、`keyword`。场次与票档的 `saleStatus` 按 `NOT_ON_SALE`、`SALE_NOT_STARTED`、`SALE_ENDED`、`SOLD_OUT`、`ON_SALE` 的优先级计算；场次以全部票档可售量判断是否售罄。
+
 ## 3. 错误码
 
 | HTTP | code | 说明 |
@@ -68,8 +90,10 @@ Authorization: Bearer <JWT>
 | 400 | VALIDATION_ERROR | 参数或未知 JSON 字段不合法 |
 | 401 | BAD_CREDENTIALS | 登录失败 |
 | 401 | UNAUTHENTICATED | 受保护接口认证失败 |
-| 403 | FORBIDDEN | 普通用户不能访问管理员路径；管理业务接口尚未实现 |
+| 403 | FORBIDDEN | 普通用户不能访问管理员路径 |
 | 409 | USERNAME_EXISTS | 账号已存在 |
+| 409 | VERSION_CONFLICT / CONFIG_FROZEN | 管理资源版本过期或关键配置已冻结 |
+| 409 | INCOMPLETE_CATALOG / TIER_NAME_EXISTS | 发布缺少完整场次、票档或票档名称重复 |
 | 503 | TEMPORARILY_UNAVAILABLE | 数据访问暂不可用 |
 | 500 | INTERNAL_ERROR | 内部错误 |
 
