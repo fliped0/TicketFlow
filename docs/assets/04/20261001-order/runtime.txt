@@ -1,0 +1,9 @@
+Apache Maven 3.9.12 (848fbb4bf2d427b72bdb2471c22fced7ebd9a7a1)
+Maven home: D:\develop\apache-maven-3.9.12
+Java version: 17, vendor: Oracle Corporation, runtime: D:\develop\Java\jdk-17
+Default locale: zh_CN, platform encoding: GBK
+OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
+mysql_version	test_database
+8.0.45	ticketflow_test
+version	success
+1	1

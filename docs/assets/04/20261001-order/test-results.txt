@@ -1,0 +1,24 @@
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.config.AdminInitializerTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.999 s -- in com.ticketflow.config.AdminInitializerTest
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.service.AccountRulesTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.ticketflow.service.AccountRulesTest
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.service.IdentityServiceTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 s -- in com.ticketflow.service.IdentityServiceTest
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.service.OrderPolicyTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in com.ticketflow.service.OrderPolicyTest
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.IdentityIntegrationIT
+-------------------------------------------------------------------------------
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.41 s -- in com.ticketflow.IdentityIntegrationIT
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.OrderIntegrationIT
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.77 s -- in com.ticketflow.OrderIntegrationIT

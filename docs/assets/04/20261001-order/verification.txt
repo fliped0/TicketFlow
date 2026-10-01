@@ -1,0 +1,75 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ---------------------< com.ticketflow:ticketflow >----------------------
+[INFO] Building TicketFlow 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- clean:3.5.0:clean (default-clean) @ ticketflow ---
+[INFO] Deleting D:\develop\TicketFlow\backend\target
+[INFO]
+[INFO] --- resources:3.5.0:resources (default-resources) @ ticketflow ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO]
+[INFO] --- compiler:3.15.0:compile (default-compile) @ ticketflow ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 42 source files with javac [debug parameters release 17] to target\classes
+[INFO]
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ ticketflow ---
+[INFO] skip non existing resourceDirectory D:\develop\TicketFlow\backend\src\test\resources
+[INFO]
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ ticketflow ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 6 source files with javac [debug parameters release 17] to target\test-classes
+[INFO]
+[INFO] --- surefire:3.5.6:test (default-test) @ ticketflow ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.ticketflow.config.AdminInitializerTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.999 s -- in com.ticketflow.config.AdminInitializerTest
+[INFO] Running com.ticketflow.service.AccountRulesTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.ticketflow.service.AccountRulesTest
+[INFO] Running com.ticketflow.service.IdentityServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 s -- in com.ticketflow.service.IdentityServiceTest
+[INFO] Running com.ticketflow.service.OrderPolicyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in com.ticketflow.service.OrderPolicyTest
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO]
+[INFO] --- jar:3.5.1:jar (default-jar) @ ticketflow ---
+[INFO] Building jar: D:\develop\TicketFlow\backend\target\ticketflow-0.1.0-SNAPSHOT.jar
+[INFO]
+[INFO] --- spring-boot:4.1.1:repackage (repackage) @ ticketflow ---
+[INFO] Replacing main artifact D:\develop\TicketFlow\backend\target\ticketflow-0.1.0-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to D:\develop\TicketFlow\backend\target\ticketflow-0.1.0-SNAPSHOT.jar.original
+[INFO]
+[INFO] --- failsafe:3.5.6:integration-test (default) @ ticketflow ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.ticketflow.IdentityIntegrationIT
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.41 s -- in com.ticketflow.IdentityIntegrationIT
+[INFO] Running com.ticketflow.OrderIntegrationIT
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.77 s -- in com.ticketflow.OrderIntegrationIT
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 33, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO]
+[INFO] --- failsafe:3.5.6:verify (default) @ ticketflow ---
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  37.574 s
+[INFO] Finished at: 2026-10-01T11:07:31+08:00
+[INFO] ------------------------------------------------------------------------
