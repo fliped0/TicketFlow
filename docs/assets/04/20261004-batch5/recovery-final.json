@@ -1,0 +1,283 @@
+{
+  "runId": "b5_637809804e1b",
+  "startedAt": "2026-10-03T15:36:08.447981+00:00",
+  "environment": {
+    "os": "Windows",
+    "database": "ticketflow_test",
+    "account": "tf_test",
+    "java": "17",
+    "applicationJvm": "-Xms256m -Xmx512m",
+    "hikariMaximumPoolSize": 20,
+    "placement": "application, MySQL and HTTP load generator on the same machine",
+    "resources": "{\"CPU\":\"11th Gen Intel(R) Core(TM) i7-1195G7 @ 2.90GHz\",\"LogicalProcessors\":8,\"MemoryBytes\":16952647680}",
+    "mysql": [
+      "8.0.45",
+      "134217728",
+      "151",
+      "1",
+      "1"
+    ],
+    "storage": "{\"FriendlyName\":\"311CD0512GB\",\"MediaType\":\"SSD\",\"Size\":512110190592}"
+  },
+  "scenarios": [
+    {
+      "name": "standalone_deployment_health",
+      "passed": true,
+      "pid": 30960,
+      "healthReadySeconds": 5.053,
+      "scheduler": false
+    },
+    {
+      "name": "authenticated_users_prepared",
+      "passed": true,
+      "count": 101,
+      "registrationAndLogin": "real HTTP before all timing windows"
+    },
+    {
+      "name": "standalone_admin_publish_purchase_payment",
+      "passed": true,
+      "eventId": "2124",
+      "sessionId": "4119",
+      "tierId": "11085",
+      "orderId": "54342",
+      "traceId": "97f20abc-e952-47c3-a0b6-908ce6083e05",
+      "directory": "copied executable jar in isolated standalone directory, disposable RSA keys"
+    },
+    {
+      "name": "create_kill_before_commit",
+      "passed": true,
+      "killedPid": 30960,
+      "restart": {
+        "pid": 26024,
+        "healthReadySeconds": 5.06,
+        "scheduler": false
+      },
+      "replayed": false,
+      "orderId": "54344",
+      "traceId": "2c05df5a-49f1-4f79-b303-0cb97ecbb0c5",
+      "tierId": 11086
+    },
+    {
+      "name": "create_kill_after_commit",
+      "passed": true,
+      "killedPid": 26024,
+      "restart": {
+        "pid": 5872,
+        "healthReadySeconds": 5.102,
+        "scheduler": false
+      },
+      "replayed": true,
+      "orderId": "54345",
+      "traceId": "ac19bb2b-96f9-49d8-949c-f51a8a7da5cd",
+      "tierId": 11087
+    },
+    {
+      "name": "create_disconnect_before_commit",
+      "passed": true,
+      "killedPid": null,
+      "restart": null,
+      "replayed": false,
+      "orderId": "54347",
+      "traceId": "d703f19c-ef83-4491-aa55-28639441bd31",
+      "tierId": 11088
+    },
+    {
+      "name": "create_disconnect_commit_ack",
+      "passed": true,
+      "killedPid": null,
+      "restart": null,
+      "replayed": true,
+      "orderId": "54348",
+      "traceId": "67e9ab0c-b827-428c-8d1b-97881ce81a6b",
+      "tierId": 11089
+    },
+    {
+      "name": "pay_kill_before_commit",
+      "passed": true,
+      "killedPid": 5872,
+      "restart": {
+        "pid": 33368,
+        "healthReadySeconds": 6.298,
+        "scheduler": false
+      },
+      "replayed": false,
+      "orderId": "54349",
+      "traceId": "b0cdba23-58c6-41f3-b85f-5d9510c513a4",
+      "tierId": 11090
+    },
+    {
+      "name": "pay_kill_after_commit",
+      "passed": true,
+      "killedPid": 33368,
+      "restart": {
+        "pid": 15696,
+        "healthReadySeconds": 6.868,
+        "scheduler": false
+      },
+      "replayed": true,
+      "orderId": "54350",
+      "traceId": "d505d6f7-5a29-4e76-a87e-dbae3619ac35",
+      "tierId": 11091
+    },
+    {
+      "name": "pay_disconnect_before_commit",
+      "passed": true,
+      "killedPid": null,
+      "restart": null,
+      "replayed": false,
+      "orderId": "54351",
+      "traceId": "82c816ad-d180-402b-98c3-08a1987c3608",
+      "tierId": 11092
+    },
+    {
+      "name": "pay_disconnect_commit_ack",
+      "passed": true,
+      "killedPid": null,
+      "restart": null,
+      "replayed": true,
+      "orderId": "54352",
+      "traceId": "fe2a2df4-2b93-4874-bcef-e6473cf7d5ba",
+      "tierId": 11093
+    },
+    {
+      "name": "refund_kill_before_commit",
+      "passed": true,
+      "killedPid": 15696,
+      "restart": {
+        "pid": 12440,
+        "healthReadySeconds": 6.941,
+        "scheduler": false
+      },
+      "replayed": false,
+      "orderId": "54353",
+      "traceId": "f4b210b3-05f2-4901-b71c-a0ef67604ca3",
+      "tierId": 11094
+    },
+    {
+      "name": "refund_kill_after_commit",
+      "passed": true,
+      "killedPid": 12440,
+      "restart": {
+        "pid": 13828,
+        "healthReadySeconds": 6.896,
+        "scheduler": false
+      },
+      "replayed": true,
+      "orderId": "54354",
+      "traceId": "9b8bc6d0-adda-4d3f-9110-686fc078bf91",
+      "tierId": 11095
+    },
+    {
+      "name": "refund_disconnect_before_commit",
+      "passed": true,
+      "killedPid": null,
+      "restart": null,
+      "replayed": false,
+      "orderId": "54355",
+      "traceId": "7d74385e-5150-4577-8297-e7cb46ad8363",
+      "tierId": 11096
+    },
+    {
+      "name": "refund_disconnect_commit_ack",
+      "passed": true,
+      "killedPid": null,
+      "restart": null,
+      "replayed": true,
+      "orderId": "54356",
+      "traceId": "d621bb7a-ff1d-4662-8dbc-3ff65ab69690",
+      "tierId": 11097
+    },
+    {
+      "name": "cancel_kill_before_commit",
+      "passed": true,
+      "killedPid": 13828,
+      "restart": {
+        "pid": 2268,
+        "healthReadySeconds": 6.954,
+        "scheduler": false
+      },
+      "replayed": false,
+      "orderId": "54357",
+      "traceId": "fb688602-a862-449c-bcdd-71d1d35f9474",
+      "tierId": 11098
+    },
+    {
+      "name": "cancel_kill_after_commit",
+      "passed": true,
+      "killedPid": 2268,
+      "restart": {
+        "pid": 32376,
+        "healthReadySeconds": 6.903,
+        "scheduler": false
+      },
+      "replayed": true,
+      "orderId": "54358",
+      "traceId": "a50536e5-6587-4ba8-9279-b8e1e90da90f",
+      "tierId": 11099
+    },
+    {
+      "name": "cancel_disconnect_before_commit",
+      "passed": true,
+      "killedPid": null,
+      "restart": null,
+      "replayed": false,
+      "orderId": "54359",
+      "traceId": "c425ce8b-f094-4f94-8660-ab574862774c",
+      "tierId": 11100
+    },
+    {
+      "name": "cancel_disconnect_commit_ack",
+      "passed": true,
+      "killedPid": null,
+      "restart": null,
+      "replayed": true,
+      "orderId": "54360",
+      "traceId": "c9c61911-b636-4712-9c8a-e579b78b4a60",
+      "tierId": 11101
+    },
+    {
+      "name": "create_http_response_loss",
+      "passed": true,
+      "tierId": 11102,
+      "orderId": "54361",
+      "traceId": "5ef2d85c-6128-4d5d-8363-7d3ef22fee17"
+    },
+    {
+      "name": "pay_http_response_loss",
+      "passed": true,
+      "tierId": 11103,
+      "orderId": "54362",
+      "traceId": "a7514305-06a0-41e3-8c74-b64d72b3670e"
+    },
+    {
+      "name": "refund_http_response_loss",
+      "passed": true,
+      "tierId": 11104,
+      "orderId": "54363",
+      "traceId": "092fec6e-024a-4923-b40b-bc88188ab6e5"
+    },
+    {
+      "name": "startup_100_expired_and_poison_retry",
+      "passed": true,
+      "ready": {
+        "pid": 25828,
+        "healthReadySeconds": 12.618,
+        "scheduler": true
+      },
+      "stoppedToReadySeconds": 12.735,
+      "readyTo100ClosedSeconds": 0.053,
+      "tierId": 11105,
+      "disabledOwnerRecovered": true,
+      "duplicateScansReleaseOnce": true
+    },
+    {
+      "name": "normal_running_expiry_deadline",
+      "passed": true,
+      "orderId": 54465,
+      "tierId": 11106,
+      "expiryToClosedSeconds": 7.2523
+    }
+  ],
+  "completedAt": "2026-10-03T15:38:41.627187+00:00",
+  "passed": true
+}

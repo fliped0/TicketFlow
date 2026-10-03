@@ -1,0 +1,174 @@
+{
+  "runId": "b5_92673cc6ccbb",
+  "startedAt": "2026-10-03T16:02:19.895664+00:00",
+  "environment": {
+    "os": "Windows",
+    "database": "ticketflow_test",
+    "account": "tf_test",
+    "java": "17",
+    "applicationJvm": "-Xms256m -Xmx512m",
+    "hikariMaximumPoolSize": 20,
+    "placement": "application, MySQL and HTTP load generator on the same machine",
+    "resources": "{\"CPU\":\"11th Gen Intel(R) Core(TM) i7-1195G7 @ 2.90GHz\",\"LogicalProcessors\":8,\"MemoryBytes\":16952647680}",
+    "mysql": [
+      "8.0.45",
+      "134217728",
+      "151",
+      "1",
+      "1"
+    ],
+    "storage": "{\"FriendlyName\":\"311CD0512GB\",\"MediaType\":\"SSD\",\"Size\":512110190592}",
+    "jarSha256": "49dd3688fd072b2f8de4578d8918c65668fb2f544525c1f8172e6d3531ba0294",
+    "runnerSha256": "f158db89651f862ebf05bcaa7c37c026c7c2b041a3bfe03c1d0aeb5a9a97e9fd"
+  },
+  "scenarios": [
+    {
+      "name": "standalone_deployment_health",
+      "passed": true,
+      "pid": 32960,
+      "healthReadySeconds": 5.667,
+      "scheduler": false
+    },
+    {
+      "name": "authenticated_users_prepared",
+      "passed": true,
+      "count": 101,
+      "registrationAndLogin": "real HTTP before all timing windows"
+    },
+    {
+      "name": "standalone_admin_publish_purchase_payment",
+      "passed": true,
+      "eventId": "2540",
+      "sessionId": "4535",
+      "tierId": "11873",
+      "orderId": "54882",
+      "traceId": "736e8121-790e-4868-a2f3-e9d9164406ef",
+      "directory": "copied executable jar in isolated standalone directory, disposable RSA keys"
+    },
+    {
+      "name": "performance_corpus",
+      "passed": true,
+      "events": 1000,
+      "sessions": 3000,
+      "tiers": 9000,
+      "preparation": "direct SQL test fixtures; not counted as API success"
+    },
+    {
+      "name": "performance_query",
+      "passed": true,
+      "workers": 20,
+      "warmupSeconds": 60,
+      "measurementSeconds": 300,
+      "elapsedSeconds": 360.65,
+      "stats": {
+        "event_detail": {
+          "requests": 55016,
+          "success": 55016,
+          "businessRejections": 0,
+          "systemOrTransportErrors": 0,
+          "errorRate": 0.0,
+          "p95Ms": 39.676,
+          "meanMs": 22.538,
+          "maxMs": 190.595,
+          "requestsPerSecond": 183.387
+        },
+        "tier_list": {
+          "requests": 55018,
+          "success": 55018,
+          "businessRejections": 0,
+          "systemOrTransportErrors": 0,
+          "errorRate": 0.0,
+          "p95Ms": 41.001,
+          "meanMs": 23.738,
+          "maxMs": 158.802,
+          "requestsPerSecond": 183.393
+        },
+        "event_list": {
+          "requests": 55019,
+          "success": 55019,
+          "businessRejections": 0,
+          "systemOrTransportErrors": 0,
+          "errorRate": 0.0,
+          "p95Ms": 48.606,
+          "meanMs": 30.702,
+          "maxMs": 270.623,
+          "requestsPerSecond": 183.397
+        },
+        "session_list": {
+          "requests": 55017,
+          "success": 55017,
+          "businessRejections": 0,
+          "systemOrTransportErrors": 0,
+          "errorRate": 0.0,
+          "p95Ms": 40.974,
+          "meanMs": 24.223,
+          "maxMs": 199.349,
+          "requestsPerSecond": 183.39
+        }
+      },
+      "tradeCleanup": null
+    },
+    {
+      "name": "performance_trade",
+      "passed": true,
+      "workers": 20,
+      "warmupSeconds": 60,
+      "measurementSeconds": 300,
+      "elapsedSeconds": 405.654,
+      "stats": {
+        "pay": {
+          "requests": 44307,
+          "success": 44307,
+          "businessRejections": 0,
+          "systemOrTransportErrors": 0,
+          "errorRate": 0.0,
+          "p95Ms": 69.325,
+          "meanMs": 44.422,
+          "maxMs": 171.43,
+          "requestsPerSecond": 147.69
+        },
+        "create": {
+          "requests": 44305,
+          "success": 44305,
+          "businessRejections": 0,
+          "systemOrTransportErrors": 0,
+          "errorRate": 0.0,
+          "p95Ms": 70.906,
+          "meanMs": 45.576,
+          "maxMs": 178.422,
+          "requestsPerSecond": 147.683
+        }
+      },
+      "tradeCleanup": "full refund after each successful payment, excluded from endpoint latency samples"
+    }
+  ],
+  "lastLoad": {
+    "kind": "trade",
+    "stats": {
+      "pay": {
+        "requests": 44307,
+        "success": 44307,
+        "businessRejections": 0,
+        "systemOrTransportErrors": 0,
+        "errorRate": 0.0,
+        "p95Ms": 69.325,
+        "meanMs": 44.422,
+        "maxMs": 171.43,
+        "requestsPerSecond": 147.69
+      },
+      "create": {
+        "requests": 44305,
+        "success": 44305,
+        "businessRejections": 0,
+        "systemOrTransportErrors": 0,
+        "errorRate": 0.0,
+        "p95Ms": 70.906,
+        "meanMs": 45.576,
+        "maxMs": 178.422,
+        "requestsPerSecond": 147.683
+      }
+    }
+  },
+  "completedAt": "2026-10-03T16:15:50.078086+00:00",
+  "passed": true
+}

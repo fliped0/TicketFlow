@@ -11,3 +11,5 @@ config/local/
 *.p12
 *.jks
 *.log
+__pycache__/
+*.pyc

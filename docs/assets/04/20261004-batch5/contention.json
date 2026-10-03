@@ -1,0 +1,107 @@
+{
+  "runId": "b5_6953264e4ce3",
+  "startedAt": "2026-10-03T15:04:12.394293+00:00",
+  "environment": {
+    "os": "Windows",
+    "database": "ticketflow_test",
+    "account": "tf_test",
+    "java": "17",
+    "applicationJvm": "-Xms256m -Xmx512m",
+    "hikariMaximumPoolSize": 20,
+    "placement": "application, MySQL and HTTP load generator on the same machine",
+    "resources": "{\"CPU\":\"11th Gen Intel(R) Core(TM) i7-1195G7 @ 2.90GHz\",\"LogicalProcessors\":8,\"MemoryBytes\":16952647680}"
+  },
+  "scenarios": [
+    {
+      "name": "standalone_deployment_health",
+      "passed": true,
+      "pid": 6724,
+      "healthReadySeconds": 5.707,
+      "scheduler": false
+    },
+    {
+      "name": "authenticated_users_prepared",
+      "passed": true,
+      "count": 1000,
+      "registrationAndLogin": "real HTTP before all timing windows"
+    },
+    {
+      "name": "standalone_admin_publish_purchase_payment",
+      "passed": true,
+      "eventId": "1119",
+      "sessionId": "1114",
+      "tierId": "2080",
+      "orderId": "1179",
+      "traceId": "62b272c3-8105-4d43-acee-af330cc3ca81",
+      "directory": "copied executable jar in isolated standalone directory, disposable RSA keys"
+    },
+    {
+      "name": "contention_round_1",
+      "passed": true,
+      "users": 1000,
+      "workers": 100,
+      "capacity": 100,
+      "success": 100,
+      "soldOut": 900,
+      "peakActiveHttp": 100,
+      "initialDispatchSpanSeconds": 9.245,
+      "totalSeconds": 10.182,
+      "initialSystemOrTransportErrors": 0,
+      "attempts": 1000,
+      "tierId": 2081,
+      "traceSamples": [
+        "94665e04-e86e-47e7-a0dc-9add74f2bfb2",
+        "2374a04e-a16d-4e48-9449-0277ebcac62f",
+        "ab552698-f019-42eb-9fed-4f9f9a4b2dd1",
+        "05529b28-e9b2-4b5b-9559-e5a7075292a0",
+        "c6371642-b9d9-4112-a582-fcfc6bc2fa45"
+      ]
+    },
+    {
+      "name": "contention_round_2",
+      "passed": true,
+      "users": 1000,
+      "workers": 100,
+      "capacity": 100,
+      "success": 100,
+      "soldOut": 900,
+      "peakActiveHttp": 100,
+      "initialDispatchSpanSeconds": 8.676,
+      "totalSeconds": 9.605,
+      "initialSystemOrTransportErrors": 0,
+      "attempts": 1000,
+      "tierId": 2082,
+      "traceSamples": [
+        "f2886124-5a75-421c-a4f4-58bdf7663fc9",
+        "5b1c980d-2204-42d9-93cf-c3d04b27d2fd",
+        "d7ff9b01-13d8-4ac1-adbc-3604c293c737",
+        "223e5267-2144-4849-bc2b-ffd7b30bb161",
+        "d43a5c4b-e886-46c5-a81b-241e429be1a0"
+      ]
+    },
+    {
+      "name": "contention_round_3",
+      "passed": true,
+      "users": 1000,
+      "workers": 100,
+      "capacity": 100,
+      "success": 100,
+      "soldOut": 900,
+      "peakActiveHttp": 100,
+      "initialDispatchSpanSeconds": 8.446,
+      "totalSeconds": 9.386,
+      "initialSystemOrTransportErrors": 0,
+      "attempts": 1000,
+      "tierId": 2083,
+      "traceSamples": [
+        "80cfd2f5-0a21-4ce8-a6ec-13ac7e6cee2f",
+        "eb7f3288-00c5-41b8-9a6c-6f52525bf79b",
+        "34caaa66-8911-495f-826b-307051bcae5a",
+        "c9934d91-0e65-4d10-828b-e5ed9dee3990",
+        "047595b7-a166-4782-898c-51dd75e7440d"
+      ]
+    }
+  ],
+  "completedAt": "2026-10-03T15:06:22.867204+00:00",
+  "passed": true
+}

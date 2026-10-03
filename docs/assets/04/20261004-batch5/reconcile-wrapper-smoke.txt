@@ -1,0 +1,6 @@
+Entry: pwsh -NoProfile -File scripts/reconcile.ps1 -Mode test -TierId 20874 -MysqlPath <local mysql.exe>
+Exit code: 0
+database_name observed_at tier_scope
+ticketflow_test 2026-10-03 16:28:25.045012 20874
+No difference rows; delivered PowerShell wrapper ran the read-only SQL successfully.
+No credentials or private keys included.

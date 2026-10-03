@@ -1,0 +1,48 @@
+[
+  {
+    "endpoint": "event_detail",
+    "rows": 55016,
+    "nearestRankP95Ms": 39.6761,
+    "errors": 0
+  },
+  {
+    "endpoint": "tier_list",
+    "rows": 55018,
+    "nearestRankP95Ms": 41.0006,
+    "errors": 0
+  },
+  {
+    "endpoint": "event_list",
+    "rows": 55019,
+    "nearestRankP95Ms": 48.6058,
+    "errors": 0
+  },
+  {
+    "endpoint": "session_list",
+    "rows": 55017,
+    "nearestRankP95Ms": 40.974,
+    "errors": 0
+  },
+  {
+    "sampleFile": "query-samples.csv.gz",
+    "uncompressedSha256": "7f8b790481df4757f59a68a493f63609fec1e0a4cdcdfc1390698bfd88f78f8d",
+    "bytes": 6081560
+  },
+  {
+    "endpoint": "pay",
+    "rows": 44307,
+    "nearestRankP95Ms": 69.3251,
+    "errors": 0
+  },
+  {
+    "endpoint": "create",
+    "rows": 44305,
+    "nearestRankP95Ms": 70.9062,
+    "errors": 0
+  },
+  {
+    "sampleFile": "trade-samples.csv.gz",
+    "uncompressedSha256": "86bf96ae2a83396831c464266f3aa0d345f01d3cd57ba4161c428acb83b5dd0c",
+    "bytes": 1896092
+  }
+]

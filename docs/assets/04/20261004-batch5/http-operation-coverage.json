@@ -1,0 +1,294 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/register",
+    "operationId": "register",
+    "observedStatuses": [
+      201,
+      400,
+      409
+    ],
+    "successTraceId": "b5e5c973-5e18-4223-91fb-01ee4fa1fe10"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/login",
+    "operationId": "login",
+    "observedStatuses": [
+      200,
+      401
+    ],
+    "successTraceId": "ead53290-63ba-4e61-ae24-26dcc7d0d386"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/users/me",
+    "operationId": "currentUser",
+    "observedStatuses": [
+      200,
+      401
+    ],
+    "successTraceId": "62bf538d-ec91-4b36-9180-ff19c47031a7"
+  },
+  {
+    "method": "GET",
+    "path": "/actuator/health",
+    "operationId": "health",
+    "observedStatuses": [
+      200
+    ],
+    "successTraceId": "bb4af5cb-ead9-4143-9c7a-1c7694cb6dd9"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/events",
+    "operationId": "listEvents",
+    "observedStatuses": [
+      200,
+      400
+    ],
+    "successTraceId": "b0837506-68d3-4f9c-befd-67e9f4974c3d"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/events/{id}",
+    "operationId": "getEvent",
+    "observedStatuses": [
+      200,
+      404
+    ],
+    "successTraceId": "7443879f-2971-4d00-b129-72ac76edf9c2"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/events/{id}/sessions",
+    "operationId": "listEventSessions",
+    "observedStatuses": [
+      200,
+      404
+    ],
+    "successTraceId": "5b6b1502-d022-4c11-86ae-a3d72845d92d"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/sessions/{id}/tiers",
+    "operationId": "listSessionTiers",
+    "observedStatuses": [
+      200,
+      404
+    ],
+    "successTraceId": "eec8210f-a490-4e39-ad8e-a86a6c388658"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/events",
+    "operationId": "createEvent",
+    "observedStatuses": [
+      201,
+      403
+    ],
+    "successTraceId": "4cd5aa44-16ac-4437-9334-c23aff67acf5"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/events",
+    "operationId": "listAdminEvents",
+    "observedStatuses": [
+      200,
+      401,
+      403
+    ],
+    "successTraceId": "9abeda68-be14-43e1-9999-a0421c9e1aa9"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/events/{id}",
+    "operationId": "updateEvent",
+    "observedStatuses": [
+      200,
+      409
+    ],
+    "successTraceId": "4c3508ac-fe6b-45c0-8de3-dad9d6bc5ed6"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/events/{id}",
+    "operationId": "getAdminEvent",
+    "observedStatuses": [
+      200
+    ],
+    "successTraceId": "6e7f3e13-b048-4297-8be6-62329a318c97"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/events/{id}/status",
+    "operationId": "setEventStatus",
+    "observedStatuses": [
+      200,
+      409
+    ],
+    "successTraceId": "02e8fca6-a8ac-4c93-8c6c-8cd67c8ea8aa"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/events/{id}/sessions",
+    "operationId": "createSession",
+    "observedStatuses": [
+      201,
+      400,
+      409
+    ],
+    "successTraceId": "da3f74f8-6fc9-4fec-a5dd-a6d2e22dfeac"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/events/{id}/sessions",
+    "operationId": "listAdminSessions",
+    "observedStatuses": [
+      200
+    ],
+    "successTraceId": "5bc2e44b-7d48-4dde-adad-84483d4ad59a"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/sessions/{id}",
+    "operationId": "updateSession",
+    "observedStatuses": [
+      200
+    ],
+    "successTraceId": "0ce8dcd9-6fe6-4519-bafe-bcbeef0317c0"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/sessions/{id}/tiers",
+    "operationId": "createTier",
+    "observedStatuses": [
+      201
+    ],
+    "successTraceId": "ca2a6375-5e11-4292-bc34-3429aa09dda6"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/sessions/{id}/tiers",
+    "operationId": "listAdminTiers",
+    "observedStatuses": [
+      200
+    ],
+    "successTraceId": "bd9d3e73-b694-4c89-8d9d-fd974d3538af"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/tiers/{id}",
+    "operationId": "updateTier",
+    "observedStatuses": [
+      200,
+      409
+    ],
+    "successTraceId": "623e70f8-c5b8-4188-806b-e5212715e600"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/orders",
+    "operationId": "createOrder",
+    "observedStatuses": [
+      201,
+      400,
+      401,
+      404,
+      409,
+      500,
+      503
+    ],
+    "successTraceId": "13c7d6ee-37e9-4f94-b010-b23d49816a78"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/orders",
+    "operationId": "listMyOrders",
+    "observedStatuses": [
+      200,
+      400,
+      401
+    ],
+    "successTraceId": "4731a024-f361-48c8-8110-fbe35949016a"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/orders/{orderId}",
+    "operationId": "getMyOrder",
+    "observedStatuses": [
+      200,
+      400,
+      404
+    ],
+    "successTraceId": "9eb3f7c1-0c28-4621-a2d7-efb239431807"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/orders/{orderId}/cancel",
+    "operationId": "cancelOrder",
+    "observedStatuses": [
+      200,
+      400,
+      401,
+      404,
+      409,
+      500
+    ],
+    "successTraceId": "ef169659-a312-48cd-93ee-ee68aab59d49"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/orders/{orderId}/payments",
+    "operationId": "payOrder",
+    "observedStatuses": [
+      200,
+      400,
+      401,
+      404,
+      409,
+      422,
+      500
+    ],
+    "successTraceId": "dbd5894b-f712-48f5-8854-f1395072a67a"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/orders/{orderId}/refunds",
+    "operationId": "refundOrder",
+    "observedStatuses": [
+      200,
+      400,
+      401,
+      404,
+      409,
+      422,
+      500
+    ],
+    "successTraceId": "e2415a31-b4c0-49f3-843b-5aafda77e99a"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/orders",
+    "operationId": "listAdminOrders",
+    "observedStatuses": [
+      200,
+      400,
+      401,
+      403
+    ],
+    "successTraceId": "9aed4f82-91ee-45ae-bf2f-f140e84416be"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/statistics",
+    "operationId": "adminStatistics",
+    "observedStatuses": [
+      200,
+      400,
+      401,
+      403
+    ],
+    "successTraceId": "87c2a09d-7ea5-4ed7-a0bd-b1bdb7d607be"
+  }
+]

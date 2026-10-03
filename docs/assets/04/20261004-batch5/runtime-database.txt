@@ -1,0 +1,6 @@
+VERSION DATABASE CURRENT_USER UTC_TIMESTAMP
+8.0.45	ticketflow_test	tf_test@localhost	2026-10-03 16:20:21.775182
+1	SQL	V1__init_schema.sql	1675969528	1
+12
+
+Original tf_* table count is 12; prefixed empty migration namespaces are retained.

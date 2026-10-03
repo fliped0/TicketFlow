@@ -1,6 +1,6 @@
 # TicketFlow 接口文档
 
-版本 0.4.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录、幂等下单、场次限购、库存占用、主动取消、模拟支付、到期关闭、模拟退款、本人订单查询和健康检查。真实支付、Redis、MQ 和管理统计留到后续批次。
+版本 0.5.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录、订单生命周期、本人订单查询、管理员订单查询与统计和健康检查，共 27 个 HTTP 操作。支付和退款为本地模拟。
 
 [OpenAPI 3.1 JSON](openapi.json) 可导入 Apifox / Postman。当前不提供在线 Swagger UI。
 
@@ -32,6 +32,8 @@ JWT 使用 RS256，有效期 1800 秒，验证签名、issuer、audience、exp�
 | POST/PUT | /api/v1/admin/events/{id}/sessions、/api/v1/admin/sessions/{id} | ADMIN | 创建及更新时间配置 |
 | POST/PUT | /api/v1/admin/sessions/{id}/tiers、/api/v1/admin/tiers/{id} | ADMIN | 创建及更新票档和容量 |
 | GET | /api/v1/admin/events、/api/v1/admin/events/{id}、/api/v1/admin/events/{id}/sessions、/api/v1/admin/sessions/{id}/tiers | ADMIN | 草稿与下架可见的后台查询 |
+| GET | /api/v1/admin/orders | ADMIN | 全量订单分页，附 userId、支付及退款记录 |
+| GET | /api/v1/admin/statistics | ADMIN | 期间订单数、支付额、退款额和交易净额 |
 
 ### 2.1 注册
 
@@ -153,6 +155,20 @@ Content-Type: application/json
 
 关单先定位所属用户，再按用户、订单、资格、库存顺序锁定，重新取时，只将到期 PENDING 转 CLOSED。账号禁用不妨碍回收；支付、取消或其他关单已先完成时跳过。状态、RELEASE 流水、库存及资格共同提交。测试可设置 `ticketflow.expiry.enabled=false` 隔离自动调度；正常运行默认启用。
 
+### 2.8 管理员订单与统计
+
+`GET /api/v1/admin/orders` 支持 orderId、sessionId、status、from、to、page、size。ID 为正 BIGINT 十进制字符串；status 沿用五种订单状态。按订单 ID 降序，返回 `{items,page,size,total}`；每项为 OrderDetail 增加 userId，且包含完整支付、退款记录。from/to 可分别提供，按创建时间下界包含、上界排除；同时提供须 from < to。订单行、交易记录及总数来自同一只读 REPEATABLE READ 快照。
+
+`GET /api/v1/admin/statistics?from=2026-10-01T00:00:00Z&to=2026-10-02T00:00:00Z` 要求两项时间均提供，from < to，区间最长 31 天。时间须带时区，精度不超过微秒，年份为 MySQL DATETIME 支持的 1000—9999；输出归一 UTC。区间为 `[from,to)`，订单数按 created_at、支付额按 paid_at、退款额按 refunded_at 聚合，三项来自同一只读快照。金额单位为分，使用整数。
+
+```json
+{"from":"2026-10-01T00:00:00Z","to":"2026-10-02T00:00:00Z","orderCount":1,"paidAmountFen":58000,"refundAmountFen":0,"netAmountFen":58000,"orderTimeBasis":"created_at","paymentTimeBasis":"paid_at","refundTimeBasis":"refunded_at"}
+```
+
+netAmountFen 为该期间支付额减退款额，可为负数；不是按订单创建日期归属的销售收入。取消或退款不会删减历史订单数，退款后的成功支付仍计入原支付发生区间。普通用户 403、未登录或禁用账号 401；查询不要求幂等头。
+
+只读对账为运维命令，不新增 HTTP 接口，使用方法见[部署与运维](../05_部署与运维.md)。
+
 ## 3. 错误码
 
 | HTTP | code | 说明 |
@@ -186,3 +202,5 @@ Content-Type: application/json
 2026-10-01 批次 3 使用 TradeController → OrderApplicationService / TradeExecutor → JdbcTemplate Mapper。交易使用单个事务管理器与 READ COMMITTED，协作者不另开事务，保存点由 TransactionStatus 控制。未修改既有 Flyway V1。
 
 2026-10-03 批次 4 扩展既有应用服务与执行器，新增 PaymentMapper、PaymentSimulator、OrderExpiryJob。系统内部事务不要求请求键和 enabled，但仍要求所属用户存在并取得锁。订单详情使用只读 REPEATABLE READ，避免将不同瞬间的状态和支付/退款记录混在一个响应中。既有 Flyway V1 未修改。
+
+2026-10-04 批次 5 新增 AdminOrderController → AdminOrderService → AdminOrderMapper，采用 JdbcTemplate 与只读 REPEATABLE READ。TraceFilter 记录 traceId、方法、路径、HTTP 状态、结果分类和耗时；不记录请求体、查询参数、密码或令牌。既有 Flyway V1 不变。

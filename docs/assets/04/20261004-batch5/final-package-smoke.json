@@ -1,0 +1,58 @@
+{
+  "runId": "b5_0dedd1956306",
+  "startedAt": "2026-10-03T15:52:56.640630+00:00",
+  "environment": {
+    "os": "Windows",
+    "database": "ticketflow_test",
+    "account": "tf_test",
+    "java": "17",
+    "applicationJvm": "-Xms256m -Xmx512m",
+    "hikariMaximumPoolSize": 20,
+    "placement": "application, MySQL and HTTP load generator on the same machine",
+    "resources": "{\"CPU\":\"11th Gen Intel(R) Core(TM) i7-1195G7 @ 2.90GHz\",\"LogicalProcessors\":8,\"MemoryBytes\":16952647680}",
+    "mysql": [
+      "8.0.45",
+      "134217728",
+      "151",
+      "1",
+      "1"
+    ],
+    "storage": "{\"FriendlyName\":\"311CD0512GB\",\"MediaType\":\"SSD\",\"Size\":512110190592}",
+    "jarSha256": "49dd3688fd072b2f8de4578d8918c65668fb2f544525c1f8172e6d3531ba0294",
+    "runnerSha256": "f158db89651f862ebf05bcaa7c37c026c7c2b041a3bfe03c1d0aeb5a9a97e9fd"
+  },
+  "scenarios": [
+    {
+      "name": "standalone_deployment_health",
+      "passed": true,
+      "pid": 24056,
+      "healthReadySeconds": 5.095,
+      "scheduler": false
+    },
+    {
+      "name": "authenticated_users_prepared",
+      "passed": true,
+      "count": 101,
+      "registrationAndLogin": "real HTTP before all timing windows"
+    },
+    {
+      "name": "standalone_admin_publish_purchase_payment",
+      "passed": true,
+      "eventId": "2538",
+      "sessionId": "4533",
+      "tierId": "11871",
+      "orderId": "54880",
+      "traceId": "37bb551c-08d9-49d9-9e36-e5ece699f246",
+      "directory": "copied executable jar in isolated standalone directory, disposable RSA keys"
+    },
+    {
+      "name": "normal_running_expiry_deadline",
+      "passed": true,
+      "orderId": 54881,
+      "tierId": 11872,
+      "expiryToClosedSeconds": 7.2372
+    }
+  ],
+  "completedAt": "2026-10-03T15:53:52.124622+00:00",
+  "passed": true
+}

@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "TicketFlow API",
-    "version": "0.4.0",
-    "description": "已实现认证、目录、幂等下单、取消、模拟支付、到期关闭、模拟退款与本人订单查询；真实支付、Redis、MQ 和管理统计留后续批次。"
+    "version": "0.5.0",
+    "description": "已实现认证、目录、订单生命周期、管理员订单查询与统计；模拟支付退款，无外部支付渠道。"
   },
   "servers": [
     {
@@ -2026,6 +2026,260 @@
           }
         }
       }
+    },
+    "/api/v1/admin/orders": {
+      "get": {
+        "operationId": "listAdminOrders",
+        "summary": "管理员查询全量订单",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "PAID",
+                "CANCELLED",
+                "CLOSED",
+                "REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "带时区，精度不超过微秒；归一为 UTC"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "带时区，精度不超过微秒；归一为 UTC"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "全量订单分页，空结果 items=[]",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "要求当前账号为启用 ADMIN。按订单 ID 降序；from/to 可分别提供，按创建时间 [from,to) 筛选，两者齐备时必须 from<to。列表与总数采用同一只读一致快照，含 userId 与支付退款记录。"
+      }
+    },
+    "/api/v1/admin/statistics": {
+      "get": {
+        "operationId": "adminStatistics",
+        "summary": "管理员查询期间交易统计",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "带时区，精度不超过微秒；归一为 UTC"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "带时区，精度不超过微秒；归一为 UTC"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "期间交易统计与三个时间口径",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "from/to 必填，from<to，最长31天。[from,to) 内按 created_at 计订单数、paid_at 计支付额、refunded_at 计退款额；同一只读 REPEATABLE READ 快照。netAmountFen 是期间支付减退款，可为负数，不是会计收入。"
+      }
     }
   },
   "components": {
@@ -3238,6 +3492,240 @@
         "additionalProperties": false,
         "required": [],
         "properties": {}
+      },
+      "AdminOrder": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "orderId",
+          "userId",
+          "status",
+          "quantity",
+          "unitPriceFen",
+          "amountFen",
+          "snapshot",
+          "createdAt",
+          "expiresAt",
+          "payment",
+          "refund"
+        ],
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PAID",
+              "CANCELLED",
+              "CLOSED",
+              "REFUNDED"
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "const": 1
+          },
+          "unitPriceFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "amountFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/OrderSnapshot"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          },
+          "payment": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Payment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "refund": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Refund"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          }
+        }
+      },
+      "AdminOrderPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "page",
+          "size",
+          "total"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrder"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "Statistics": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from",
+          "to",
+          "orderCount",
+          "paidAmountFen",
+          "refundAmountFen",
+          "netAmountFen",
+          "orderTimeBasis",
+          "paymentTimeBasis",
+          "refundTimeBasis"
+        ],
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "paidAmountFen": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "refundAmountFen": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "netAmountFen": {
+            "type": "integer",
+            "format": "int64",
+            "description": "期间支付额减退款额，可为负数"
+          },
+          "orderTimeBasis": {
+            "type": "string",
+            "const": "created_at"
+          },
+          "paymentTimeBasis": {
+            "type": "string",
+            "const": "paid_at"
+          },
+          "refundTimeBasis": {
+            "type": "string",
+            "const": "refunded_at"
+          }
+        }
+      },
+      "AdminOrderPageResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "OK"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AdminOrderPage"
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StatisticsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "OK"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Statistics"
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }

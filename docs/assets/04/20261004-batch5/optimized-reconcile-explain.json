@@ -1,0 +1,705 @@
+{
+  "query_block": {
+    "union_result": {
+      "using_temporary_table": true,
+      "select_id": 21,
+      "table_name": "<union1,6,7,9,11,14,16>",
+      "access_type": "ALL",
+      "using_filesort": true,
+      "query_specifications": [
+        {
+          "dependent": false,
+          "cacheable": true,
+          "query_block": {
+            "select_id": 1,
+            "message": "Impossible WHERE noticed after reading const tables",
+            "optimized_away_subqueries": [
+              {
+                "dependent": true,
+                "cacheable": false,
+                "query_block": {
+                  "select_id": 4,
+                  "cost_info": {
+                    "query_cost": "3.50"
+                  },
+                  "table": {
+                    "table_name": "o",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "<auto_key0>"
+                    ],
+                    "key": "<auto_key0>",
+                    "used_key_parts": [
+                      "tier_id",
+                      "status"
+                    ],
+                    "key_length": "74",
+                    "ref": [
+                      "const",
+                      "const"
+                    ],
+                    "rows_examined_per_scan": 10,
+                    "rows_produced_per_join": 10,
+                    "filtered": "100.00",
+                    "cost_info": {
+                      "read_cost": "2.50",
+                      "eval_cost": "1.00",
+                      "prefix_cost": "3.50",
+                      "data_read_per_join": "1K"
+                    },
+                    "used_columns": [
+                      "id",
+                      "user_id",
+                      "session_id",
+                      "tier_id",
+                      "status",
+                      "quantity",
+                      "unit_price_fen",
+                      "amount_fen",
+                      "snapshot",
+                      "starts_at",
+                      "expires_at",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "materialized_from_subquery": {
+                      "sharing_temporary_table_with": {
+                        "select_id": 3
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "dependent": true,
+                "cacheable": false,
+                "query_block": {
+                  "select_id": 2,
+                  "cost_info": {
+                    "query_cost": "3.50"
+                  },
+                  "table": {
+                    "table_name": "o",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "<auto_key0>"
+                    ],
+                    "key": "<auto_key0>",
+                    "used_key_parts": [
+                      "tier_id",
+                      "status"
+                    ],
+                    "key_length": "74",
+                    "ref": [
+                      "const",
+                      "const"
+                    ],
+                    "rows_examined_per_scan": 10,
+                    "rows_produced_per_join": 10,
+                    "filtered": "100.00",
+                    "cost_info": {
+                      "read_cost": "2.50",
+                      "eval_cost": "1.00",
+                      "prefix_cost": "3.50",
+                      "data_read_per_join": "1K"
+                    },
+                    "used_columns": [
+                      "id",
+                      "user_id",
+                      "session_id",
+                      "tier_id",
+                      "status",
+                      "quantity",
+                      "unit_price_fen",
+                      "amount_fen",
+                      "snapshot",
+                      "starts_at",
+                      "expires_at",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "materialized_from_subquery": {
+                      "using_temporary_table": true,
+                      "dependent": false,
+                      "cacheable": true,
+                      "query_block": {
+                        "select_id": 3,
+                        "cost_info": {
+                          "query_cost": "920.50"
+                        },
+                        "table": {
+                          "table_name": "tf_order",
+                          "access_type": "ref",
+                          "possible_keys": [
+                            "tier_id"
+                          ],
+                          "key": "tier_id",
+                          "used_key_parts": [
+                            "tier_id"
+                          ],
+                          "key_length": "8",
+                          "ref": [
+                            "const"
+                          ],
+                          "rows_examined_per_scan": 2630,
+                          "rows_produced_per_join": 2630,
+                          "filtered": "100.00",
+                          "cost_info": {
+                            "read_cost": "657.50",
+                            "eval_cost": "263.00",
+                            "prefix_cost": "920.50",
+                            "data_read_per_join": "431K"
+                          },
+                          "used_columns": [
+                            "id",
+                            "user_id",
+                            "session_id",
+                            "tier_id",
+                            "status",
+                            "quantity",
+                            "unit_price_fen",
+                            "amount_fen",
+                            "snapshot",
+                            "starts_at",
+                            "expires_at",
+                            "created_at",
+                            "updated_at"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "dependent": false,
+          "cacheable": true,
+          "query_block": {
+            "select_id": 6,
+            "message": "Impossible WHERE noticed after reading const tables"
+          }
+        },
+        {
+          "dependent": false,
+          "cacheable": true,
+          "query_block": {
+            "select_id": 7,
+            "cost_info": {
+              "query_cost": "1900.04"
+            },
+            "nested_loop": [
+              {
+                "table": {
+                  "table_name": "o",
+                  "access_type": "ALL",
+                  "rows_examined_per_scan": 2630,
+                  "rows_produced_per_join": 2209,
+                  "filtered": "84.00",
+                  "cost_info": {
+                    "read_cost": "77.46",
+                    "eval_cost": "220.92",
+                    "prefix_cost": "298.38",
+                    "data_read_per_join": "362K"
+                  },
+                  "used_columns": [
+                    "id",
+                    "user_id",
+                    "session_id",
+                    "tier_id",
+                    "status",
+                    "quantity",
+                    "unit_price_fen",
+                    "amount_fen",
+                    "snapshot",
+                    "starts_at",
+                    "expires_at",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "attached_condition": "((`o`.`status` in ('PENDING','PAID')) or (`o`.`status` not in ('PENDING','PAID')))",
+                  "materialized_from_subquery": {
+                    "sharing_temporary_table_with": {
+                      "select_id": 3
+                    }
+                  }
+                }
+              },
+              {
+                "table": {
+                  "table_name": "s",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "uk_slot_order",
+                    "order_id"
+                  ],
+                  "key": "uk_slot_order",
+                  "used_key_parts": [
+                    "order_id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "o.id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 2209,
+                  "filtered": "100.00",
+                  "using_index": true,
+                  "cost_info": {
+                    "read_cost": "1380.75",
+                    "eval_cost": "220.92",
+                    "prefix_cost": "1900.04",
+                    "data_read_per_join": "69K"
+                  },
+                  "used_columns": [
+                    "user_id",
+                    "session_id",
+                    "order_id"
+                  ],
+                  "attached_condition": "<if>(found_match(s), (((`o`.`status` in ('PENDING','PAID')) and ((`ticketflow_test`.`s`.`order_id` is null) or (`ticketflow_test`.`s`.`user_id` <> `o`.`user_id`) or (`ticketflow_test`.`s`.`session_id` <> `o`.`session_id`))) or ((`o`.`status` not in ('PENDING','PAID')) and (`ticketflow_test`.`s`.`order_id` is not null))), true)"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "dependent": false,
+          "cacheable": true,
+          "query_block": {
+            "select_id": 9,
+            "cost_info": {
+              "query_cost": "3824.80"
+            },
+            "nested_loop": [
+              {
+                "table": {
+                  "table_name": "o",
+                  "access_type": "ALL",
+                  "rows_examined_per_scan": 2630,
+                  "rows_produced_per_join": 2592,
+                  "filtered": "98.56",
+                  "cost_info": {
+                    "read_cost": "39.16",
+                    "eval_cost": "259.21",
+                    "prefix_cost": "298.38",
+                    "data_read_per_join": "425K"
+                  },
+                  "used_columns": [
+                    "id",
+                    "user_id",
+                    "session_id",
+                    "tier_id",
+                    "status",
+                    "quantity",
+                    "unit_price_fen",
+                    "amount_fen",
+                    "snapshot",
+                    "starts_at",
+                    "expires_at",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "attached_condition": "((`o`.`status` in ('PAID','REFUNDED')) or (`o`.`status` not in ('PAID','REFUNDED')) or (`o`.`status` = 'REFUNDED') or (`o`.`status` <> 'REFUNDED'))",
+                  "materialized_from_subquery": {
+                    "sharing_temporary_table_with": {
+                      "select_id": 3
+                    }
+                  }
+                }
+              },
+              {
+                "table": {
+                  "table_name": "p",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "uk_payment_order"
+                  ],
+                  "key": "uk_payment_order",
+                  "used_key_parts": [
+                    "order_id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "o.id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 2592,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "1531.71",
+                    "eval_cost": "259.21",
+                    "prefix_cost": "2089.30",
+                    "data_read_per_join": "101K"
+                  },
+                  "used_columns": [
+                    "id",
+                    "order_id",
+                    "amount_fen"
+                  ],
+                  "attached_condition": "<if>(found_match(p), (((`o`.`status` in ('PAID','REFUNDED')) and ((`ticketflow_test`.`p`.`id` is null) or (`ticketflow_test`.`p`.`amount_fen` <> `o`.`amount_fen`))) or ((`o`.`status` not in ('PAID','REFUNDED')) and (`ticketflow_test`.`p`.`id` is not null)) or (`o`.`status` = 'REFUNDED') or (`o`.`status` <> 'REFUNDED')), true)"
+                }
+              },
+              {
+                "table": {
+                  "table_name": "r",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "uk_refund_order"
+                  ],
+                  "key": "uk_refund_order",
+                  "used_key_parts": [
+                    "order_id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "o.id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 2592,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "1476.29",
+                    "eval_cost": "259.21",
+                    "prefix_cost": "3824.80",
+                    "data_read_per_join": "101K"
+                  },
+                  "used_columns": [
+                    "id",
+                    "order_id",
+                    "amount_fen"
+                  ],
+                  "attached_condition": "<if>(found_match(r), (((`o`.`status` in ('PAID','REFUNDED')) and ((`ticketflow_test`.`p`.`id` is null) or (`ticketflow_test`.`p`.`amount_fen` <> `o`.`amount_fen`))) or ((`o`.`status` not in ('PAID','REFUNDED')) and (`ticketflow_test`.`p`.`id` is not null)) or ((`o`.`status` = 'REFUNDED') and ((`ticketflow_test`.`r`.`id` is null) or (`ticketflow_test`.`r`.`amount_fen` <> `o`.`amount_fen`))) or ((`o`.`status` <> 'REFUNDED') and (`ticketflow_test`.`r`.`id` is not null))), true)"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "dependent": false,
+          "cacheable": true,
+          "query_block": {
+            "select_id": 11,
+            "cost_info": {
+              "query_cost": "645.89"
+            },
+            "table": {
+              "table_name": "ledger",
+              "access_type": "ALL",
+              "rows_examined_per_scan": 5719,
+              "rows_produced_per_join": 5719,
+              "filtered": "100.00",
+              "cost_info": {
+                "read_cost": "73.99",
+                "eval_cost": "571.90",
+                "prefix_cost": "645.89",
+                "data_read_per_join": "714K"
+              },
+              "used_columns": [
+                "id",
+                "status",
+                "reserves",
+                "pays",
+                "releases",
+                "refunds"
+              ],
+              "materialized_from_subquery": {
+                "using_temporary_table": true,
+                "dependent": false,
+                "cacheable": true,
+                "query_block": {
+                  "select_id": 12,
+                  "cost_info": {
+                    "query_cost": "2682.65"
+                  },
+                  "grouping_operation": {
+                    "using_temporary_table": true,
+                    "using_filesort": false,
+                    "nested_loop": [
+                      {
+                        "table": {
+                          "table_name": "o",
+                          "access_type": "ALL",
+                          "rows_examined_per_scan": 2630,
+                          "rows_produced_per_join": 2630,
+                          "filtered": "100.00",
+                          "cost_info": {
+                            "read_cost": "35.38",
+                            "eval_cost": "263.00",
+                            "prefix_cost": "298.38",
+                            "data_read_per_join": "431K"
+                          },
+                          "used_columns": [
+                            "id",
+                            "user_id",
+                            "session_id",
+                            "tier_id",
+                            "status",
+                            "quantity",
+                            "unit_price_fen",
+                            "amount_fen",
+                            "snapshot",
+                            "starts_at",
+                            "expires_at",
+                            "created_at",
+                            "updated_at"
+                          ],
+                          "materialized_from_subquery": {
+                            "sharing_temporary_table_with": {
+                              "select_id": 3
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "table": {
+                          "table_name": "l",
+                          "access_type": "ref",
+                          "possible_keys": [
+                            "uk_stock_movement"
+                          ],
+                          "key": "uk_stock_movement",
+                          "used_key_parts": [
+                            "order_id"
+                          ],
+                          "key_length": "8",
+                          "ref": [
+                            "o.id"
+                          ],
+                          "rows_examined_per_scan": 2,
+                          "rows_produced_per_join": 5719,
+                          "filtered": "100.00",
+                          "using_index": true,
+                          "cost_info": {
+                            "read_cost": "1812.37",
+                            "eval_cost": "571.91",
+                            "prefix_cost": "2682.65",
+                            "data_read_per_join": "580K"
+                          },
+                          "used_columns": [
+                            "id",
+                            "order_id",
+                            "movement"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "dependent": false,
+          "cacheable": true,
+          "query_block": {
+            "select_id": 14,
+            "cost_info": {
+              "query_cost": "298.37"
+            },
+            "table": {
+              "table_name": "scoped_orders",
+              "access_type": "ALL",
+              "rows_examined_per_scan": 2630,
+              "rows_produced_per_join": 2630,
+              "filtered": "100.00",
+              "cost_info": {
+                "read_cost": "35.38",
+                "eval_cost": "263.00",
+                "prefix_cost": "298.38",
+                "data_read_per_join": "431K"
+              },
+              "used_columns": [
+                "id",
+                "user_id",
+                "session_id",
+                "tier_id",
+                "status",
+                "quantity",
+                "unit_price_fen",
+                "amount_fen",
+                "snapshot",
+                "starts_at",
+                "expires_at",
+                "created_at",
+                "updated_at"
+              ],
+              "attached_condition": "((coalesce(json_unquote(json_extract(`scoped_orders`.`snapshot`,'$.tierId')),'') <> cast(`scoped_orders`.`tier_id` as char charset gbk)) or (coalesce(json_unquote(json_extract(`scoped_orders`.`snapshot`,'$.sessionId')),'') <> cast(`scoped_orders`.`session_id` as char charset gbk)) or (cast(coalesce(json_extract(`scoped_orders`.`snapshot`,'$.quantity'),0) as double) <> cast(`scoped_orders`.`quantity` as double)) or (cast(coalesce(json_extract(`scoped_orders`.`snapshot`,'$.unitPriceFen'),0) as double) <> cast(`scoped_orders`.`unit_price_fen` as double)) or (cast(coalesce(json_extract(`scoped_orders`.`snapshot`,'$.amountFen'),0) as double) <> cast(`scoped_orders`.`amount_fen` as double)) or (`scoped_orders`.`amount_fen` <> `scoped_orders`.`unit_price_fen`) or (`scoped_orders`.`quantity` <> 1) or (`scoped_orders`.`created_at` >= `scoped_orders`.`expires_at`) or (`scoped_orders`.`expires_at` > `scoped_orders`.`starts_at`))",
+              "materialized_from_subquery": {
+                "sharing_temporary_table_with": {
+                  "select_id": 3
+                }
+              }
+            }
+          }
+        },
+        {
+          "dependent": false,
+          "cacheable": true,
+          "query_block": {
+            "select_id": 16,
+            "cost_info": {
+              "query_cost": "3887.78"
+            },
+            "nested_loop": [
+              {
+                "table": {
+                  "table_name": "u",
+                  "access_type": "ALL",
+                  "rows_examined_per_scan": 2630,
+                  "rows_produced_per_join": 2630,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "35.38",
+                    "eval_cost": "263.00",
+                    "prefix_cost": "298.38",
+                    "data_read_per_join": "41K"
+                  },
+                  "used_columns": [
+                    "user_id"
+                  ],
+                  "materialized_from_subquery": {
+                    "using_temporary_table": true,
+                    "dependent": false,
+                    "cacheable": true,
+                    "query_block": {
+                      "union_result": {
+                        "using_temporary_table": true,
+                        "select_id": 20,
+                        "table_name": "<union17,19>",
+                        "access_type": "ALL",
+                        "query_specifications": [
+                          {
+                            "dependent": false,
+                            "cacheable": true,
+                            "query_block": {
+                              "select_id": 17,
+                              "cost_info": {
+                                "query_cost": "298.37"
+                              },
+                              "table": {
+                                "table_name": "scoped_orders",
+                                "access_type": "ALL",
+                                "rows_examined_per_scan": 2630,
+                                "rows_produced_per_join": 2630,
+                                "filtered": "100.00",
+                                "cost_info": {
+                                  "read_cost": "35.38",
+                                  "eval_cost": "263.00",
+                                  "prefix_cost": "298.38",
+                                  "data_read_per_join": "431K"
+                                },
+                                "used_columns": [
+                                  "id",
+                                  "user_id",
+                                  "session_id",
+                                  "tier_id",
+                                  "status",
+                                  "quantity",
+                                  "unit_price_fen",
+                                  "amount_fen",
+                                  "snapshot",
+                                  "starts_at",
+                                  "expires_at",
+                                  "created_at",
+                                  "updated_at"
+                                ],
+                                "materialized_from_subquery": {
+                                  "sharing_temporary_table_with": {
+                                    "select_id": 3
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "dependent": false,
+                            "cacheable": false,
+                            "query_block": {
+                              "select_id": 19,
+                              "message": "Impossible WHERE"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "table": {
+                  "table_name": "q",
+                  "access_type": "ref",
+                  "possible_keys": [
+                    "uk_request",
+                    "order_id"
+                  ],
+                  "key": "uk_request",
+                  "used_key_parts": [
+                    "user_id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "u.user_id"
+                  ],
+                  "rows_examined_per_scan": 3,
+                  "rows_produced_per_join": 2134,
+                  "filtered": "26.29",
+                  "cost_info": {
+                    "read_cost": "2030.14",
+                    "eval_cost": "213.49",
+                    "prefix_cost": "3140.57",
+                    "data_read_per_join": "1M"
+                  },
+                  "used_columns": [
+                    "id",
+                    "user_id",
+                    "state",
+                    "result_code",
+                    "result_json",
+                    "order_id"
+                  ],
+                  "attached_condition": "((`ticketflow_test`.`q`.`state` = 'PROCESSING') or ((`ticketflow_test`.`q`.`state` = 'REJECTED') and (`ticketflow_test`.`q`.`order_id` is not null)) or (`ticketflow_test`.`q`.`state` = 'SUCCEEDED'))"
+                }
+              },
+              {
+                "table": {
+                  "table_name": "o",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY",
+                    "uk_order_owner_session"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                    "id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "ticketflow_test.q.order_id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 2134,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "533.72",
+                    "eval_cost": "213.49",
+                    "prefix_cost": "3887.78",
+                    "data_read_per_join": "350K"
+                  },
+                  "used_columns": [
+                    "id",
+                    "user_id"
+                  ],
+                  "attached_condition": "<if>(found_match(o), ((`ticketflow_test`.`q`.`state` = 'PROCESSING') or ((`ticketflow_test`.`q`.`state` = 'REJECTED') and (`ticketflow_test`.`q`.`order_id` is not null)) or ((`ticketflow_test`.`q`.`state` = 'SUCCEEDED') and ((`ticketflow_test`.`o`.`id` is null) or (`ticketflow_test`.`o`.`user_id` <> `u`.`user_id`) or (`ticketflow_test`.`q`.`result_code` <> 'OK') or (coalesce(json_unquote(json_extract(`ticketflow_test`.`q`.`result_json`,'$.data.orderId')),'') <> cast(`ticketflow_test`.`q`.`order_id` as char charset gbk))))), true)"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

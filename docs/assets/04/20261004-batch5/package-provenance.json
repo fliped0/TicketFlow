@@ -1,0 +1,49 @@
+{
+  "finalJarSha256": "49dd3688fd072b2f8de4578d8918c65668fb2f544525c1f8172e6d3531ba0294",
+  "baseCommit": "2dd9aae",
+  "runs": [
+    {
+      "run": "recovery-final",
+      "runId": "b5_637809804e1b",
+      "jarSha256": "085634c96879ad7455ff39ea828ac822941cb27fdb0c030614b82a0be98b1f2c",
+      "classDifferencesFromFinal": [
+        "BOOT-INF/classes/com/ticketflow/common/exception/ApiExceptionHandler.class"
+      ]
+    },
+    {
+      "run": "contention",
+      "runId": "b5_6953264e4ce3",
+      "jarSha256": "085634c96879ad7455ff39ea828ac822941cb27fdb0c030614b82a0be98b1f2c",
+      "classDifferencesFromFinal": [
+        "BOOT-INF/classes/com/ticketflow/common/exception/ApiExceptionHandler.class"
+      ]
+    },
+    {
+      "run": "performance",
+      "runId": "b5_92673cc6ccbb",
+      "jarSha256": "49dd3688fd072b2f8de4578d8918c65668fb2f544525c1f8172e6d3531ba0294",
+      "classDifferencesFromFinal": []
+    },
+    {
+      "run": "performance-initial",
+      "runId": "b5_61bbd86d0672",
+      "jarSha256": "085634c96879ad7455ff39ea828ac822941cb27fdb0c030614b82a0be98b1f2c",
+      "classDifferencesFromFinal": [
+        "BOOT-INF/classes/com/ticketflow/common/exception/ApiExceptionHandler.class"
+      ]
+    },
+    {
+      "run": "final-package-smoke",
+      "runId": "b5_0dedd1956306",
+      "jarSha256": "49dd3688fd072b2f8de4578d8918c65668fb2f544525c1f8172e6d3531ba0294",
+      "classDifferencesFromFinal": []
+    },
+    {
+      "run": "http-supplement",
+      "runId": "b5_b877064a14e9",
+      "jarSha256": "49dd3688fd072b2f8de4578d8918c65668fb2f544525c1f8172e6d3531ba0294",
+      "classDifferencesFromFinal": []
+    }
+  ],
+  "note": "Primary performance and final deployment/expiry smoke use the exact final jar. Initial performance and expanded recovery used the pre-404-fix package; their only changed application class is ApiExceptionHandler (missing route mapping added). Transaction, security, clock and expiry classes are byte-identical. Both complete performance windows are retained; primary raw samples are independently checked."
+}

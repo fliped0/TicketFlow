@@ -1,0 +1,66 @@
+[
+  {
+    "name": "com.ticketflow.config.AdminInitializerTest",
+    "tests": "4",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "0.92"
+  },
+  {
+    "name": "com.ticketflow.service.AccountRulesTest",
+    "tests": "2",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "0.011"
+  },
+  {
+    "name": "com.ticketflow.service.IdentityServiceTest",
+    "tests": "3",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "0.044"
+  },
+  {
+    "name": "com.ticketflow.service.OrderPolicyTest",
+    "tests": "4",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "0.018"
+  },
+  {
+    "name": "com.ticketflow.AdminReportingIT",
+    "tests": "12",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "15.122"
+  },
+  {
+    "name": "com.ticketflow.IdentityIntegrationIT",
+    "tests": "18",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "5.65"
+  },
+  {
+    "name": "com.ticketflow.OrderIntegrationIT",
+    "tests": "15",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "16.061"
+  },
+  {
+    "name": "com.ticketflow.OrderLifecycleIT",
+    "tests": "15",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "38.854"
+  }
+]

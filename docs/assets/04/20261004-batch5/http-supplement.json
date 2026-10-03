@@ -1,0 +1,35 @@
+{
+  "runId": "b5_b877064a14e9",
+  "startedAt": "2026-10-03T16:18:15.839940+00:00",
+  "environment": {
+    "os": "Windows",
+    "database": "ticketflow_test",
+    "account": "tf_test",
+    "java": "17",
+    "applicationJvm": "-Xms256m -Xmx512m",
+    "hikariMaximumPoolSize": 20,
+    "placement": "application, MySQL and HTTP load generator on the same machine",
+    "resources": "{\"CPU\":\"11th Gen Intel(R) Core(TM) i7-1195G7 @ 2.90GHz\",\"LogicalProcessors\":8,\"MemoryBytes\":16952647680}",
+    "mysql": [
+      "8.0.45",
+      "134217728",
+      "151",
+      "1",
+      "1"
+    ],
+    "storage": "{\"FriendlyName\":\"311CD0512GB\",\"MediaType\":\"SSD\",\"Size\":512110190592}",
+    "jarSha256": "49dd3688fd072b2f8de4578d8918c65668fb2f544525c1f8172e6d3531ba0294",
+    "runnerSha256": "f158db89651f862ebf05bcaa7c37c026c7c2b041a3bfe03c1d0aeb5a9a97e9fd"
+  },
+  "scenarios": [
+    {
+      "name": "admin_tier_list_success",
+      "passed": true,
+      "sessionId": 7536,
+      "tierId": 20874,
+      "traceId": "bd9d3e73-b694-4c89-8d9d-fd974d3538af"
+    }
+  ],
+  "passed": true,
+  "completedAt": "2026-10-03T16:18:26.526752+00:00"
+}

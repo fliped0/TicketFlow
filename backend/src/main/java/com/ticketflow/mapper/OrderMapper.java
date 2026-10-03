@@ -17,7 +17,7 @@ public class OrderMapper {
     public OrderMapper(JdbcTemplate db) { this.db = db; }
     private static LocalDateTime at(ResultSet r, String key) throws SQLException { return LocalDateTime.parse(r.getString(key).replace(' ','T')); }
     private static String ts(LocalDateTime t) { return t.toString().replace('T',' '); }
-    private static final RowMapper<OrderRecord> ORDER = (r,n)->new OrderRecord(r.getLong("id"),r.getLong("user_id"),
+    static final RowMapper<OrderRecord> ORDER = (r,n)->new OrderRecord(r.getLong("id"),r.getLong("user_id"),
             r.getLong("session_id"),r.getLong("tier_id"),OrderStatus.valueOf(r.getString("status")),r.getInt("quantity"),
             r.getLong("unit_price_fen"),r.getLong("amount_fen"),r.getString("snapshot"),at(r,"created_at"),at(r,"expires_at"),at(r,"starts_at"));
 

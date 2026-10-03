@@ -1,0 +1,32 @@
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.config.AdminInitializerTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.920 s -- in com.ticketflow.config.AdminInitializerTest
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.service.AccountRulesTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.ticketflow.service.AccountRulesTest
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.service.IdentityServiceTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in com.ticketflow.service.IdentityServiceTest
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.service.OrderPolicyTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in com.ticketflow.service.OrderPolicyTest
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.AdminReportingIT
+-------------------------------------------------------------------------------
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.12 s -- in com.ticketflow.AdminReportingIT
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.IdentityIntegrationIT
+-------------------------------------------------------------------------------
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.650 s -- in com.ticketflow.IdentityIntegrationIT
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.OrderIntegrationIT
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.06 s -- in com.ticketflow.OrderIntegrationIT
+-------------------------------------------------------------------------------
+Test set: com.ticketflow.OrderLifecycleIT
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 38.85 s -- in com.ticketflow.OrderLifecycleIT

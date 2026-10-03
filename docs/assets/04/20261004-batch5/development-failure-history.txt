@@ -1,0 +1,57 @@
+SOURCE batch5-verify.log
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.965 s -- in com.ticketflow.config.AdminInitializerTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.ticketflow.service.AccountRulesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in com.ticketflow.service.IdentityServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 s -- in com.ticketflow.service.OrderPolicyTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.45 s -- in com.ticketflow.AdminReportingIT
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.317 s -- in com.ticketflow.IdentityIntegrationIT
+[ERROR] Tests run: 15, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 266.8 s <<< FAILURE! -- in com.ticketflow.OrderIntegrationIT
+[ERROR] com.ticketflow.OrderIntegrationIT.lockFailuresRetryWholeTransactionAtMostTwice -- Time elapsed: 249.9 s <<< FAILURE!
+2026-10-03T22:47:05.069+08:00  WARN 27280 --- [ticketflow] [l-2:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Thread starvation or clock leap detected (housekeeper delta=4m38s477ms569?s800ns).
+2026-10-03T22:47:11.212+08:00  WARN 27280 --- [ticketflow] [l-3:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-3 - Thread starvation or clock leap detected (housekeeper delta=4m38s487ms440?s300ns).
+2026-10-03T22:47:25.135+08:00  WARN 27280 --- [ticketflow] [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=4m38s480ms679?s700ns).
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 44.20 s -- in com.ticketflow.OrderLifecycleIT
+[ERROR] Failures:
+[ERROR]   OrderIntegrationIT.lockFailuresRetryWholeTransactionAtMostTwice:187 expected: <3> but was: <2>
+[ERROR] Tests run: 55, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project ticketflow: There are test failures.
+[ERROR]
+[ERROR] See D:\develop\TicketFlow\backend\target\failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+SOURCE batch5-final-verify.log
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.016 s -- in com.ticketflow.config.AdminInitializerTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.ticketflow.service.AccountRulesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in com.ticketflow.service.IdentityServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in com.ticketflow.service.OrderPolicyTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+[ERROR] Tests run: 12, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 15.35 s <<< FAILURE! -- in com.ticketflow.AdminReportingIT
+[ERROR] com.ticketflow.AdminReportingIT.unchangedMigrationBuildsAnEmptyTableNamespaceAndDoesNotRepeat -- Time elapsed: 1.711 s <<< ERROR!
+[ERROR] com.ticketflow.AdminReportingIT.localSecurityDoesNotExposeManagementEndpointsOrAllowCrossOriginAccess -- Time elapsed: 0.218 s <<< FAILURE!
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.817 s -- in com.ticketflow.IdentityIntegrationIT
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.29 s -- in com.ticketflow.OrderIntegrationIT
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 38.91 s -- in com.ticketflow.OrderLifecycleIT
+[ERROR] Failures:
+[ERROR]   AdminReportingIT.localSecurityDoesNotExposeManagementEndpointsOrAllowCrossOriginAccess:161 expected: <404> but was: <500>
+[ERROR] Errors:
+[ERROR]   AdminReportingIT.unchangedMigrationBuildsAnEmptyTableNamespaceAndDoesNotRepeat:199 ? BadSqlGrammar StatementCallback; bad SQL grammar [DROP TABLE IF EXISTS b5_c676fdb7ea4a_tf_audit]
+[ERROR] Tests run: 60, Failures: 1, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project ticketflow: There are test failures.
+[ERROR]
+[ERROR] See D:\develop\TicketFlow\backend\target\failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
