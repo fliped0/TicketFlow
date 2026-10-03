@@ -20,6 +20,9 @@ public class TradeMapper {
         List<Boolean> rows = db.query("SELECT enabled FROM tf_user WHERE id=? FOR UPDATE", (r,n)->r.getBoolean(1), id);
         return !rows.isEmpty() && rows.get(0);
     }
+    public boolean lockOwner(long id) {
+        return !db.queryForList("SELECT id FROM tf_user WHERE id=? FOR UPDATE",Long.class,id).isEmpty();
+    }
     public TradeRequest request(long user, TradeOperation operation, String key) {
         var rows = db.query("SELECT * FROM tf_request WHERE user_id=? AND operation=? AND request_key=? FOR UPDATE",
                 (r,n)->new TradeRequest(r.getLong("id"), r.getString("payload_hash"), r.getString("state"),

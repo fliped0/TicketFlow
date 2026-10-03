@@ -14,10 +14,12 @@ import java.sql.SQLException;
 import java.util.HexFormat;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
+import java.util.function.Function;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
@@ -42,14 +44,7 @@ public class TradeExecutor {
     public TradeOutcome execute(long user, TradeOperation operation, String key, String payloadHash, int successStatus,
                                 Supplier<TradeResultVO> action) {
         validateKey(key);
-        if (TransactionSynchronizationManager.isActualTransactionActive()) throw new IllegalStateException("Trade must own its transaction");
-        long deadline=System.nanoTime()+BUDGET_NANOS;
-        for (int attempt=0;;attempt++) {
-            var tx=new TransactionTemplate(manager);
-            tx.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
-            tx.setTimeout((int)Math.max(1,(deadline-System.nanoTime()+999_999_999L)/1_000_000_000L));
-            try {
-                return tx.execute(status -> {
+        return inTransaction(status -> {
                     if (!db.lockUser(user)) throw new BusinessException(401,"UNAUTHENTICATED","请重新登录");
                     var previous=db.request(user,operation,key);
                     if (previous!=null) {
@@ -60,7 +55,7 @@ public class TradeExecutor {
                         if (previous.orderId()!=null && data!=null) {
                             var order=orders.owned(user,previous.orderId());
                             if (order==null) throw new IllegalStateException("Missing replay order");
-                            data=new TradeResultVO(data.orderId(),data.operationStatus(),order.status().name(),data.amountFen(),data.expiresAt());
+                            data=new TradeResultVO(data.orderId(),data.operationStatus(),order.status().name(),data.amountFen(),data.expiresAt(),data.paymentId(),data.refundId());
                         }
                         return new TradeOutcome(previous.httpStatus(),previous.resultCode(),stored.message(),data,true);
                     }
@@ -83,7 +78,31 @@ public class TradeExecutor {
                     status.releaseSavepoint(savepoint);
                     db.complete(requestId,state,result.httpStatus(),result.code(),json.writeValueAsString(result),orderId);
                     return result;
-                }); // Response leaves the executor only after commit succeeds.
+        });
+    }
+    /** System work owns a complete transaction and can reclaim disabled owners' stock. */
+    public <T> T internal(long owner, Supplier<T> action) {
+        return internal(owner,System.nanoTime()+BUDGET_NANOS,action);
+    }
+    public <T> T internal(long owner, long deadline, Supplier<T> action) {
+        return inTransaction(deadline,status -> {
+            if (!db.lockOwner(owner)) throw new IllegalStateException("Missing order owner");
+            return action.get();
+        });
+    }
+    private <T> T inTransaction(Function<TransactionStatus,T> action) {
+        return inTransaction(System.nanoTime()+BUDGET_NANOS,action);
+    }
+    private <T> T inTransaction(long outerDeadline, Function<TransactionStatus,T> action) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) throw new IllegalStateException("Trade must own its transaction");
+        long deadline=Math.min(outerDeadline,System.nanoTime()+BUDGET_NANOS);
+        for (int attempt=0;;attempt++) {
+            if (deadline<=System.nanoTime()) throw new org.springframework.transaction.TransactionTimedOutException("Trade budget exhausted");
+            var tx=new TransactionTemplate(manager);
+            tx.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
+            tx.setTimeout((int)Math.max(1,(deadline-System.nanoTime()+999_999_999L)/1_000_000_000L));
+            try {
+                return tx.execute(action::apply); // Responses leave only after commit succeeds.
             } catch (DataAccessException error) {
                 if (!retryableLockFailure(error) || attempt>=2 || deadline-System.nanoTime()<200_000_000L) throw error;
                 try { Thread.sleep(ThreadLocalRandom.current().nextLong(20,101)); }

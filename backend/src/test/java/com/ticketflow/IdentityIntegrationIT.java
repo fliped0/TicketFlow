@@ -32,6 +32,7 @@ class IdentityIntegrationIT {
 
     @DynamicPropertySource
     static void configureIsolatedTestResources(DynamicPropertyRegistry properties) throws Exception {
+        properties.add("ticketflow.expiry.enabled",()->"false");
         if (!"ticketflow_test".equals(System.getenv("TF_DB_NAME")) ||
                 !"tf_test".equals(System.getenv("TF_DB_USER"))) {
             throw new IllegalStateException("Refusing to start: use ticketflow_test with tf_test before Flyway runs");

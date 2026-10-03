@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "TicketFlow API",
-    "version": "0.3.0",
-    "description": "已实现认证、目录、幂等下单、场次限购、库存占用和本人订单查询；支付、取消、关单、退款留到批次 4。"
+    "version": "0.4.0",
+    "description": "已实现认证、目录、幂等下单、取消、模拟支付、到期关闭、模拟退款与本人订单查询；真实支付、Redis、MQ 和管理统计留后续批次。"
   },
   "servers": [
     {
@@ -1557,7 +1557,8 @@
               }
             }
           }
-        }
+        },
+        "description": "本人订单按 ID 降序；列表不嵌套完整支付与退款记录（payment/refund=null），使用详情接口查询。"
       }
     },
     "/api/v1/orders/{orderId}": {
@@ -1637,6 +1638,384 @@
           },
           "500": {
             "description": "INTERNAL_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "同一只读一致性快照返回本人订单及支付、退款记录；他人订单与不存在均 404。"
+      }
+    },
+    "/api/v1/orders/{orderId}/cancel": {
+      "post": {
+        "operationId": "cancelOrder",
+        "summary": "主动取消；到期取消统一 CLOSED",
+        "tags": [
+          "Orders"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "同键重放原操作结果与 HTTP 状态，保留 paymentId/refundId，并读取 currentOrderStatus。失败原键仍返回原失败，新键可重试。模拟失败仅由隔离测试配置注入。",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,64}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyTradeInput"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作成功或历史成功；库存不重复迁移",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR；必须为 {} 且有合法请求键",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND；他人订单与不存在均 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ORDER_STATE_CONFLICT / IDEMPOTENCY_CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE；使用原键确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR；使用原键或查询确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/payments": {
+      "post": {
+        "operationId": "payOrder",
+        "summary": "本地模拟全额支付",
+        "tags": [
+          "Orders"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "同键重放原操作结果与 HTTP 状态，保留 paymentId/refundId，并读取 currentOrderStatus。失败原键仍返回原失败，新键可重试。模拟失败仅由隔离测试配置注入。",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,64}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyTradeInput"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作成功或历史成功；库存不重复迁移",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR；必须为 {} 且有合法请求键",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND；他人订单与不存在均 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ORDER_STATE_CONFLICT / ORDER_EXPIRED / IDEMPOTENCY_CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE；使用原键确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR；使用原键或查询确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "PAYMENT_SIMULATED_FAILURE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/refunds": {
+      "post": {
+        "operationId": "refundOrder",
+        "summary": "开场前本地模拟全额退款",
+        "tags": [
+          "Orders"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "同键重放原操作结果与 HTTP 状态，保留 paymentId/refundId，并读取 currentOrderStatus。失败原键仍返回原失败，新键可重试。模拟失败仅由隔离测试配置注入。",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,64}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyTradeInput"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作成功或历史成功；库存不重复迁移",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR；必须为 {} 且有合法请求键",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND；他人订单与不存在均 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ORDER_STATE_CONFLICT / REFUND_CLOSED / IDEMPOTENCY_CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TEMPORARILY_UNAVAILABLE；使用原键确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL_ERROR；使用原键或查询确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "REFUND_SIMULATED_FAILURE",
             "content": {
               "application/json": {
                 "schema": {
@@ -2535,7 +2914,9 @@
           "operationStatus",
           "currentOrderStatus",
           "amountFen",
-          "expiresAt"
+          "expiresAt",
+          "paymentId",
+          "refundId"
         ],
         "properties": {
           "orderId": {
@@ -2572,6 +2953,30 @@
             "type": "string",
             "format": "date-time",
             "description": "UTC ISO 8601"
+          },
+          "paymentId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$",
+                "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "refundId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$",
+                "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -2634,12 +3039,24 @@
             "description": "UTC ISO 8601"
           },
           "payment": {
-            "type": "null",
-            "description": "批次 3 未实现支付"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Payment"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "refund": {
-            "type": "null",
-            "description": "批次 3 未实现退款"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Refund"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -2763,6 +3180,64 @@
             "type": "boolean"
           }
         }
+      },
+      "Payment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paymentId",
+          "amountFen",
+          "paidAt"
+        ],
+        "properties": {
+          "paymentId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "amountFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          }
+        }
+      },
+      "Refund": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "refundId",
+          "amountFen",
+          "refundedAt"
+        ],
+        "properties": {
+          "refundId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "amountFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "refundedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          }
+        }
+      },
+      "EmptyTradeInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [],
+        "properties": {}
       }
     }
   }

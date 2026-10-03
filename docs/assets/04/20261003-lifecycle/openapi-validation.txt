@@ -1,0 +1,5 @@
+OpenAPI 3.1 / API 0.4.0 JSON parsed.
+All local schema references resolved.
+25 unique operationIds.
+All path parameters declared and required.
+No GET request bodies.

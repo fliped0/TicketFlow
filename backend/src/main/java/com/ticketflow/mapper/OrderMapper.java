@@ -19,7 +19,7 @@ public class OrderMapper {
     private static String ts(LocalDateTime t) { return t.toString().replace('T',' '); }
     private static final RowMapper<OrderRecord> ORDER = (r,n)->new OrderRecord(r.getLong("id"),r.getLong("user_id"),
             r.getLong("session_id"),r.getLong("tier_id"),OrderStatus.valueOf(r.getString("status")),r.getInt("quantity"),
-            r.getLong("unit_price_fen"),r.getLong("amount_fen"),r.getString("snapshot"),at(r,"created_at"),at(r,"expires_at"));
+            r.getLong("unit_price_fen"),r.getLong("amount_fen"),r.getString("snapshot"),at(r,"created_at"),at(r,"expires_at"),at(r,"starts_at"));
 
     public PurchaseCatalog lockCatalog(long tierId) {
         // Route reads never lock children ahead of their parents. Ownership is immutable.
@@ -54,4 +54,33 @@ public class OrderMapper {
     }
     public List<OrderRecord> list(long user, String status, int size, int offset) { return db.query("SELECT * FROM tf_order WHERE user_id=? AND (? IS NULL OR status=?) ORDER BY id DESC LIMIT ? OFFSET ?",ORDER,user,status,status,size,offset); }
     public long count(long user, String status) { return db.queryForObject("SELECT COUNT(*) FROM tf_order WHERE user_id=? AND (? IS NULL OR status=?)",Long.class,user,status,status); }
+    public OrderRecord lockOwned(long user, long id) {
+        var rows=db.query("SELECT * FROM tf_order WHERE user_id=? AND id=? FOR UPDATE",ORDER,user,id);
+        return rows.isEmpty()?null:rows.get(0);
+    }
+    public Long owner(long id) {
+        var rows=db.queryForList("SELECT user_id FROM tf_order WHERE id=?",Long.class,id);
+        return rows.isEmpty()?null:rows.get(0);
+    }
+    public void requireSlot(OrderRecord order) {
+        var rows=db.queryForList("SELECT order_id FROM tf_purchase_slot WHERE user_id=? AND session_id=? FOR UPDATE",Long.class,order.userId(),order.sessionId());
+        if (rows.size()!=1 || rows.get(0)!=order.id()) throw new IllegalStateException("Order purchase slot mismatch");
+    }
+    public void deleteSlot(OrderRecord order) { TradeMapper.requireOne(db.update("DELETE FROM tf_purchase_slot WHERE user_id=? AND session_id=? AND order_id=?",order.userId(),order.sessionId(),order.id())); }
+    public void transition(OrderRecord order, OrderStatus target, LocalDateTime now) {
+        String predicate=switch (target) {
+            case PAID -> " AND expires_at>?";
+            case REFUNDED -> " AND starts_at>?";
+            case CANCELLED -> " AND expires_at>?";
+            case CLOSED -> " AND expires_at<=?";
+            default -> throw new IllegalArgumentException("Unsupported transition");
+        };
+        TradeMapper.requireOne(db.update("UPDATE tf_order SET status=?,updated_at=? WHERE id=? AND user_id=? AND status=?"+predicate,
+                target.name(),ts(now),order.id(),order.userId(),order.status().name(),ts(now)));
+    }
+    public List<ExpiredOrder> expired(LocalDateTime cutoff, LocalDateTime afterExpiry, long afterId) {
+        RowMapper<ExpiredOrder> row=(r,n)->new ExpiredOrder(r.getLong("id"),r.getLong("user_id"),at(r,"expires_at"));
+        if (afterExpiry==null) return db.query("SELECT id,user_id,expires_at FROM tf_order WHERE status='PENDING' AND expires_at<=? ORDER BY expires_at,id LIMIT 100",row,ts(cutoff));
+        return db.query("SELECT id,user_id,expires_at FROM tf_order WHERE status='PENDING' AND expires_at<=? AND (expires_at>? OR (expires_at=? AND id>?)) ORDER BY expires_at,id LIMIT 100",row,ts(cutoff),ts(afterExpiry),ts(afterExpiry),afterId);
+    }
 }

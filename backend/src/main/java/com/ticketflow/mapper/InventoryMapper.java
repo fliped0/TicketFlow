@@ -15,4 +15,8 @@ public class InventoryMapper {
     }
     public int reserve(long tier, LocalDateTime time) { return db.update("UPDATE tf_stock SET available=available-1,reserved=reserved+1,updated_at=? WHERE tier_id=? AND available>=1",time.toString().replace('T',' '),tier); }
     public int logReserve(long order, LocalDateTime time) { return db.update("INSERT INTO tf_stock_log(order_id,movement,delta_available,delta_reserved,delta_sold,created_at) VALUES(?,'RESERVE',-1,1,0,?)",order,time.toString().replace('T',' ')); }
+    public int markSold(long tier, LocalDateTime time) { return db.update("UPDATE tf_stock SET reserved=reserved-1,sold=sold+1,updated_at=? WHERE tier_id=? AND reserved>=1",time.toString().replace('T',' '),tier); }
+    public int release(long tier, LocalDateTime time) { return db.update("UPDATE tf_stock SET reserved=reserved-1,available=available+1,updated_at=? WHERE tier_id=? AND reserved>=1",time.toString().replace('T',' '),tier); }
+    public int refund(long tier, LocalDateTime time) { return db.update("UPDATE tf_stock SET sold=sold-1,available=available+1,updated_at=? WHERE tier_id=? AND sold>=1",time.toString().replace('T',' '),tier); }
+    public int log(long order, String movement, int available, int reserved, int sold, LocalDateTime time) { return db.update("INSERT INTO tf_stock_log(order_id,movement,delta_available,delta_reserved,delta_sold,created_at) VALUES(?,?,?,?,?,?)",order,movement,available,reserved,sold,time.toString().replace('T',' ')); }
 }

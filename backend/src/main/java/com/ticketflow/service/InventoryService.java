@@ -15,4 +15,13 @@ public class InventoryService {
         TradeMapper.requireOne(db.reserve(tier,time));
         TradeMapper.requireOne(db.logReserve(order,time));
     }
+    public void markSold(long tier, long order, LocalDateTime time) {
+        TradeMapper.requireOne(db.markSold(tier,time)); TradeMapper.requireOne(db.log(order,"PAY",0,-1,1,time));
+    }
+    public void release(long tier, long order, LocalDateTime time) {
+        TradeMapper.requireOne(db.release(tier,time)); TradeMapper.requireOne(db.log(order,"RELEASE",1,-1,0,time));
+    }
+    public void refund(long tier, long order, LocalDateTime time) {
+        TradeMapper.requireOne(db.refund(tier,time)); TradeMapper.requireOne(db.log(order,"REFUND",1,0,-1,time));
+    }
 }

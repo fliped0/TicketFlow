@@ -1,6 +1,6 @@
 # TicketFlow 接口文档
 
-版本 0.3.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录、幂等下单、场次限购、库存占用、本人订单查询和健康检查。支付、取消、关单和退款留到批次 4。
+版本 0.4.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录、幂等下单、场次限购、库存占用、主动取消、模拟支付、到期关闭、模拟退款、本人订单查询和健康检查。真实支付、Redis、MQ 和管理统计留到后续批次。
 
 [OpenAPI 3.1 JSON](openapi.json) 可导入 Apifox / Postman。当前不提供在线 Swagger UI。
 
@@ -22,6 +22,9 @@ JWT 使用 RS256，有效期 1800 秒，验证签名、issuer、audience、exp�
 | POST | /api/v1/orders | Bearer + Idempotency-Key | 201，TradeResult；一单一张 |
 | GET | /api/v1/orders | Bearer | 200，本人订单分页，支持 status、page、size |
 | GET | /api/v1/orders/{orderId} | Bearer | 200，本人订单详情及成交快照 |
+| POST | /api/v1/orders/{orderId}/cancel | Bearer + Idempotency-Key | 200，取消或已关闭结果 |
+| POST | /api/v1/orders/{orderId}/payments | Bearer + Idempotency-Key | 200，模拟全额支付及 paymentId |
+| POST | /api/v1/orders/{orderId}/refunds | Bearer + Idempotency-Key | 200，模拟全额退款及 refundId |
 | GET | /actuator/health | 无 | 200，status=UP，无组件详情 |
 | GET | /api/v1/events、/api/v1/events/{id} | 无 | 200，仅上架活动；不可见对象 404 |
 | GET | /api/v1/events/{id}/sessions、/api/v1/sessions/{id}/tiers | 无 | 200，仅上架活动的子资源 |
@@ -109,9 +112,46 @@ Content-Type: application/json
 
 订单、资格、占用流水与成功请求共同提交。已知拒绝回滚业务保存点后提交 REJECTED；数据库与系统异常整笔回滚，不记录虚假的拒绝。遇到 503、500 或响应丢失时，保留原键重试或查询确认结果。503 包含 `data.retryWithSameKey=true`。可恢复锁错误仅在事务外最多重试两次，使用原键及剩余的 5 秒请求预算；客户端不能把 HTTP 失败视为订单一定不存在。
 
-`GET /api/v1/orders?status=PENDING&page=1&size=20` 按订单 ID 降序返回 `{items,page,size,total}`。status 可取 PENDING、PAID、CANCELLED、CLOSED、REFUNDED；page 从 1 开始，size 为 1—100，默认 20。详情及列表元素包含 orderId、status、quantity、unitPriceFen、amountFen、snapshot、createdAt、expiresAt、payment、refund。snapshot 固定保存 schemaVersion=1、活动/场次/票档 ID 与名称、城市、地点、开场时间、金额、数量和退款政策；下架或修改目录文案不会改写成交快照。本批 payment/refund 为 null。
+`GET /api/v1/orders?status=PENDING&page=1&size=20` 按订单 ID 降序返回 `{items,page,size,total}`。status 可取 PENDING、PAID、CANCELLED、CLOSED、REFUNDED；page 从 1 开始，size 为 1—100，默认 20。详情及列表元素包含 orderId、status、quantity、unitPriceFen、amountFen、snapshot、createdAt、expiresAt、payment、refund。snapshot 固定保存 schemaVersion=1、活动/场次/票档 ID 与名称、城市、地点、开场时间、金额、数量和退款政策；下架或修改目录文案不会改写成交快照。列表 payment/refund 为 null；详情在同一只读一致性快照中返回支付和退款记录，尚未发生则为 null。
 
-查询无需幂等头；仅返回本人订单，他人订单与不存在均为 404 / NOT_FOUND。支付、取消、关单和退款入口尚未实现，到期库存释放随批次 4 交付。
+查询无需幂等头；仅返回本人订单，他人订单与不存在均为 404 / NOT_FOUND。
+
+### 2.6 取消、模拟支付与模拟退款
+
+三项请求均要求 Bearer、合法 `Idempotency-Key` 及空对象 `{}`。不接受金额、成功结果、身份或状态字段；空请求体、null、数组及非空对象返回 400，且不写请求记录。
+
+```http
+POST /api/v1/orders/201/payments
+Authorization: Bearer <JWT>
+Idempotency-Key: payment_20261003_001
+Content-Type: application/json
+
+{}
+```
+
+模拟支付成功 data 示例：
+
+```json
+{"orderId":"201","operationStatus":"PAID","currentOrderStatus":"PAID","amountFen":58000,"expiresAt":"2026-10-03T02:15:00Z","paymentId":"301","refundId":null}
+```
+
+取消路径为 `/orders/{orderId}/cancel`。PENDING 且未到期转 CANCELLED，到期后转 CLOSED；释放占用与限购资格。对 CANCELLED / CLOSED 使用新键返回既有状态；PAID / REFUNDED 拒绝取消。旧键仍保留原操作结果，不重新迁移。
+
+模拟支付路径为 `/orders/{orderId}/payments`。在订单、资格、库存锁齐备后读取数据库时间，必须严格早于 expiresAt；成功将 reserved 转 sold，保留限购资格，并记录唯一成功支付及 PAY 流水。成功历史支付可用新键返回，退款后也返回历史 paymentId、operationStatus=PAID、currentOrderStatus=REFUNDED。到期支付返回 ORDER_EXPIRED，由关单回收占用。
+
+模拟退款路径为 `/orders/{orderId}/refunds`。首次要求 PAID 且锁后时间严格早于成交快照的 startsAt；从订单和支付记录取得全额金额，归还 sold 并释放资格，记录唯一退款及 REFUND 流水。重复退款返回原 refundId，不重复归还。退款后的新购买仍需符合当前上下架、销售时间和库存规则。
+
+模拟失败只在隔离测试上下文替换 PaymentSimulator。支付失败为 422 / PAYMENT_SIMULATED_FAILURE，保持 PENDING；退款失败为 422 / REFUND_SIMULATED_FAILURE，保持 PAID。原键始终重放该失败；在业务窗口内使用新键才会重新尝试。这里没有外部扣款或退款调用。
+
+交易结果统一增加可空 paymentId、refundId；CREATE / CANCEL 为 null，PAY 返回 paymentId，REFUND 返回 paymentId 与 refundId。重放保持原 ID 与 operationStatus，同时更新 currentOrderStatus；批次 3 已保存的无新增字段结果仍可重放。操作键按 CREATE / PAY / CANCEL / REFUND 隔离，同操作同键换订单返回 IDEMPOTENCY_CONFLICT。
+
+订单详情 payment 为 `{paymentId,amountFen,paidAt}`，refund 为 `{refundId,amountFen,refundedAt}`，ID 为字符串，时间为 UTC。
+
+### 2.7 自动到期关闭
+
+无公开系统关单接口。默认启动立即补扫，随后每次扫描完成后间隔 10 秒再扫描；每轮固定数据库 cutoff，按 `(expiresAt,id)` 升序，每批最多 100 条，10 秒处理预算。候选逐单独立事务；失败记录 orderId、traceId 和异常类型，继续后续候选，下轮从最早过期项重新扫描。不会跨轮保存游标，同实例扫描互斥。
+
+关单先定位所属用户，再按用户、订单、资格、库存顺序锁定，重新取时，只将到期 PENDING 转 CLOSED。账号禁用不妨碍回收；支付、取消或其他关单已先完成时跳过。状态、RELEASE 流水、库存及资格共同提交。测试可设置 `ticketflow.expiry.enabled=false` 隔离自动调度；正常运行默认启用。
 
 ## 3. 错误码
 
@@ -128,6 +168,8 @@ Content-Type: application/json
 | 409 | IDEMPOTENCY_CONFLICT | 同键参数不同 |
 | 409 | PURCHASE_LIMIT / SOLD_OUT | 同场次已有有效订单或票档售罄 |
 | 409 | NOT_ON_SALE / SALE_NOT_STARTED / SALE_ENDED | 活动下架、未开售或已停售 |
+| 409 | ORDER_STATE_CONFLICT / ORDER_EXPIRED / REFUND_CLOSED | 状态不允许、支付到期或已到开场退款截止点 |
+| 422 | PAYMENT_SIMULATED_FAILURE / REFUND_SIMULATED_FAILURE | 受控模拟失败；原键保留失败，新键可在窗口内重试 |
 | 503 | TEMPORARILY_UNAVAILABLE | 数据访问暂不可用 |
 | 500 | INTERNAL_ERROR | 内部错误 |
 
@@ -142,3 +184,5 @@ Content-Type: application/json
 2026-09-29 调整为统一 controller/service/mapper/model 分层，请求对象为 CredentialsDTO，返回对象为 UserVO、TokenVO。URL、JSON 字段及成功响应状态保持 0.1.0 契约；当前用户查询由 Service 统一校验账号状态。
 
 2026-10-01 批次 3 使用 TradeController → OrderApplicationService / TradeExecutor → JdbcTemplate Mapper。交易使用单个事务管理器与 READ COMMITTED，协作者不另开事务，保存点由 TransactionStatus 控制。未修改既有 Flyway V1。
+
+2026-10-03 批次 4 扩展既有应用服务与执行器，新增 PaymentMapper、PaymentSimulator、OrderExpiryJob。系统内部事务不要求请求键和 enabled，但仍要求所属用户存在并取得锁。订单详情使用只读 REPEATABLE READ，避免将不同瞬间的状态和支付/退款记录混在一个响应中。既有 Flyway V1 未修改。

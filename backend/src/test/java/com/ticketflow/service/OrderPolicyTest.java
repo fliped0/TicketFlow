@@ -7,6 +7,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OrderPolicyTest {
+    @Test void paymentAndRefundExcludeTheirMicrosecondDeadline() {
+        var cutoff=LocalDateTime.of(2026,10,3,2,0);
+        assertDoesNotThrow(()->OrderPolicy.checkPayment(cutoff.minusNanos(1000),cutoff));
+        assertDoesNotThrow(()->OrderPolicy.checkRefund(cutoff.minusNanos(1000),cutoff));
+        for (var time:new LocalDateTime[]{cutoff,cutoff.plusNanos(1000)}) {
+            assertEquals("ORDER_EXPIRED",assertThrows(BusinessRejection.class,()->OrderPolicy.checkPayment(time,cutoff)).code());
+            assertEquals("REFUND_CLOSED",assertThrows(BusinessRejection.class,()->OrderPolicy.checkRefund(time,cutoff)).code());
+        }
+    }
     final LocalDateTime start=LocalDateTime.of(2026,10,1,2,0);
     final LocalDateTime end=start.plusHours(1);
     PurchaseCatalog catalog(String status) { return new PurchaseCatalog(1,2,3,"Show","City","Hall",status,end.plusHours(1),start,end,"Tier",58000,"FULL_BEFORE_START_V1"); }

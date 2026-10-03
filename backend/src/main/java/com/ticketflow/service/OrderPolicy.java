@@ -15,4 +15,10 @@ public final class OrderPolicy {
         return now.plusMinutes(15).isBefore(startsAt) ? now.plusMinutes(15) : startsAt;
     }
     public static BusinessRejection rejected(String code) { return new BusinessRejection(409,code,"下单条件不满足"); }
+    public static void checkPayment(LocalDateTime now, LocalDateTime expiry) {
+        if (!now.isBefore(expiry)) throw new BusinessRejection(409,"ORDER_EXPIRED","订单已过支付期限");
+    }
+    public static void checkRefund(LocalDateTime now, LocalDateTime startsAt) {
+        if (!now.isBefore(startsAt)) throw new BusinessRejection(409,"REFUND_CLOSED","已到开场时间");
+    }
 }

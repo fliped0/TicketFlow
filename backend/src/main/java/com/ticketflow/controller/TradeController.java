@@ -2,6 +2,7 @@ package com.ticketflow.controller;
 
 import com.ticketflow.common.response.ApiResponse;
 import com.ticketflow.model.dto.CreateOrderDTO;
+import com.ticketflow.model.dto.EmptyTradeDTO;
 import com.ticketflow.model.vo.*;
 import com.ticketflow.service.OrderApplicationService;
 import org.slf4j.MDC;
@@ -28,4 +29,19 @@ public class TradeController {
     }
     @GetMapping("/{id}")
     public ApiResponse<OrderDetailVO> detail(Authentication auth, @PathVariable String id) { return ApiResponse.ok(service.detail(actor(auth),id)); }
+    private static ResponseEntity<ApiResponse<TradeResultVO>> response(TradeOutcome result) {
+        return ResponseEntity.status(result.httpStatus()).body(new ApiResponse<>(result.code(),result.message(),result.data(),MDC.get("traceId"),result.replayed()));
+    }
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<TradeResultVO>> cancel(Authentication auth,@PathVariable String id,@RequestHeader("Idempotency-Key") String key,@RequestBody EmptyTradeDTO input) {
+        return response(service.cancel(actor(auth),key,id));
+    }
+    @PostMapping("/{id}/payments")
+    public ResponseEntity<ApiResponse<TradeResultVO>> pay(Authentication auth,@PathVariable String id,@RequestHeader("Idempotency-Key") String key,@RequestBody EmptyTradeDTO input) {
+        return response(service.pay(actor(auth),key,id));
+    }
+    @PostMapping("/{id}/refunds")
+    public ResponseEntity<ApiResponse<TradeResultVO>> refund(Authentication auth,@PathVariable String id,@RequestHeader("Idempotency-Key") String key,@RequestBody EmptyTradeDTO input) {
+        return response(service.refund(actor(auth),key,id));
+    }
 }
