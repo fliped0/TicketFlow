@@ -204,3 +204,7 @@ netAmountFen 为该期间支付额减退款额，可为负数；不是按订单�
 2026-10-03 批次 4 扩展既有应用服务与执行器，新增 PaymentMapper、PaymentSimulator、OrderExpiryJob。系统内部事务不要求请求键和 enabled，但仍要求所属用户存在并取得锁。订单详情使用只读 REPEATABLE READ，避免将不同瞬间的状态和支付/退款记录混在一个响应中。既有 Flyway V1 未修改。
 
 2026-10-04 批次 5 新增 AdminOrderController → AdminOrderService → AdminOrderMapper，采用 JdbcTemplate 与只读 REPEATABLE READ。TraceFilter 记录 traceId、方法、路径、HTTP 状态、结果分类和耗时；不记录请求体、查询参数、密码或令牌。既有 Flyway V1 不变。
+
+## V2设计状态
+
+批次6的异步提交/结果/模式配置仅在[草案](v2-draft.md)中描述，尚未实现；本已实现契约与OpenAPI仍为0.5.0、27个HTTP操作。

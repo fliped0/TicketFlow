@@ -1,0 +1,38 @@
+# Configuration inventory only; not loaded by Spring or deployed by batch 6.
+# Pin exact images/digests and measure resource limits after cloud approval.
+environments:
+  development:
+    mysql_database: ticketflow_v2_dev
+    mysql_user: tf_v2_dev
+    redis_namespace: tf:dev
+    rabbit_vhost: /ticketflow-dev
+  test:
+    mysql_database: ticketflow_v2_test
+    mysql_user: tf_v2_test
+    redis_namespace: tf:test
+    rabbit_vhost: /ticketflow-test
+    destructive_fault_tests: true
+  demo:
+    mysql_database: ticketflow_v2_demo
+    mysql_user: tf_v2_demo
+    redis_namespace: tf:demo
+    rabbit_vhost: /ticketflow-demo
+    destructive_fault_tests: false
+    separate_redis_instance: true
+versions:
+  java: '17'
+  mysql: '8.0.45 (existing baseline; cloud candidate, patch/support must be reviewed)'
+  redis: '8.x candidate; exact patch and image digest NOT SELECTED'
+  rabbitmq: '4.3.x candidate; exact patch/image digest and Erlang matrix NOT SELECTED'
+resource_budget_mib:
+  application_heap: 768
+  application_container: 1536
+  mysql: 2048
+  redis: 512
+  rabbitmq: 1024
+  operating_system_and_headroom: 3072
+access:
+  public_application: HTTPS-only
+  mysql_redis_rabbit_management: private-network-or-SSH-tunnel
+  credentials: per-environment secret files or environment; never commit
+  cloud_server_purchased: false

@@ -1,0 +1,482 @@
+{
+  "runId": "b5_467a0110847f",
+  "startedAt": "2026-10-06T09:00:31.449587+00:00",
+  "kind": "local staircase screening",
+  "warmupSeconds": 10,
+  "measurementSeconds": 30,
+  "roundsPerPoint": 1,
+  "environment": {
+    "os": "Windows",
+    "database": "ticketflow_test",
+    "account": "tf_test",
+    "java": "17",
+    "applicationJvm": "-Xms256m -Xmx512m",
+    "hikariMaximumPoolSize": 20,
+    "placement": "application, MySQL and HTTP load generator on the same machine",
+    "resources": "{\"CPU\":\"11th Gen Intel(R) Core(TM) i7-1195G7 @ 2.90GHz\",\"LogicalProcessors\":8,\"MemoryBytes\":16952647680}",
+    "mysql": [
+      "8.0.45",
+      "134217728",
+      "151",
+      "1",
+      "1"
+    ],
+    "storage": "{\"FriendlyName\":\"311CD0512GB\",\"MediaType\":\"SSD\",\"Size\":512110190592}",
+    "jarSha256": "993efeb6adb529cb5fe504737c74c946819a68c7c7ded3dbff01be42e424c95a",
+    "runnerSha256": "f158db89651f862ebf05bcaa7c37c026c7c2b041a3bfe03c1d0aeb5a9a97e9fd"
+  },
+  "points": [
+    {
+      "kind": "query",
+      "workers": 20,
+      "completedAt": "2026-10-06T09:01:28.856425+00:00",
+      "stats": {
+        "tier_list": {
+          "requests": 6018,
+          "success": 6018,
+          "codes": {
+            "OK": 6018
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 40.573,
+          "p99Ms": 53.073,
+          "meanMs": 23.664,
+          "successfulRequestsPerSecond": 200.6
+        },
+        "event_list": {
+          "requests": 6017,
+          "success": 6017,
+          "codes": {
+            "OK": 6017
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 45.705,
+          "p99Ms": 56.364,
+          "meanMs": 29.625,
+          "successfulRequestsPerSecond": 200.567
+        },
+        "session_list": {
+          "requests": 6017,
+          "success": 6017,
+          "codes": {
+            "OK": 6017
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 40.27,
+          "p99Ms": 51.332,
+          "meanMs": 24.056,
+          "successfulRequestsPerSecond": 200.567
+        },
+        "event_detail": {
+          "requests": 6015,
+          "success": 6015,
+          "codes": {
+            "OK": 6015
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 38.62,
+          "p99Ms": 49.414,
+          "meanMs": 22.276,
+          "successfulRequestsPerSecond": 200.5
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-final-query-20.csv.gz",
+      "sampleSha256": "60a426796205f1e0ae00e742d62fea2cae00f093d7e9bbb54237f5292a69d75d"
+    },
+    {
+      "kind": "query",
+      "workers": 50,
+      "completedAt": "2026-10-06T09:02:09.081831+00:00",
+      "stats": {
+        "event_list": {
+          "requests": 5564,
+          "success": 5564,
+          "codes": {
+            "OK": 5564
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 121.326,
+          "p99Ms": 153.3,
+          "meanMs": 72.217,
+          "successfulRequestsPerSecond": 185.467
+        },
+        "tier_list": {
+          "requests": 5564,
+          "success": 5564,
+          "codes": {
+            "OK": 5564
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 113.902,
+          "p99Ms": 143.241,
+          "meanMs": 65.683,
+          "successfulRequestsPerSecond": 185.467
+        },
+        "session_list": {
+          "requests": 5561,
+          "success": 5561,
+          "codes": {
+            "OK": 5561
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 116.328,
+          "p99Ms": 147.356,
+          "meanMs": 66.173,
+          "successfulRequestsPerSecond": 185.367
+        },
+        "event_detail": {
+          "requests": 5560,
+          "success": 5560,
+          "codes": {
+            "OK": 5560
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 113.688,
+          "p99Ms": 147.457,
+          "meanMs": 65.497,
+          "successfulRequestsPerSecond": 185.333
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-final-query-50.csv.gz",
+      "sampleSha256": "19c2624a9f2303a6767610673c970d579ef67c923eb8d1dbb685789b70a4aeb5"
+    },
+    {
+      "kind": "query",
+      "workers": 100,
+      "completedAt": "2026-10-06T09:02:49.353408+00:00",
+      "stats": {
+        "event_detail": {
+          "requests": 5273,
+          "success": 5273,
+          "codes": {
+            "OK": 5273
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 247.412,
+          "p99Ms": 312.207,
+          "meanMs": 139.777,
+          "successfulRequestsPerSecond": 175.767
+        },
+        "tier_list": {
+          "requests": 5284,
+          "success": 5284,
+          "codes": {
+            "OK": 5284
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 251.982,
+          "p99Ms": 317.396,
+          "meanMs": 140.696,
+          "successfulRequestsPerSecond": 176.133
+        },
+        "session_list": {
+          "requests": 5269,
+          "success": 5269,
+          "codes": {
+            "OK": 5269
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 247.517,
+          "p99Ms": 315.42,
+          "meanMs": 141.074,
+          "successfulRequestsPerSecond": 175.633
+        },
+        "event_list": {
+          "requests": 5277,
+          "success": 5277,
+          "codes": {
+            "OK": 5277
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 254.566,
+          "p99Ms": 316.347,
+          "meanMs": 146.455,
+          "successfulRequestsPerSecond": 175.9
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-final-query-100.csv.gz",
+      "sampleSha256": "29a8afb1734f3b6efae98c16e2306765597d774ab195ec61b1773b4365e67cda"
+    },
+    {
+      "kind": "query",
+      "workers": 200,
+      "completedAt": "2026-10-06T09:03:29.754014+00:00",
+      "stats": {
+        "session_list": {
+          "requests": 5213,
+          "success": 5213,
+          "codes": {
+            "OK": 5213
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 526.982,
+          "p99Ms": 694.467,
+          "meanMs": 284.617,
+          "successfulRequestsPerSecond": 173.767
+        },
+        "event_detail": {
+          "requests": 5199,
+          "success": 5199,
+          "codes": {
+            "OK": 5199
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 531.525,
+          "p99Ms": 690.478,
+          "meanMs": 282.072,
+          "successfulRequestsPerSecond": 173.3
+        },
+        "tier_list": {
+          "requests": 5219,
+          "success": 5219,
+          "codes": {
+            "OK": 5219
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 543.479,
+          "p99Ms": 683.093,
+          "meanMs": 287.894,
+          "successfulRequestsPerSecond": 173.967
+        },
+        "event_list": {
+          "requests": 5205,
+          "success": 5205,
+          "codes": {
+            "OK": 5205
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 546.231,
+          "p99Ms": 687.752,
+          "meanMs": 295.353,
+          "successfulRequestsPerSecond": 173.5
+        }
+      },
+      "screeningTargetsMet": false,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-final-query-200.csv.gz",
+      "sampleSha256": "a039cb7f60c0a62f8e908cd2b9b57064b01effe60ca5942b91d1dc681e8272e4"
+    },
+    {
+      "kind": "trade",
+      "workers": 20,
+      "completedAt": "2026-10-06T09:04:11.995525+00:00",
+      "stats": {
+        "pay": {
+          "requests": 4054,
+          "success": 4054,
+          "codes": {
+            "OK": 4054
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 78.751,
+          "p99Ms": 106.579,
+          "meanMs": 48.696,
+          "successfulRequestsPerSecond": 135.133
+        },
+        "create": {
+          "requests": 4047,
+          "success": 4047,
+          "codes": {
+            "OK": 4047
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 81.307,
+          "p99Ms": 109.944,
+          "meanMs": 49.953,
+          "successfulRequestsPerSecond": 134.9
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-final-trade-20.csv.gz",
+      "sampleSha256": "c02f53a69de2892b4b07927fa56f2a482cf8c1471a05c7c438db14f80977a267"
+    },
+    {
+      "kind": "trade",
+      "workers": 50,
+      "completedAt": "2026-10-06T09:04:57.748447+00:00",
+      "stats": {
+        "create": {
+          "requests": 4754,
+          "success": 4754,
+          "codes": {
+            "OK": 4754
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 178.682,
+          "p99Ms": 221.363,
+          "meanMs": 105.769,
+          "successfulRequestsPerSecond": 158.467
+        },
+        "pay": {
+          "requests": 4754,
+          "success": 4754,
+          "codes": {
+            "OK": 4754
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 173.347,
+          "p99Ms": 219.666,
+          "meanMs": 103.625,
+          "successfulRequestsPerSecond": 158.467
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-final-trade-50.csv.gz",
+      "sampleSha256": "310e7c4a60fd43b53ac91b97c1ff59e9d516190abc57eec8bd9e61c633c45052"
+    },
+    {
+      "kind": "trade",
+      "workers": 100,
+      "completedAt": "2026-10-06T09:05:49.010913+00:00",
+      "stats": {
+        "pay": {
+          "requests": 4689,
+          "success": 4689,
+          "codes": {
+            "OK": 4689
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 423.454,
+          "p99Ms": 557.97,
+          "meanMs": 212.329,
+          "successfulRequestsPerSecond": 156.3
+        },
+        "create": {
+          "requests": 4692,
+          "success": 4692,
+          "codes": {
+            "OK": 4692
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 414.815,
+          "p99Ms": 550.817,
+          "meanMs": 213.836,
+          "successfulRequestsPerSecond": 156.4
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-final-trade-100.csv.gz",
+      "sampleSha256": "8157b9f857765da6492a02ea8e89e2d1da28bf545fbe1cab61926c298c04c2ec"
+    },
+    {
+      "kind": "trade",
+      "workers": 200,
+      "completedAt": "2026-10-06T09:06:50.594844+00:00",
+      "stats": {
+        "create": {
+          "requests": 4638,
+          "success": 4638,
+          "codes": {
+            "OK": 4638
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 970.804,
+          "p99Ms": 1343.863,
+          "meanMs": 432.354,
+          "successfulRequestsPerSecond": 154.6
+        },
+        "pay": {
+          "requests": 4622,
+          "success": 4622,
+          "codes": {
+            "OK": 4622
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 968.901,
+          "p99Ms": 1334.919,
+          "meanMs": 430.998,
+          "successfulRequestsPerSecond": 154.067
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-final-trade-200.csv.gz",
+      "sampleSha256": "8c490bab3be8ce914bb50ec64cc6e758569dd778877e45bddc23be5cc8a189dd"
+    }
+  ],
+  "unavailable": {
+    "mysqlCpu": "Windows service CPU counters unavailable to this account; null is not zero. All mysqld processes are listed.",
+    "mysqlDataLockWaits": "Dedicated tf_test account cannot read performance_schema; no privilege expansion. Global InnoDB counters are server-wide."
+  },
+  "stoppedEscalation": [
+    {
+      "kind": "query",
+      "workers": 200,
+      "reason": "latency/error/eligible-load screening condition failed"
+    }
+  ],
+  "reconciledTiers": 200,
+  "jarSha256": "993efeb6adb529cb5fe504737c74c946819a68c7c7ded3dbff01be42e424c95a",
+  "completedAt": "2026-10-06T09:07:05.084542+00:00",
+  "completed": true,
+  "observationCount": 59,
+  "applicationSnapshotCount": 76,
+  "sampledProcessPeaks": {
+    "application": {
+      "maxSampledCpuPercentOfMachine": 35.073,
+      "maxWorkingSetBytes": 505671680
+    },
+    "mysql": {
+      "maxSampledCpuPercentOfMachine": null,
+      "maxWorkingSetBytes": 385466368
+    },
+    "load_generator": {
+      "maxSampledCpuPercentOfMachine": 15.612,
+      "maxWorkingSetBytes": 62951424
+    }
+  },
+  "hikariObservedMaxima": {
+    "hikaricp.connections.usage.COUNT": 261930.0,
+    "hikaricp.connections.usage.MAX": 0.38,
+    "hikaricp.connections.usage.TOTAL_TIME": 3110.194,
+    "hikaricp.connections.max.VALUE": 20.0,
+    "hikaricp.connections.acquire.COUNT": 261930.0,
+    "hikaricp.connections.acquire.MAX": 2.4120889,
+    "hikaricp.connections.acquire.TOTAL_TIME": 8963.090766,
+    "hikaricp.connections.min.VALUE": 20.0,
+    "hikaricp.connections.VALUE": 20.0,
+    "hikaricp.connections.timeout.COUNT": 0,
+    "hikaricp.connections.pending.VALUE": 180.0,
+    "hikaricp.connections.active.VALUE": 20.0,
+    "hikaricp.connections.idle.VALUE": 20.0,
+    "hikaricp.connections.creation.COUNT": 0,
+    "hikaricp.connections.creation.MAX": 0,
+    "hikaricp.connections.creation.TOTAL_TIME": 0
+  },
+  "rawObservationFile": "observations.json.gz",
+  "baselineRunnerSha256": "4e95f0cbdd4d351825e8da926665fea9d4e5021634100327ee46e4cdd5c5cd39",
+  "underlyingHelperRunner": "environment.runnerSha256 refers to batch5-experiments.py; baselineRunnerSha256 refers to the new staircase runner."
+}

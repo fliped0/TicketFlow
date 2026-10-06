@@ -1,0 +1,444 @@
+{
+  "runId": "b5_69c5be2a1cce",
+  "startedAt": "2026-10-06T08:38:09.997447+00:00",
+  "kind": "local staircase screening",
+  "warmupSeconds": 10,
+  "measurementSeconds": 30,
+  "roundsPerPoint": 1,
+  "environment": {
+    "os": "Windows",
+    "database": "ticketflow_test",
+    "account": "tf_test",
+    "java": "17",
+    "applicationJvm": "-Xms256m -Xmx512m",
+    "hikariMaximumPoolSize": 20,
+    "placement": "application, MySQL and HTTP load generator on the same machine",
+    "resources": "{\"CPU\":\"11th Gen Intel(R) Core(TM) i7-1195G7 @ 2.90GHz\",\"LogicalProcessors\":8,\"MemoryBytes\":16952647680}",
+    "mysql": [
+      "8.0.45",
+      "134217728",
+      "151",
+      "1",
+      "1"
+    ],
+    "storage": "{\"FriendlyName\":\"311CD0512GB\",\"MediaType\":\"SSD\",\"Size\":512110190592}",
+    "jarSha256": "993efeb6adb529cb5fe504737c74c946819a68c7c7ded3dbff01be42e424c95a",
+    "runnerSha256": "f158db89651f862ebf05bcaa7c37c026c7c2b041a3bfe03c1d0aeb5a9a97e9fd"
+  },
+  "points": [
+    {
+      "kind": "query",
+      "workers": 20,
+      "completedAt": "2026-10-06T08:39:07.860176+00:00",
+      "stats": {
+        "event_detail": {
+          "requests": 5906,
+          "success": 5906,
+          "codes": {
+            "OK": 5906
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 39.372,
+          "p99Ms": 51.178,
+          "meanMs": 23.139,
+          "successfulRequestsPerSecond": 196.867
+        },
+        "session_list": {
+          "requests": 5907,
+          "success": 5907,
+          "codes": {
+            "OK": 5907
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 41.022,
+          "p99Ms": 52.461,
+          "meanMs": 24.553,
+          "successfulRequestsPerSecond": 196.9
+        },
+        "tier_list": {
+          "requests": 5911,
+          "success": 5911,
+          "codes": {
+            "OK": 5911
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 40.478,
+          "p99Ms": 51.278,
+          "meanMs": 23.847,
+          "successfulRequestsPerSecond": 197.033
+        },
+        "event_list": {
+          "requests": 5915,
+          "success": 5915,
+          "codes": {
+            "OK": 5915
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 46.578,
+          "p99Ms": 57.818,
+          "meanMs": 29.91,
+          "successfulRequestsPerSecond": 197.167
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-query-20.csv.gz",
+      "sampleSha256": "da2e9d92bff3e9cfa7c8bf9a1f05b151c7ada3b2e80cc7b1c79a40fbcd8658cf"
+    },
+    {
+      "kind": "query",
+      "workers": 50,
+      "completedAt": "2026-10-06T08:39:48.117883+00:00",
+      "stats": {
+        "event_detail": {
+          "requests": 5348,
+          "success": 5348,
+          "codes": {
+            "OK": 5348
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 121.776,
+          "p99Ms": 158.379,
+          "meanMs": 68.364,
+          "successfulRequestsPerSecond": 178.267
+        },
+        "session_list": {
+          "requests": 5346,
+          "success": 5346,
+          "codes": {
+            "OK": 5346
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 120.887,
+          "p99Ms": 154.614,
+          "meanMs": 68.985,
+          "successfulRequestsPerSecond": 178.2
+        },
+        "tier_list": {
+          "requests": 5347,
+          "success": 5347,
+          "codes": {
+            "OK": 5347
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 121.232,
+          "p99Ms": 159.408,
+          "meanMs": 68.1,
+          "successfulRequestsPerSecond": 178.233
+        },
+        "event_list": {
+          "requests": 5341,
+          "success": 5341,
+          "codes": {
+            "OK": 5341
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 127.558,
+          "p99Ms": 168.979,
+          "meanMs": 74.995,
+          "successfulRequestsPerSecond": 178.033
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-query-50.csv.gz",
+      "sampleSha256": "9b04945f34b62f9e69ee7f62c3b559e25c18e75880dd750381e3d01aa549c87a"
+    },
+    {
+      "kind": "query",
+      "workers": 100,
+      "completedAt": "2026-10-06T08:40:28.449353+00:00",
+      "stats": {
+        "event_detail": {
+          "requests": 5234,
+          "success": 5234,
+          "codes": {
+            "OK": 5234
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 249.724,
+          "p99Ms": 318.921,
+          "meanMs": 140.551,
+          "successfulRequestsPerSecond": 174.467
+        },
+        "tier_list": {
+          "requests": 5247,
+          "success": 5247,
+          "codes": {
+            "OK": 5247
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 249.777,
+          "p99Ms": 305.852,
+          "meanMs": 141.359,
+          "successfulRequestsPerSecond": 174.9
+        },
+        "event_list": {
+          "requests": 5238,
+          "success": 5238,
+          "codes": {
+            "OK": 5238
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 258.28,
+          "p99Ms": 326.197,
+          "meanMs": 148.522,
+          "successfulRequestsPerSecond": 174.6
+        },
+        "session_list": {
+          "requests": 5232,
+          "success": 5232,
+          "codes": {
+            "OK": 5232
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 251.463,
+          "p99Ms": 318.758,
+          "meanMs": 141.867,
+          "successfulRequestsPerSecond": 174.4
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-query-100.csv.gz",
+      "sampleSha256": "fff2a0105f102ace335bf95e38ddff98421217b85cc0b2108a24ef5dae5bc967"
+    },
+    {
+      "kind": "query",
+      "workers": 200,
+      "completedAt": "2026-10-06T08:41:09.030409+00:00",
+      "stats": {
+        "event_list": {
+          "requests": 5013,
+          "success": 5013,
+          "codes": {
+            "OK": 5013
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 572.993,
+          "p99Ms": 747.597,
+          "meanMs": 305.376,
+          "successfulRequestsPerSecond": 167.1
+        },
+        "tier_list": {
+          "requests": 5026,
+          "success": 5026,
+          "codes": {
+            "OK": 5026
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 570.274,
+          "p99Ms": 748.322,
+          "meanMs": 297.398,
+          "successfulRequestsPerSecond": 167.533
+        },
+        "event_detail": {
+          "requests": 5012,
+          "success": 5012,
+          "codes": {
+            "OK": 5012
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 560.98,
+          "p99Ms": 767.572,
+          "meanMs": 294.205,
+          "successfulRequestsPerSecond": 167.067
+        },
+        "session_list": {
+          "requests": 5025,
+          "success": 5025,
+          "codes": {
+            "OK": 5025
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 574.809,
+          "p99Ms": 771.844,
+          "meanMs": 296.525,
+          "successfulRequestsPerSecond": 167.5
+        }
+      },
+      "screeningTargetsMet": false,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-query-200.csv.gz",
+      "sampleSha256": "d171116c5ec77fc7d75dae6c87b3ad4af447cce79ec8b55f21a7e1e294c42736"
+    },
+    {
+      "kind": "trade",
+      "workers": 20,
+      "completedAt": "2026-10-06T08:41:51.337986+00:00",
+      "stats": {
+        "create": {
+          "requests": 3907,
+          "success": 3907,
+          "codes": {
+            "OK": 3907
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 88.803,
+          "p99Ms": 119.016,
+          "meanMs": 51.925,
+          "successfulRequestsPerSecond": 130.233
+        },
+        "pay": {
+          "requests": 3909,
+          "success": 3909,
+          "codes": {
+            "OK": 3909
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 85.736,
+          "p99Ms": 112.475,
+          "meanMs": 49.739,
+          "successfulRequestsPerSecond": 130.3
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-trade-20.csv.gz",
+      "sampleSha256": "f44036d3a17d964deda9aed9115fd8d858cb993d507f594941a627d91ff78a7d"
+    },
+    {
+      "kind": "trade",
+      "workers": 50,
+      "completedAt": "2026-10-06T08:42:37.081200+00:00",
+      "stats": {
+        "create": {
+          "requests": 4733,
+          "success": 4733,
+          "codes": {
+            "OK": 4733
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 182.657,
+          "p99Ms": 234.117,
+          "meanMs": 107.078,
+          "successfulRequestsPerSecond": 157.767
+        },
+        "pay": {
+          "requests": 4725,
+          "success": 4725,
+          "codes": {
+            "OK": 4725
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 178.938,
+          "p99Ms": 235.257,
+          "meanMs": 104.961,
+          "successfulRequestsPerSecond": 157.5
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-trade-50.csv.gz",
+      "sampleSha256": "b34087369eeb999baffacbafe92ceed7b3e0a92ae477f21bf9b2788dc70a8489"
+    },
+    {
+      "kind": "trade",
+      "workers": 100,
+      "completedAt": "2026-10-06T08:43:28.665978+00:00",
+      "stats": {
+        "pay": {
+          "requests": 4777,
+          "success": 4777,
+          "codes": {
+            "OK": 4777
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 406.685,
+          "p99Ms": 534.942,
+          "meanMs": 207.916,
+          "successfulRequestsPerSecond": 159.233
+        },
+        "create": {
+          "requests": 4771,
+          "success": 4771,
+          "codes": {
+            "OK": 4771
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 407.057,
+          "p99Ms": 567.823,
+          "meanMs": 210.147,
+          "successfulRequestsPerSecond": 159.033
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-trade-100.csv.gz",
+      "sampleSha256": "49eaafb0880698b25839b8b39aea3b3460412dafbd3ca4a5fa5ae4cd226b33a8"
+    },
+    {
+      "kind": "trade",
+      "workers": 200,
+      "completedAt": "2026-10-06T08:44:32.281239+00:00",
+      "stats": {
+        "create": {
+          "requests": 4724,
+          "success": 4724,
+          "codes": {
+            "OK": 4724
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 905.007,
+          "p99Ms": 1283.358,
+          "meanMs": 420.267,
+          "successfulRequestsPerSecond": 157.467
+        },
+        "pay": {
+          "requests": 4712,
+          "success": 4712,
+          "codes": {
+            "OK": 4712
+          },
+          "systemErrors": 0,
+          "systemErrorRate": 0.0,
+          "p95Ms": 925.918,
+          "p99Ms": 1248.944,
+          "meanMs": 424.805,
+          "successfulRequestsPerSecond": 157.067
+        }
+      },
+      "screeningTargetsMet": true,
+      "cleanupFailures": [],
+      "sampleFile": "batch6-baseline-trade-200.csv.gz",
+      "sampleSha256": "82a6969ba6a59b372a66ab793872823b7c5913572b4789931eabfdfbe6d661ab"
+    }
+  ],
+  "unavailable": {
+    "mysqlDataLockWaits": "Dedicated tf_test account cannot read performance_schema; no privilege expansion. Global InnoDB counters are server-wide."
+  },
+  "stoppedEscalation": [
+    {
+      "kind": "query",
+      "workers": 200,
+      "reason": "latency/error/eligible-load screening condition failed"
+    }
+  ],
+  "reconciledTiers": 200,
+  "jarSha256": "993efeb6adb529cb5fe504737c74c946819a68c7c7ded3dbff01be42e424c95a",
+  "completedAt": "2026-10-06T08:44:46.726312+00:00",
+  "completed": true
+}

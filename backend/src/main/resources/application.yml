@@ -32,6 +32,9 @@ server:
   port: ${TF_PORT:8080}
   shutdown: graceful
 ticketflow:
+  observability:
+    enabled: ${TF_OBSERVABILITY_ENABLED:false}
+    interval-ms: ${TF_OBSERVABILITY_INTERVAL_MS:5000}
   jwt:
     private-key: ${TF_JWT_PRIVATE_KEY}
     public-key: ${TF_JWT_PUBLIC_KEY}

@@ -1,0 +1,194 @@
+[
+  {
+    "kind": "query",
+    "workers": 20,
+    "endpoint": "tier_list",
+    "rows": 6018,
+    "p95Ms": 40.573,
+    "p99Ms": 53.073
+  },
+  {
+    "kind": "query",
+    "workers": 20,
+    "endpoint": "event_list",
+    "rows": 6017,
+    "p95Ms": 45.705,
+    "p99Ms": 56.364
+  },
+  {
+    "kind": "query",
+    "workers": 20,
+    "endpoint": "session_list",
+    "rows": 6017,
+    "p95Ms": 40.27,
+    "p99Ms": 51.332
+  },
+  {
+    "kind": "query",
+    "workers": 20,
+    "endpoint": "event_detail",
+    "rows": 6015,
+    "p95Ms": 38.62,
+    "p99Ms": 49.414
+  },
+  {
+    "kind": "query",
+    "workers": 50,
+    "endpoint": "event_list",
+    "rows": 5564,
+    "p95Ms": 121.326,
+    "p99Ms": 153.3
+  },
+  {
+    "kind": "query",
+    "workers": 50,
+    "endpoint": "tier_list",
+    "rows": 5564,
+    "p95Ms": 113.902,
+    "p99Ms": 143.241
+  },
+  {
+    "kind": "query",
+    "workers": 50,
+    "endpoint": "session_list",
+    "rows": 5561,
+    "p95Ms": 116.328,
+    "p99Ms": 147.356
+  },
+  {
+    "kind": "query",
+    "workers": 50,
+    "endpoint": "event_detail",
+    "rows": 5560,
+    "p95Ms": 113.688,
+    "p99Ms": 147.457
+  },
+  {
+    "kind": "query",
+    "workers": 100,
+    "endpoint": "event_detail",
+    "rows": 5273,
+    "p95Ms": 247.412,
+    "p99Ms": 312.207
+  },
+  {
+    "kind": "query",
+    "workers": 100,
+    "endpoint": "tier_list",
+    "rows": 5284,
+    "p95Ms": 251.982,
+    "p99Ms": 317.396
+  },
+  {
+    "kind": "query",
+    "workers": 100,
+    "endpoint": "session_list",
+    "rows": 5269,
+    "p95Ms": 247.517,
+    "p99Ms": 315.42
+  },
+  {
+    "kind": "query",
+    "workers": 100,
+    "endpoint": "event_list",
+    "rows": 5277,
+    "p95Ms": 254.566,
+    "p99Ms": 316.347
+  },
+  {
+    "kind": "query",
+    "workers": 200,
+    "endpoint": "session_list",
+    "rows": 5213,
+    "p95Ms": 526.982,
+    "p99Ms": 694.467
+  },
+  {
+    "kind": "query",
+    "workers": 200,
+    "endpoint": "event_detail",
+    "rows": 5199,
+    "p95Ms": 531.525,
+    "p99Ms": 690.478
+  },
+  {
+    "kind": "query",
+    "workers": 200,
+    "endpoint": "tier_list",
+    "rows": 5219,
+    "p95Ms": 543.479,
+    "p99Ms": 683.093
+  },
+  {
+    "kind": "query",
+    "workers": 200,
+    "endpoint": "event_list",
+    "rows": 5205,
+    "p95Ms": 546.231,
+    "p99Ms": 687.752
+  },
+  {
+    "kind": "trade",
+    "workers": 20,
+    "endpoint": "pay",
+    "rows": 4054,
+    "p95Ms": 78.751,
+    "p99Ms": 106.579
+  },
+  {
+    "kind": "trade",
+    "workers": 20,
+    "endpoint": "create",
+    "rows": 4047,
+    "p95Ms": 81.307,
+    "p99Ms": 109.944
+  },
+  {
+    "kind": "trade",
+    "workers": 50,
+    "endpoint": "create",
+    "rows": 4754,
+    "p95Ms": 178.682,
+    "p99Ms": 221.363
+  },
+  {
+    "kind": "trade",
+    "workers": 50,
+    "endpoint": "pay",
+    "rows": 4754,
+    "p95Ms": 173.347,
+    "p99Ms": 219.666
+  },
+  {
+    "kind": "trade",
+    "workers": 100,
+    "endpoint": "pay",
+    "rows": 4689,
+    "p95Ms": 423.454,
+    "p99Ms": 557.97
+  },
+  {
+    "kind": "trade",
+    "workers": 100,
+    "endpoint": "create",
+    "rows": 4692,
+    "p95Ms": 414.815,
+    "p99Ms": 550.817
+  },
+  {
+    "kind": "trade",
+    "workers": 200,
+    "endpoint": "create",
+    "rows": 4638,
+    "p95Ms": 970.804,
+    "p99Ms": 1343.863
+  },
+  {
+    "kind": "trade",
+    "workers": 200,
+    "endpoint": "pay",
+    "rows": 4622,
+    "p95Ms": 968.901,
+    "p99Ms": 1334.919
+  }
+]

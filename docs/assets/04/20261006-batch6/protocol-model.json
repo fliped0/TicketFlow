@@ -1,0 +1,42 @@
+{
+  "kind": "abstract atomic state-transition model",
+  "passed": true,
+  "scenarioChecks": [
+    {
+      "name": "orphan_vs_accept_accept",
+      "result": "SUCCEEDED"
+    },
+    {
+      "name": "orphan_vs_accept_fence",
+      "result": "REJECTED"
+    },
+    {
+      "name": "commit_unknown_and_duplicate_delivery_lifecycle",
+      "orderCount": 1
+    },
+    {
+      "name": "late_worker_fenced_by_work_version",
+      "oldVersion": 1,
+      "currentVersion": 2
+    },
+    {
+      "name": "old_epoch_release_after_rebuild",
+      "oldEpoch": 1,
+      "newEpoch": 2
+    },
+    {
+      "name": "old_release_cannot_delete_new_qualification",
+      "ownerComparison": "mismatch"
+    },
+    {
+      "name": "projection_gap_must_not_apply",
+      "lastSeq": 4,
+      "incomingSeq": 6,
+      "result": "GAP"
+    }
+  ],
+  "reachableStates": 17,
+  "checkedEdges": 204,
+  "depthLimit": 12,
+  "limitations": "Assumes documented atomic database locks/transactions and Lua guards. Does not execute SQL, Redis, RabbitMQ, crashes or network faults; implementation must be validated in batches 8-10."
+}
