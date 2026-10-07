@@ -189,19 +189,23 @@ class AdminReportingIT extends OrderTestSupport {
         String ddl=Files.readString(migration); Files.writeString(script,ddl.replace("tf_",prefix+"tf_"));
         Path revisionScript=folder.resolve("V2__catalog_revision.sql");
         Files.writeString(revisionScript,Files.readString(migration.resolveSibling("V2__catalog_revision.sql")).replace("tf_",prefix+"tf_"));
+        Path asyncScript=folder.resolve("V3__async_purchase.sql");
+        // MySQL CHECK names are schema-wide, so isolated tables need isolated names too.
+        Files.writeString(asyncScript,Files.readString(migration.resolveSibling("V3__async_purchase.sql"))
+                .replace("tf_",prefix+"tf_").replace("ck_session_purchase_mode",prefix+"ck_mode"));
         // Dedicated test database: only newly generated names are used. The
         // least-privilege account has no DROP permission, so retain the empty
         // namespace for inspection, just like other append-only test fixtures.
         try {
             var flyway=org.flywaydb.core.Flyway.configure().dataSource(source).table(prefix+"history")
                     .locations("filesystem:"+folder).baselineOnMigrate(true).baselineVersion("0").cleanDisabled(true).load();
-            assertEquals(2,flyway.migrate().migrationsExecuted);
-            assertEquals(13,count("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,?)=?",prefix.length()+3,prefix+"tf_"));
+            assertEquals(3,flyway.migrate().migrationsExecuted);
+            assertEquals(18,count("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,?)=?",prefix.length()+3,prefix+"tf_"));
             assertEquals(0,count("SELECT revision FROM "+prefix+"tf_catalog_revision WHERE id=1"));
             assertEquals(0,flyway.migrate().migrationsExecuted); assertTrue(flyway.validateWithResult().validationSuccessful);
         } finally {
             assertEquals("ticketflow_test",db.queryForObject("SELECT DATABASE()",String.class));
-            Files.deleteIfExists(script); Files.deleteIfExists(revisionScript); Files.deleteIfExists(folder);
+            Files.deleteIfExists(script); Files.deleteIfExists(revisionScript); Files.deleteIfExists(asyncScript); Files.deleteIfExists(folder);
         }
     }
 }

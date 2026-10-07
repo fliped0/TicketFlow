@@ -1,0 +1,24 @@
+{
+  "permissions": [
+    {
+      "vhost": "/ticketflow-dev",
+      "configure": "^tf\\.dev\\.async\\..*",
+      "write": "^tf\\.dev\\.async\\..*",
+      "read": "^tf\\.dev\\.async\\..*"
+    }
+  ],
+  "runtimeUser": "tf_app",
+  "queueType": "quorum",
+  "consumerCount": 4,
+  "expiryDisabledForSmoke": true,
+  "at": "2026-10-07T13:38:26.2066779Z",
+  "health": "UP",
+  "firstAttempt": "startup exceeded 45 seconds and SSH connection reset; reconnected then verified actual process",
+  "port": 18992,
+  "managementTags": [],
+  "deadLetterStrategy": "at-least-once",
+  "applicationProcessStopped": true,
+  "observedApplicationStartupSeconds": 192.983,
+  "startupLatencyCause": "not established; retained for future deployment/performance work",
+  "testedJarSha256": "abc7025f594bd718431be6682f29ad5882581f2dfdfda1ff5e023b68a12d2336"
+}

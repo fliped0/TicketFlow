@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "TicketFlow API",
-    "version": "0.6.0",
-    "description": "已实现认证、公开目录Redis缓存、下单限流、订单生命周期及管理报表；异步抢票仍为设计，支付退款为模拟。"
+    "version": "0.7.0",
+    "description": "认证、公开目录缓存和限流、订单生命周期及报表、可选 Redis/Lua/RabbitMQ 异步抢票主流程；支付退款为模拟，完整故障恢复与 Redis 重建留批次 10。"
   },
   "servers": [
     {
@@ -1454,7 +1454,7 @@
             }
           },
           "409": {
-            "description": "IDEMPOTENCY_CONFLICT / PURCHASE_LIMIT / NOT_ON_SALE / SALE_NOT_STARTED / SALE_ENDED / SOLD_OUT",
+            "description": "IDEMPOTENCY_CONFLICT / PURCHASE_LIMIT / NOT_ON_SALE / SALE_NOT_STARTED / SALE_ENDED / SOLD_OUT / ASYNC_REQUIRED（使用 /api/v1/purchase-requests）",
             "content": {
               "application/json": {
                 "schema": {
@@ -2326,6 +2326,358 @@
           }
         },
         "description": "from/to 必填，from<to，最长31天。[from,to) 内按 created_at 计订单数、paid_at 计支付额、refunded_at 计退款额；同一只读 REPEATABLE READ 快照。netAmountFen 是期间支付减退款，可为负数，不是会计收入。"
+      }
+    },
+    "/api/v1/purchase-requests": {
+      "post": {
+        "operationId": "submitPurchaseRequest",
+        "summary": "可靠受理异步抢票请求",
+        "tags": [
+          "AsyncPurchase"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,64}$"
+            },
+            "description": "原请求键重试以确认提交结果；区分大小写，不自动清理"
+          }
+        ],
+        "description": "202 只保证受理记录、在途资格、queued_count 与发件箱已共同提交。原已受理键非终态返回 202、终态 200；受理前业务拒绝始终重放原 409。503 必须重试原键。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "已可靠受理，订单尚未确定",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseRequestResponse"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "非终态建议 1 秒后查询；限流后至少等待 1 秒",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Location": {
+                "description": "本人结果查询路径",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "原已受理请求的终态重放；成功或失败看 state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseRequestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入/请求键不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或账号被禁用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "不存在的票档",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "业务拒绝含 requestId；参数冲突/SYNC_REQUIRED 则不创建请求",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "独立新请求额度耗尽，不持久化该请求键",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "非终态建议 1 秒后查询；限流后至少等待 1 秒",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "依赖不可用/暂停/提交未知；data.retryWithSameKey=true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/purchase-requests/{id}": {
+      "get": {
+        "operationId": "getPurchaseRequest",
+        "summary": "查询本人异步请求结果及当前订单状态",
+        "tags": [
+          "AsyncPurchase"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "持久状态；历史建单成功不因后来取消/退款变成失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseRequestResponse"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "非终态建议 1 秒后查询；限流后至少等待 1 秒",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求编号格式错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或账号被禁用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "本人不可见或不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "独立查询额度/并发额度耗尽",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "非终态建议 1 秒后查询；限流后至少等待 1 秒",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "数据库不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sessions/{id}/purchase-mode": {
+      "put": {
+        "operationId": "updatePurchaseMode",
+        "summary": "配置开售前场次模式并初始化异步视图",
+        "tags": [
+          "AsyncPurchase"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$"
+            }
+          }
+        ],
+        "description": "需 ADMIN。开售/冻结前且无历史订单、在途/临时资格才可修改。mode/version/audit/目录 revision 同事务。ASYNC 初始化成功 READY；失败保留已提交模式和 PAUSED，重新查询版本再尝试，不能重置历史。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseMode"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "模式和服务端门禁状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseModeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "非 ADMIN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "场次不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VERSION_CONFLICT / CONFIG_FROZEN / ASYNC_IN_FLIGHT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "ASYNC_DISABLED / ASYNC_PAUSED / DEPENDENCY_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -3764,6 +4116,199 @@
           },
           "data": {
             "$ref": "#/components/schemas/Statistics"
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PurchaseRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "state",
+          "acceptedAt",
+          "createDeadline",
+          "orderId",
+          "failureCode",
+          "currentOrderStatus",
+          "snapshot"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "ACCEPTED",
+              "PROCESSING",
+              "RETRY_WAIT",
+              "SUCCEEDED",
+              "REJECTED"
+            ]
+          },
+          "acceptedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createDeadline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "orderId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[1-9][0-9]{0,18}$"
+          },
+          "failureCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currentOrderStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "PENDING",
+              "PAID",
+              "CANCELLED",
+              "CLOSED",
+              "REFUNDED",
+              null
+            ]
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrderSnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "PurchaseRequestResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PurchaseRequest"
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PurchaseMode": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "expectedVersion"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "SYNC",
+              "ASYNC"
+            ]
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "PurchaseModeResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sessionId",
+          "mode",
+          "version",
+          "phase"
+        ],
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "SYNC",
+              "ASYNC"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "PAUSED",
+              "READY"
+            ]
+          }
+        }
+      },
+      "PurchaseModeResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PurchaseModeResult"
           },
           "traceId": {
             "type": "string",

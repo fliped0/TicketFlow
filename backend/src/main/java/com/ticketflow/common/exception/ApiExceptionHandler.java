@@ -18,7 +18,10 @@ public class ApiExceptionHandler {
     .body(ApiResponse.error(e.code(),e.getMessage()));
  }
  @ExceptionHandler(BusinessException.class)
- ResponseEntity<?> business(BusinessException e) { return ResponseEntity.status(e.status()).body(ApiResponse.error(e.code(),e.getMessage())); }
+ ResponseEntity<?> business(BusinessException e) {
+  if(e.status()==503)return ResponseEntity.status(503).body(new ApiResponse<>(e.code(),e.getMessage(),java.util.Map.of("retryWithSameKey",true),org.slf4j.MDC.get("traceId"),false));
+  return ResponseEntity.status(e.status()).body(ApiResponse.error(e.code(),e.getMessage()));
+ }
  @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class, ConstraintViolationException.class, MethodArgumentTypeMismatchException.class, HandlerMethodValidationException.class, MissingRequestHeaderException.class, MissingServletRequestParameterException.class})
  ResponseEntity<?> invalid(Exception e) { return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR","请求参数不合法")); }
  @ExceptionHandler({NoResourceFoundException.class,NoHandlerFoundException.class})

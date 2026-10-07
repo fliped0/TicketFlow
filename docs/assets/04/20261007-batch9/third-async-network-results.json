@@ -1,0 +1,122 @@
+{
+  "suite": "com.ticketflow.AsyncPurchaseIT",
+  "tests": 28,
+  "failures": 2,
+  "errors": 1,
+  "skipped": 0,
+  "cases": [
+    {
+      "name": "malformedEnvelopeCannotCreateOrderOrInventARelease",
+      "status": "passed"
+    },
+    {
+      "name": "staleWorkVersionCannotCommitAnOrder",
+      "status": "passed"
+    },
+    {
+      "name": "actualRabbitDeliveryCreatesOneOrderAndConfirmMarksOutboxSent",
+      "status": "passed"
+    },
+    {
+      "name": "brokerUnavailableLeavesOutboxPendingAndCanLaterPublish",
+      "status": "passed"
+    },
+    {
+      "name": "retryThresholdDeadLettersButDeadlineScanStillConverges",
+      "status": "passed"
+    },
+    {
+      "name": "reliable202ContainsFourDurableFactsBeforeBrokerPublication",
+      "status": "error"
+    },
+    {
+      "name": "sentMarkerFailureAllowsRetransmissionWithoutAnotherOrder",
+      "status": "failed"
+    },
+    {
+      "name": "concurrentDifferentTiersShareTheSameSessionQualification",
+      "status": "failed"
+    },
+    {
+      "name": "preSaleCapacityChangePausesViewAndExplicitRefreshUsesNewEpoch",
+      "status": "passed"
+    },
+    {
+      "name": "sixBuyersCompeteForTheLastTicketWithoutOverselling",
+      "status": "passed"
+    },
+    {
+      "name": "requestOwnershipValidationAndModeRulesAreEnforced",
+      "status": "passed"
+    },
+    {
+      "name": "asyncExpiryCloseReleasesOnceEvenIfOwnerIsDisabled",
+      "status": "passed"
+    },
+    {
+      "name": "consumerChecksBusinessDeadlineAfterWaitingForStockLock",
+      "status": "passed"
+    },
+    {
+      "name": "consumerTransactionFailureCommitsRetryIntentBeforeAcknowledgement",
+      "status": "passed"
+    },
+    {
+      "name": "admissionRechecksSaleTimeAfterLuaReservation",
+      "status": "passed"
+    },
+    {
+      "name": "syncSessionRetainsOriginalPathAndAsyncModeUsesOptimisticVersion",
+      "status": "passed"
+    },
+    {
+      "name": "sameKeyReplaysQueuedAndTerminalResultAndChangedParametersConflict",
+      "status": "passed"
+    },
+    {
+      "name": "expiredWorkerLeaseRetriesWithoutReleasingBeforeBusinessDeadline",
+      "status": "passed"
+    },
+    {
+      "name": "concurrentIdenticalRequestsAndDuplicateMessagesDoNotCreateTwice",
+      "status": "passed"
+    },
+    {
+      "name": "queryQuotaIsIndependentAndExistingResultNeedsNoRedis",
+      "status": "passed"
+    },
+    {
+      "name": "cancellationAndRefundReturnInventoryOnceAndHistoricalSuccessRemains",
+      "status": "passed"
+    },
+    {
+      "name": "offSaleBetweenAdmissionAndConsumptionRejectsAndReleases",
+      "status": "passed"
+    },
+    {
+      "name": "projectionDuplicateGapAndWrongRedisTypeDoNotDoubleRelease",
+      "status": "passed"
+    },
+    {
+      "name": "crossSessionSameKeyReleasesOnlyTheLosingCandidate",
+      "status": "passed"
+    },
+    {
+      "name": "initialSoldOutFailureRemainsImmutableAfterCancellation",
+      "status": "passed"
+    },
+    {
+      "name": "failedRecoveryWriteStopsConsumerAndKeepsDurableClaimForScanner",
+      "status": "passed"
+    },
+    {
+      "name": "admissionTransactionFailureRollsBackAllFourDurableFactsAndSameKeyRetries",
+      "status": "passed"
+    },
+    {
+      "name": "disabledOwnerAndDeadlineScannerReleaseDurableQueuedBalance",
+      "status": "passed"
+    }
+  ],
+  "failure": "Real cloud Redis exceeded the unchanged 1-second command timeout; failures include DEPENDENCY_UNAVAILABLE/ASYNC_PAUSED, not silently retried as successes."
+}

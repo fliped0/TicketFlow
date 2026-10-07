@@ -31,8 +31,9 @@ public class TradeExecutor {
     private final TradeMapper db;
     private final OrderMapper orders;
     private final JsonMapper json;
-    public TradeExecutor(PlatformTransactionManager manager, TradeMapper db, OrderMapper orders, JsonMapper json) {
-        this.manager=manager; this.db=db; this.orders=orders; this.json=json;
+    private final com.ticketflow.mapper.AsyncGateMapper gates;
+    public TradeExecutor(PlatformTransactionManager manager, TradeMapper db, OrderMapper orders, JsonMapper json, com.ticketflow.mapper.AsyncGateMapper gates) {
+        this.manager=manager; this.db=db; this.orders=orders; this.json=json; this.gates=gates;
     }
     public static String hash(String canonical) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8))); }
@@ -43,8 +44,12 @@ public class TradeExecutor {
     }
     public TradeOutcome execute(long user, TradeOperation operation, String key, String payloadHash, int successStatus,
                                 Supplier<TradeResultVO> action) {
+        return executeInSession(user,null,operation,key,payloadHash,successStatus,action);
+    }
+    public TradeOutcome executeInSession(long user,Long session,TradeOperation operation,String key,String payloadHash,int successStatus,Supplier<TradeResultVO> action) {
         validateKey(key);
         return inTransaction(status -> {
+                    if(session!=null && gates.lock(session,false)==null)throw new IllegalStateException("Missing gate");
                     if (!db.lockUser(user)) throw new BusinessException(401,"UNAUTHENTICATED","请重新登录");
                     var previous=db.request(user,operation,key);
                     if (previous!=null) {
@@ -85,7 +90,11 @@ public class TradeExecutor {
         return internal(owner,System.nanoTime()+BUDGET_NANOS,action);
     }
     public <T> T internal(long owner, long deadline, Supplier<T> action) {
+        return internalInSession(owner,null,deadline,action);
+    }
+    public <T> T internalInSession(long owner,Long session,long deadline,Supplier<T> action) {
         return inTransaction(deadline,status -> {
+            if(session!=null && gates.lock(session,false)==null)throw new IllegalStateException("Missing gate");
             if (!db.lockOwner(owner)) throw new IllegalStateException("Missing order owner");
             return action.get();
         });

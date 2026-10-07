@@ -1,4 +1,4 @@
-param([string]$Server = '118.178.253.75')
+param([string]$Server = $(if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}))
 $ErrorActionPreference = 'Stop'
 $project = Split-Path $PSScriptRoot
 $ports = @(16379,15673,15672)
@@ -12,6 +12,7 @@ $ssh = (Get-Command ssh.exe -ErrorAction Stop).Source
 $toolDir = Join-Path $project '.tools'
 New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
 $arguments = @('-i',('"' + $sshKey + '"'),'-N','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes',
+    '-o','HostKeyAlias=118.178.253.75',
     '-o','ConnectTimeout=8','-o','ExitOnForwardFailure=yes','-o','ServerAliveInterval=30','-o','ServerAliveCountMax=3',
     '-L','127.0.0.1:16379:127.0.0.1:6379','-L','127.0.0.1:15673:127.0.0.1:5672',
     '-L','127.0.0.1:15672:127.0.0.1:15672',("root@$Server"))

@@ -28,7 +28,8 @@ function Import-TicketFlowRedisConfig {
     param([ValidateSet('dev','test')] [string]$Mode)
     & "$PSScriptRoot/start-tunnel.ps1"
     $sshKey = Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
-    $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o ConnectTimeout=8 root@118.178.253.75 'cat /opt/ticketflow/.env'
+    $server = if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}
+    $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlias=118.178.253.75 -o ConnectTimeout=8 "root@$server" 'cat /opt/ticketflow/.env'
     if ($LASTEXITCODE -ne 0) { throw 'Cannot read middleware credentials over authorized SSH.' }
     $redisPassword = $privateConfig | Where-Object { $_ -match '^REDIS_PASSWORD=[a-f0-9]{48}$' } | Select-Object -First 1
     if (-not $redisPassword) { throw 'Missing server Redis configuration.' }
@@ -58,7 +59,8 @@ function Remove-TicketFlowRedisConfig {
 function Import-TicketFlowRabbitConfig {
     & "$PSScriptRoot/start-tunnel.ps1"
     $sshKey = Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
-    $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o ConnectTimeout=8 root@118.178.253.75 'cat /opt/ticketflow/.env'
+    $server = if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}
+    $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlias=118.178.253.75 -o ConnectTimeout=8 "root@$server" 'cat /opt/ticketflow/.env'
     if ($LASTEXITCODE -ne 0) { throw 'Cannot read RabbitMQ configuration over authorized SSH.' }
     $rabbitPassword = $privateConfig | Where-Object { $_ -match '^RABBITMQ_PASSWORD=[a-f0-9]{48}$' } | Select-Object -First 1
     if (-not $rabbitPassword) { throw 'Missing RabbitMQ server configuration.' }
@@ -70,4 +72,20 @@ function Import-TicketFlowRabbitConfig {
 }
 function Remove-TicketFlowRabbitConfig {
     Remove-Item Env:TF_RABBITMQ_PASSWORD,Env:TF_RABBITMQ_IT -ErrorAction SilentlyContinue
+}
+function Import-TicketFlowAsyncConfig {
+    & "$PSScriptRoot/start-tunnel.ps1"
+    $sshKey=Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
+    $server=if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}
+    $privateConfig=& ssh -i $sshKey -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlias=118.178.253.75 -o ConnectTimeout=8 "root@$server" 'cat /opt/ticketflow/.env'
+    if($LASTEXITCODE -ne 0){throw 'Cannot read scoped application configuration.'}
+    $line=$privateConfig | Where-Object {$_ -match '^RABBITMQ_APP_PASSWORD=[a-f0-9]{48}$'} | Select-Object -First 1
+    if(-not $line){throw 'Run scripts/setup-async.ps1 to prepare the scoped tf_app account.'}
+    $env:TF_RABBITMQ_PASSWORD=$line.Substring('RABBITMQ_APP_PASSWORD='.Length)
+    $env:TF_RABBITMQ_USER='tf_app';$env:TF_RABBITMQ_VHOST='/ticketflow-dev';$env:TF_RABBITMQ_PREFIX='tf.dev.async'
+    $env:TF_ASYNC_ENABLED='true'
+}
+function Remove-TicketFlowAsyncConfig {
+    @('TF_RABBITMQ_PASSWORD','TF_RABBITMQ_USER','TF_RABBITMQ_VHOST','TF_RABBITMQ_PREFIX','TF_ASYNC_ENABLED') |
+        ForEach-Object {Remove-Item "Env:$_" -ErrorAction SilentlyContinue}
 }

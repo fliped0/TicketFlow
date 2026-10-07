@@ -26,8 +26,8 @@ import static org.mockito.Mockito.*;
 
 @EnabledIfEnvironmentVariable(named="TF_REDIS_IT",matches="true")
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties={
-        "ticketflow.redis.enabled=true", "ticketflow.redis.cache-ttl-seconds=2",
-        "ticketflow.redis.empty-ttl-seconds=1", "ticketflow.redis.query-concurrency=8",
+        "ticketflow.redis.enabled=true", "ticketflow.redis.cache-ttl-seconds=30",
+        "ticketflow.redis.empty-ttl-seconds=10", "ticketflow.redis.query-concurrency=8",
         "ticketflow.redis.merge-wait-millis=2000", "ticketflow.redis.user-limit=2",
         "ticketflow.redis.session-limit=2", "ticketflow.redis.window-millis=2000"})
 class RedisCatalogIT extends OrderTestSupport {
@@ -80,8 +80,13 @@ class RedisCatalogIT extends OrderTestSupport {
         assertEquals(404,get("/api/v1/events/"+id).statusCode());
         assertEquals(404,get("/api/v1/events/"+id).statusCode());
         verify(catalog,times(1)).event(id,false);
-        assertEquals("null",redis.opsForValue().get(keys().iterator().next()));
-        Thread.sleep(1150);
+        String negativeKey=keys().iterator().next();
+        assertEquals("null",redis.opsForValue().get(negativeKey));
+        // Expire this key explicitly: remote round trips must not exhaust the
+        // cache lifetime before the independent cache-hit assertions finish.
+        assertTrue(redis.expire(negativeKey,java.time.Duration.ofMillis(100)));
+        Thread.sleep(150);
+        assertNull(redis.opsForValue().get(negativeKey));
         assertEquals(404,get("/api/v1/events/"+id).statusCode());
         verify(catalog,times(2)).event(id,false);
         var now=java.time.Instant.now();
@@ -222,9 +227,13 @@ class RedisCatalogIT extends OrderTestSupport {
     @Test void configuredPositiveTtlExpiresAndReloads() throws Exception {
         var f=fixture(1); data(get(eventPath(f)),200); clearInvocations(catalog);
         String cacheKey=keys().iterator().next();
-        long ttl=redis.getExpire(cacheKey,TimeUnit.MILLISECONDS); assertTrue(ttl>0 && ttl<=2000);
+        long ttl=redis.getExpire(cacheKey,TimeUnit.MILLISECONDS);
+        assertTrue(ttl>0 && ttl<=TimeUnit.SECONDS.toMillis(settings.cacheTtlSeconds()));
+        verify(gateway).put(eq(cacheKey),anyString(),eq(settings.cacheTtlSeconds()));
         data(get(eventPath(f)),200); verify(catalog,never()).event(f.event(),false);
-        Thread.sleep(2150); data(get(eventPath(f)),200); verify(catalog,times(1)).event(f.event(),false);
-        assertEquals(2,settings.cacheTtlSeconds());
+        assertTrue(redis.expire(cacheKey,java.time.Duration.ofMillis(100)));
+        Thread.sleep(150); assertNull(redis.opsForValue().get(cacheKey));
+        data(get(eventPath(f)),200); verify(catalog,times(1)).event(f.event(),false);
+        assertEquals(30,settings.cacheTtlSeconds());
     }
 }

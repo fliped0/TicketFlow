@@ -25,7 +25,8 @@ public class CatalogService {
     private final CatalogMapper db;
     private final JsonMapper json;
     private final CatalogCacheService cache;
-    public CatalogService(CatalogMapper db, JsonMapper json, CatalogCacheService cache) { this.db = db; this.json = json; this.cache = cache; }
+    private final com.ticketflow.mapper.AsyncGateMapper gates;
+    public CatalogService(CatalogMapper db, JsonMapper json, CatalogCacheService cache,com.ticketflow.mapper.AsyncGateMapper gates) { this.db = db; this.json = json; this.cache = cache;this.gates=gates; }
 
     private static BusinessException invalid() { return new BusinessException(400,"VALIDATION_ERROR","请求参数不合法"); }
     private static BusinessException missing() { return new BusinessException(404,"NOT_FOUND","资源不存在"); }
@@ -129,7 +130,7 @@ public class CatalogService {
     }
     @Transactional
     public CatalogVO.Session updateSession(long actor,long id,CatalogDTO.SessionUpdate input) {
-        if (input == null) throw invalid(); actor(actor);
+        if (input == null) throw invalid();gates.lock(id,true); actor(actor);
         SessionRow route=session(id,false); EventRow parent=requireEvent(route.eventId(),true); SessionRow before=session(id,true);
         expected(before.version(),input.expectedVersion());
         LocalDateTime now=db.now(); if (!now.isBefore(before.freezeAt())) throw conflict("CONFIG_FROZEN");
@@ -137,23 +138,25 @@ public class CatalogService {
         validTimes(starts,saleStart,saleEnd,now);
         LocalDateTime freeze=before.freezeAt().isBefore(saleStart)?before.freezeAt():saleStart;
         db.updateSession(id,starts,saleStart,saleEnd,freeze);
+        if("ASYNC".equals(gates.read(id).mode()))gates.changed(id);
         CatalogVO.Session result=view(session(id,false),parent,now); audit(actor,"UPDATE","SESSION",id,view(before,parent,now),result); return result;
     }
     @Transactional
     public CatalogVO.Tier createTier(long actor,long sessionId,CatalogDTO.Tier input) {
-        if (input == null) throw invalid(); actor(actor);
+        if (input == null) throw invalid();gates.lock(sessionId,true); actor(actor);
         SessionRow route=session(sessionId,false); EventRow parent=requireEvent(route.eventId(),true); SessionRow session=session(sessionId,true);
         LocalDateTime now=db.now(); if (!now.isBefore(session.freezeAt())) throw conflict("CONFIG_FROZEN");
         String name=required(input.name(),100); long price=price(input.priceFen()); int capacity=capacity(input.capacity());
         if (db.tierNameExists(sessionId,name,-1)) throw conflict("TIER_NAME_EXISTS");
         try {
             long id=db.createTier(sessionId,name,price,capacity);
+            if("ASYNC".equals(gates.read(sessionId).mode()))gates.changed(sessionId);
             CatalogVO.Tier result=view(tier(id,false),session,parent,now); audit(actor,"CREATE","TIER",id,null,result); return result;
         } catch (DuplicateKeyException e) { throw conflict("TIER_NAME_EXISTS"); }
     }
     @Transactional
     public CatalogVO.Tier updateTier(long actor,long id,CatalogDTO.TierUpdate input) {
-        if (input == null) throw invalid(); actor(actor);
+        if (input == null) throw invalid();TierRow gateRoute=tier(id,false);gates.lock(gateRoute.sessionId(),true); actor(actor);
         TierRow route=tier(id,false); SessionRow routeSession=session(route.sessionId(),false);
         EventRow parent=requireEvent(routeSession.eventId(),true); SessionRow session=session(route.sessionId(),true); TierRow before=tier(id,true);
         expected(before.version(),input.expectedVersion()); LocalDateTime now=db.now();
@@ -163,6 +166,7 @@ public class CatalogService {
         if (capacity!=before.capacity() && (before.reserved()!=0 || before.sold()!=0 || db.orderCount(id)!=0)) throw conflict("CONFIG_FROZEN");
         try {
             db.updateTier(id,name,price,capacity,capacity!=before.capacity());
+            if("ASYNC".equals(gates.read(session.id()).mode()))gates.changed(session.id());
             CatalogVO.Tier result=view(tier(id,false),session,parent,now); audit(actor,"UPDATE","TIER",id,view(before,session,parent,now),result); return result;
         } catch (DuplicateKeyException e) { throw conflict("TIER_NAME_EXISTS"); }
     }

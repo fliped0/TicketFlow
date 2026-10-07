@@ -1,0 +1,369 @@
+package com.ticketflow;
+
+import com.rabbitmq.client.*;
+import com.ticketflow.config.*;
+import com.ticketflow.mapper.*;
+import com.ticketflow.model.entity.*;
+import com.ticketflow.service.*;
+import java.net.*;
+import java.net.http.*;
+import java.nio.charset.StandardCharsets;
+import java.time.*;
+import java.util.*;
+import java.util.concurrent.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.transaction.support.TransactionTemplate;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/** Real MySQL/Redis/RabbitMQ; modest concurrency is a correctness check, not a capacity claim. */
+@EnabledIfEnvironmentVariable(named="TF_ASYNC_IT",matches="true")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class AsyncPurchaseIT extends OrderTestSupport {
+    static final String scope=UUID.randomUUID().toString().replace("-","").substring(0,12);
+    static final String vhost="/ticketflow-async-"+scope,user="tf_async_"+scope,prefix="tf.test.async_"+scope;
+    static final String pass=UUID.randomUUID().toString()+UUID.randomUUID();
+    @DynamicPropertySource static void asyncSettings(DynamicPropertyRegistry p) {
+        p.add("ticketflow.async.enabled",()->true);p.add("ticketflow.async.jobs-enabled",()->false);
+        p.add("ticketflow.async.username",()->user);p.add("ticketflow.async.password",()->pass);
+        p.add("ticketflow.async.vhost",()->vhost);p.add("ticketflow.async.broker-prefix",()->prefix);
+        p.add("ticketflow.async.query-limit",()->2);
+        // Retain the DB's namespace across retries/restarts; no FLUSHDB or foreign key deletion.
+        p.add("ticketflow.redis.namespace",()->"tf:test:v1");
+        p.add("ticketflow.redis.enabled",()->false);
+        p.add("ticketflow.redis.window-millis",()->60000);
+    }
+    @Autowired StringRedisTemplate redis;
+    @Autowired AsyncGateMapper gates;
+    @Autowired AsyncOrderService worker;
+    @Autowired OrderApplicationService lifecycle;
+    @Autowired OutboxPublisher publisher;
+    @MockitoSpyBean AsyncRequestMapper async;
+    @MockitoSpyBean OutboxMapper outbox;
+    @MockitoSpyBean AsyncRedisGateway lua;
+    @MockitoSpyBean AsyncBrokerGateway broker;
+    @MockitoSpyBean DatabaseClock clock;
+    @Autowired PurchaseRequestService purchases;
+    final List<Fixture> fixtures=new ArrayList<>();
+    Actor admin;
+    String enc(){return URLEncoder.encode(vhost,StandardCharsets.UTF_8);}
+    void management(String method,String path,Object payload,int expected)throws Exception {
+        String basic=Base64.getEncoder().encodeToString(("tf_admin:"+System.getenv("TF_RABBITMQ_PASSWORD")).getBytes(StandardCharsets.UTF_8));
+        var req=HttpRequest.newBuilder(URI.create("http://127.0.0.1:15672/api/"+path)).version(HttpClient.Version.HTTP_1_1)
+                .timeout(Duration.ofSeconds(10)).header("Authorization","Basic "+basic).header("Content-Type","application/json")
+                .method(method,payload==null?HttpRequest.BodyPublishers.noBody():HttpRequest.BodyPublishers.ofString(json.writeValueAsString(payload))).build();
+        var response=http.send(req,HttpResponse.BodyHandlers.ofString());
+        assertTrue(response.statusCode()==expected || method.equals("DELETE")&&response.statusCode()==404,"Management "+method+" "+path+": "+response.statusCode());
+    }
+    @BeforeAll void prepare()throws Exception {
+        admin=actor(true);
+        management("PUT","vhosts/"+enc(),Map.of(),201);
+        management("PUT","users/"+user,Map.of("password",pass,"tags",""),201);
+        String pattern="^tf\\.test\\.async_"+scope+"\\..*";
+        management("PUT","permissions/"+enc()+"/"+user,Map.of("configure",pattern,"write",pattern,"read",pattern),201);
+        management("PUT","policies/"+enc()+"/async-dlx",Map.of("pattern",pattern,"priority",1,"apply-to","queues",
+                "definition",Map.of("dead-letter-strategy","at-least-once","overflow","reject-publish")),201);
+        broker.topology();
+    }
+    @AfterAll void cleanupBroker()throws Exception {
+        try {broker.close();management("DELETE","vhosts/"+enc(),null,204);}
+        finally {management("DELETE","users/"+user,null,204);}
+    }
+    @AfterEach void finishOwnRequests()throws Exception {
+        broker.close();reset(async,outbox,lua,broker,orders,inventory,trades,catalog,clock);
+        for(var f:fixtures) {
+            db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE session_id=? AND state IN ('ACCEPTED','PROCESSING','RETRY_WAIT')",f.session());
+            db.update("UPDATE tf_async_request SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE session_id=? AND state='PROCESSING'",f.session());
+        }
+        worker.sweep();publisher.tick();broker.close();fixtures.clear();
+    }
+    Fixture asyncFixture(int capacity,boolean open)throws Exception {
+        Fixture f=new TransactionTemplate(manager).execute(status->{
+            var now=trades.now();long e=catalog.createEvent("Async_"+key(),"Show","music","Beijing","Hall");
+            long s=catalog.createSession(e,now.plusHours(2),now.plusMinutes(2),now.plusHours(1));
+            long t=catalog.createTier(s,"Standard",58000,capacity),o=catalog.createTier(s,"VIP",88000,capacity);
+            catalog.setStatus(e,"ON_SALE");return new Fixture(e,s,t,o);
+        });fixtures.add(f);
+        assertEquals("READY",data(mode(f,"ASYNC",0),200).path("phase").asString());
+        if(open)open(f);return f;
+    }
+    void open(Fixture f) {
+        db.update("UPDATE tf_session SET sale_start_at=UTC_TIMESTAMP(6)-INTERVAL 1 SECOND,freeze_at=UTC_TIMESTAMP(6)-INTERVAL 1 SECOND WHERE id=?",f.session());
+        redis.opsForHash().put(lua.keys(f.session(),gates.read(f.session()).epoch()).get(0),"start",Long.toString(Instant.now().minusSeconds(1).toEpochMilli()));
+    }
+    HttpResponse<String> mode(Fixture f,String mode,long version)throws Exception {
+        return request("PUT","/api/v1/admin/sessions/"+f.session()+"/purchase-mode",Map.of("mode",mode,"expectedVersion",version),admin.token(),null);
+    }
+    HttpResponse<String> submit(Actor a,long tier,String key)throws Exception {
+        return request("POST","/api/v1/purchase-requests",Map.of("tierId",Long.toString(tier),"quantity",1),a.token(),key);
+    }
+    String accepted(Actor a,Fixture f)throws Exception {return data(submit(a,f.tier(),key()),202).path("requestId").asString();}
+    AsyncMessage message(String id) {
+        String payload=db.queryForObject("SELECT payload FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER' ORDER BY created_at,id LIMIT 1",String.class,id);
+        return json.readValue(payload,AsyncMessage.class);
+    }
+    void consume(String id) {assertEquals(AsyncDisposition.ACK,worker.consume(message(id)));}
+    String state(String id) {return async.get(id,false).state();}
+    long order(String id){return async.get(id,false).orderId();}
+    long free(Fixture f){return Long.parseLong(redis.opsForHash().get(lua.keys(f.session(),gates.read(f.session()).epoch()).get(1),Long.toString(f.tier())).toString());}
+    void balance(Fixture f,int queued,int reserved,int sold) {
+        assertEquals(queued,count("SELECT queued_count FROM tf_async_tier_balance WHERE tier_id=?",f.tier()));
+        assertEquals(reserved,count("SELECT reserved FROM tf_stock WHERE tier_id=?",f.tier()));
+        assertEquals(sold,count("SELECT sold FROM tf_stock WHERE tier_id=?",f.tier()));
+        assertEquals(0,count("SELECT COUNT(*) FROM tf_stock s JOIN tf_async_tier_balance b ON b.tier_id=s.tier_id JOIN tf_tier t ON t.id=s.tier_id WHERE t.session_id=? AND (s.capacity<>s.available+s.reserved+s.sold OR b.queued_count>s.available)",f.session()));
+        assertEquals(0,count("SELECT COUNT(*) FROM tf_async_slot a JOIN tf_purchase_slot p ON p.user_id=a.user_id AND p.session_id=a.session_id WHERE a.session_id=?",f.session()));
+    }
+    void act(Actor a,long order,String operation,String key)throws Exception {data(request("POST","/api/v1/orders/"+order+"/"+operation,Map.of(),a.token(),key),200);}
+    void flush(Fixture f)throws Exception {
+        long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);
+        do {
+            publisher.tick();
+            if(count("SELECT COUNT(*) FROM tf_outbox WHERE session_id=? AND destination='REDIS' AND state<>'SENT'",f.session())==0)return;
+            Thread.sleep(100);
+        }while(System.nanoTime()<end);
+        fail("Redis projection backlog for own session");
+    }
+    @Test void reliable202ContainsFourDurableFactsBeforeBrokerPublication()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);var response=submit(a,f.tier(),key());String id=data(response,202).path("requestId").asString();
+        assertEquals("1",response.headers().firstValue("Retry-After").orElseThrow());
+        assertEquals("/api/v1/purchase-requests/"+id,response.headers().firstValue("Location").orElseThrow());
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_async_slot WHERE request_id=?",id));
+        assertEquals(2,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND state='PENDING'",id));
+        assertEquals("ACCEPTED",state(id));assertEquals(0,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));balance(f,1,0,0);assertEquals(0,free(f));
+        consume(id);balance(f,0,1,0);flush(f);
+    }
+    @Test void actualRabbitDeliveryCreatesOneOrderAndConfirmMarksOutboxSent()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String id=accepted(a,f);
+        broker.startConsumers();long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(15);
+        while(!"SUCCEEDED".equals(state(id))&&System.nanoTime()<end){publisher.tick();Thread.sleep(100);}
+        assertEquals("SUCCEEDED",state(id));balance(f,0,1,0);flush(f);
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER' AND state='SENT'",id));
+        var own=data(request("GET","/api/v1/purchase-requests/"+id,null,a.token(),null),200);
+        assertEquals("PENDING",own.path("currentOrderStatus").asString());assertEquals(58000,own.path("snapshot").path("amountFen").asLong());
+    }
+    @Test void sameKeyReplaysQueuedAndTerminalResultAndChangedParametersConflict()throws Exception {
+        var f=asyncFixture(2,true);var a=actor(false);String k=key();String id=data(submit(a,f.tier(),k),202).path("requestId").asString();
+        var replay=submit(a,f.tier(),k);assertEquals(id,data(replay,202).path("requestId").asString());assertTrue(body(replay).path("replayed").asBoolean());
+        rejected(submit(a,f.otherTier(),k),"IDEMPOTENCY_CONFLICT");consume(id);
+        assertEquals(id,data(submit(a,f.tier(),k),200).path("requestId").asString());balance(f,0,1,0);
+    }
+    @Test void concurrentIdenticalRequestsAndDuplicateMessagesDoNotCreateTwice()throws Exception {
+        var f=asyncFixture(2,true);var a=actor(false);String k=key();
+        var results=simultaneous(List.of(()->submit(a,f.tier(),k),()->submit(a,f.tier(),k)));
+        String id=data(results.get(0),202).path("requestId").asString();assertEquals(id,data(results.get(1),202).path("requestId").asString());
+        var pool=Executors.newFixedThreadPool(2);
+        try {var m=message(id);var x=pool.submit(()->worker.consume(m));var y=pool.submit(()->worker.consume(m));assertEquals(AsyncDisposition.ACK,x.get(10,TimeUnit.SECONDS));assertEquals(AsyncDisposition.ACK,y.get(10,TimeUnit.SECONDS));}
+        finally{pool.shutdownNow();}
+        consume(id);assertEquals(1,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));balance(f,0,1,0);
+    }
+    @Test void concurrentDifferentTiersShareTheSameSessionQualification()throws Exception {
+        var f=asyncFixture(2,true);var a=actor(false);
+        var responses=simultaneous(List.of(()->submit(a,f.tier(),key()),()->submit(a,f.otherTier(),key())));
+        assertEquals(List.of(202,409),responses.stream().map(HttpResponse::statusCode).sorted().toList());
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_async_slot WHERE user_id=? AND session_id=?",a.id(),f.session()));
+        responses.stream().filter(r->r.statusCode()==202).forEach(r->consume(body(r).path("data").path("requestId").asString()));
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));
+    }
+    @Test void sixBuyersCompeteForTheLastTicketWithoutOverselling()throws Exception {
+        var f=asyncFixture(1,true);var tasks=new ArrayList<Callable<HttpResponse<String>>>();
+        for(int i=0;i<6;i++){var a=actor(false);tasks.add(()->submit(a,f.tier(),key()));}
+        var responses=simultaneous(tasks);assertEquals(1,responses.stream().filter(r->r.statusCode()==202).count());assertEquals(5,responses.stream().filter(r->r.statusCode()==409).count());
+        balance(f,1,0,0);responses.stream().filter(r->r.statusCode()==202).forEach(r->consume(body(r).path("data").path("requestId").asString()));balance(f,0,1,0);assertEquals(0,free(f));
+    }
+    @Test void crossSessionSameKeyReleasesOnlyTheLosingCandidate()throws Exception {
+        var f=asyncFixture(1,true);var g=asyncFixture(1,true);var a=actor(false);String k=key();var barrier=new CyclicBarrier(2);
+        doAnswer(call->{Object result=call.callRealMethod();barrier.await(5,TimeUnit.SECONDS);return result;}).when(lua).reserve(anyLong(),anyLong(),eq(a.id()),anyString(),anyString(),anyLong(),anyString(),anyString(),anyLong());
+        var responses=simultaneous(List.of(()->submit(a,f.tier(),k),()->submit(a,g.tier(),k)));reset(lua);
+        assertEquals(List.of(202,409),responses.stream().map(HttpResponse::statusCode).sorted().toList());
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_async_request WHERE user_id=? AND request_key=?",a.id(),k));
+        flush(f);flush(g);assertEquals(1,free(f)+free(g));
+        var winner=responses.stream().filter(r->r.statusCode()==202).findFirst().orElseThrow();String id=body(winner).path("data").path("requestId").asString();consume(id);
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_order WHERE user_id=? AND session_id IN (?,?)",a.id(),f.session(),g.session()));
+    }
+    @Test void requestOwnershipValidationAndModeRulesAreEnforced()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);var stranger=actor(false);String id=accepted(a,f);
+        assertEquals(404,request("GET","/api/v1/purchase-requests/"+id,null,stranger.token(),null).statusCode());
+        assertEquals(401,request("GET","/api/v1/purchase-requests/"+id,null,null,null).statusCode());
+        assertEquals(400,submit(a,f.tier(),"short").statusCode());
+        assertEquals(400,request("POST","/api/v1/purchase-requests",Map.of("tierId",Long.toString(f.tier()),"quantity",2),a.token(),key()).statusCode());
+        assertEquals(403,request("PUT","/api/v1/admin/sessions/"+f.session()+"/purchase-mode",Map.of("mode","SYNC","expectedVersion",1),a.token(),null).statusCode());
+        rejected(create(stranger,f.tier(),key()),"ASYNC_REQUIRED");rejected(mode(f,"SYNC",1),"CONFIG_FROZEN");
+        assertEquals("READY",redis.opsForHash().get(lua.keys(f.session(),gates.read(f.session()).epoch()).get(0),"phase"));consume(id);
+    }
+    @Test void syncSessionRetainsOriginalPathAndAsyncModeUsesOptimisticVersion()throws Exception {
+        var a=actor(false);var syncFixture=fixture(1);rejected(submit(a,syncFixture.tier(),key()),"SYNC_REQUIRED");data(create(a,syncFixture.tier(),key()),201);
+        var f=asyncFixture(1,false);rejected(mode(f,"SYNC",0),"VERSION_CONFLICT");
+        assertEquals("READY",redis.opsForHash().get(lua.keys(f.session(),gates.read(f.session()).epoch()).get(0),"phase"));
+        assertEquals("SYNC",data(mode(f,"SYNC",1),200).path("mode").asString());
+    }
+    @Test void initialSoldOutFailureRemainsImmutableAfterCancellation()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);var b=actor(false);String id=accepted(a,f);consume(id);String k=key();
+        var failure=submit(b,f.tier(),k);rejected(failure,"SOLD_OUT");String failed=body(failure).path("data").path("requestId").asString();
+        assertNull(async.get(failed,false).token());act(a,order(id),"cancel",key());flush(f);assertEquals(1,free(f));
+        var replay=submit(b,f.tier(),k);rejected(replay,"SOLD_OUT");assertTrue(body(replay).path("replayed").asBoolean());
+        String second=accepted(b,f);consume(second);balance(f,0,1,0);
+    }
+    @Test void cancellationAndRefundReturnInventoryOnceAndHistoricalSuccessRemains()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String id=accepted(a,f);consume(id);long order=order(id);String cancel=key();
+        act(a,order,"cancel",cancel);act(a,order,"cancel",cancel);flush(f);balance(f,0,0,0);assertEquals(1,free(f));
+        var result=data(request("GET","/api/v1/purchase-requests/"+id,null,a.token(),null),200);assertEquals("SUCCEEDED",result.path("state").asString());assertEquals("CANCELLED",result.path("currentOrderStatus").asString());
+        String second=accepted(a,f);consume(second);long paid=order(second);act(a,paid,"payments",key());balance(f,0,0,1);String refund=key();
+        act(a,paid,"refunds",refund);act(a,paid,"refunds",refund);flush(f);balance(f,0,0,0);assertEquals(1,free(f));assertEquals("SUCCEEDED",state(second));
+        String third=accepted(a,f);consume(third);balance(f,0,1,0);
+    }
+    @Test void disabledOwnerAndDeadlineScannerReleaseDurableQueuedBalance()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String id=accepted(a,f);db.update("UPDATE tf_user SET enabled=FALSE WHERE id=?",a.id());consume(id);
+        assertEquals("ACCOUNT_DISABLED",async.get(id,false).code());balance(f,0,0,0);flush(f);assertEquals(1,free(f));
+        var b=actor(false);String pending=accepted(b,f);db.update("UPDATE tf_user SET enabled=FALSE WHERE id=?",b.id());
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",pending);worker.sweep();worker.sweep();
+        assertEquals("REJECTED",state(pending));balance(f,0,0,0);flush(f);assertEquals(1,free(f));
+    }
+    @Test void offSaleBetweenAdmissionAndConsumptionRejectsAndReleases()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);catalog.setStatus(f.event(),"OFF_SALE");consume(id);
+        assertEquals("NOT_ON_SALE",async.get(id,false).code());balance(f,0,0,0);flush(f);assertEquals(1,free(f));
+    }
+    @Test void consumerChecksBusinessDeadlineAfterWaitingForStockLock()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);
+        db.update("UPDATE tf_async_request SET create_deadline=UTC_TIMESTAMP(6)+INTERVAL 700000 MICROSECOND WHERE id=?",id);
+        var pool=Executors.newSingleThreadExecutor();
+        try(var c=source.getConnection()) {
+            c.setAutoCommit(false);try(var s=c.prepareStatement("SELECT tier_id FROM tf_stock WHERE tier_id=? FOR UPDATE")){s.setLong(1,f.tier());s.executeQuery().close();}
+            var task=pool.submit(()->worker.consume(message(id)));Thread.sleep(1100);c.commit();assertEquals(AsyncDisposition.ACK,task.get(8,TimeUnit.SECONDS));
+        }finally{pool.shutdownNow();}
+        assertEquals("PROCESSING_DEADLINE_EXCEEDED",async.get(id,false).code());balance(f,0,0,0);flush(f);
+    }
+    @Test void admissionRechecksSaleTimeAfterLuaReservation()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);
+        doAnswer(call->{var r=call.callRealMethod();db.update("UPDATE tf_session SET sale_end_at=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",f.session());return r;})
+                .when(lua).reserve(eq(f.session()),anyLong(),eq(a.id()),anyString(),anyString(),anyLong(),anyString(),anyString(),anyLong());
+        rejected(submit(a,f.tier(),key()),"SALE_ENDED");reset(lua);balance(f,0,0,0);flush(f);assertEquals(1,free(f));
+    }
+    @Test void admissionTransactionFailureRollsBackAllFourDurableFactsAndSameKeyRetries()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();
+        doThrow(new org.springframework.dao.DataAccessResourceFailureException("test only"))
+                .when(outbox).insert(anyString(),eq("BROKER"),anyString(),anyString(),eq(f.session()),anyLong(),anyLong(),nullable(Long.class),anyString(),any(LocalDateTime.class));
+        var response=submit(a,f.tier(),k);assertEquals(503,response.statusCode());assertTrue(body(response).path("data").path("retryWithSameKey").asBoolean());
+        assertEquals(0,count("SELECT COUNT(*) FROM tf_async_request WHERE user_id=? AND request_key=?",a.id(),k));assertEquals(0,count("SELECT COUNT(*) FROM tf_async_slot WHERE session_id=?",f.session()));
+        assertEquals(0,count("SELECT COUNT(*) FROM tf_outbox WHERE session_id=?",f.session()));balance(f,0,0,0);assertEquals(0,free(f));
+        reset(outbox);String id=data(submit(a,f.tier(),k),202).path("requestId").asString();consume(id);balance(f,0,1,0);
+    }
+    @Test void consumerTransactionFailureCommitsRetryIntentBeforeAcknowledgement()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);
+        doThrow(new org.springframework.dao.DataAccessResourceFailureException("test only")).when(async).complete(any(AsyncRequest.class),notNull(),eq("OK"),any(LocalDateTime.class));
+        assertEquals(AsyncDisposition.ACK,worker.consume(message(id)));assertEquals("RETRY_WAIT",state(id));balance(f,1,0,0);
+        assertEquals(0,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));assertEquals(2,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER'",id));
+        reset(async);db.update("UPDATE tf_async_request SET next_retry_at=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);consume(id);balance(f,0,1,0);
+    }
+    @Test void failedRecoveryWriteStopsConsumerAndKeepsDurableClaimForScanner()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);
+        doThrow(new org.springframework.dao.DataAccessResourceFailureException("test only")).when(async).complete(any(AsyncRequest.class),notNull(),eq("OK"),any(LocalDateTime.class));
+        doThrow(new org.springframework.dao.DataAccessResourceFailureException("test only")).when(async).retry(any(AsyncRequest.class),any(LocalDateTime.class),any(LocalDateTime.class));
+        assertEquals(AsyncDisposition.STOP,worker.consume(message(id)));assertEquals("PROCESSING",state(id));balance(f,1,0,0);
+        reset(async);db.update("UPDATE tf_async_request SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();assertEquals("RETRY_WAIT",state(id));
+        db.update("UPDATE tf_async_request SET next_retry_at=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);consume(id);balance(f,0,1,0);
+    }
+    @Test void brokerUnavailableLeavesOutboxPendingAndCanLaterPublish()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);
+        doThrow(new java.io.IOException("test broker connection unavailable")).when(broker).topology();
+        doThrow(new java.io.IOException("test unavailable")).when(broker).publish(argThat(e->e.aggregate().equals(id)));
+        new AsyncJob(broker,publisher,worker).dispatch();
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='REDIS' AND state='SENT'",id));
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER' AND state='PENDING'",id));balance(f,1,0,0);
+        reset(broker);db.update("UPDATE tf_outbox SET next_attempt_at=UTC_TIMESTAMP(6) WHERE aggregate_id=? AND destination='BROKER'",id);publisher.tick();
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER' AND state='SENT'",id));consume(id);balance(f,0,1,0);
+    }
+    @Test void sentMarkerFailureAllowsRetransmissionWithoutAnotherOrder()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);String event=message(id).eventId();
+        doThrow(new org.springframework.dao.DataAccessResourceFailureException("test after confirm")).when(outbox).settle(argThat(e->e.id().equals(event)),anyString(),eq(true),any(LocalDateTime.class));
+        assertThrows(org.springframework.dao.DataAccessException.class,publisher::tick);assertEquals("SENDING",db.queryForObject("SELECT state FROM tf_outbox WHERE id=?",String.class,event));
+        reset(outbox);consume(id);db.update("UPDATE tf_outbox SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",event);publisher.tick();consume(id);balance(f,0,1,0);
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));
+    }
+    @Test void projectionDuplicateGapAndWrongRedisTypeDoNotDoubleRelease()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String id=accepted(a,f);consume(id);flush(f);act(a,order(id),"cancel",key());flush(f);
+        String eid=db.queryForObject("SELECT id FROM tf_outbox WHERE aggregate_id=? AND event_type='RELEASE'",String.class,id);var e=outbox.get(eid);var p=json.readTree(e.payload());
+        assertEquals("DUPLICATE",lua.project(e,p.path("token").asString(),a.id(),id,null));assertEquals(1,free(f));
+        var gap=new OutboxEvent(key(),"REDIS","RELEASE",id,f.session(),f.tier(),e.epoch(),e.sequence()+2,e.payload(),0,0);
+        assertEquals("GAP",lua.project(gap,p.path("token").asString(),a.id(),id,null));assertEquals(1,free(f));
+        String tokens=lua.keys(f.session(),e.epoch()).get(2);var saved=redis.opsForHash().entries(tokens);redis.delete(tokens);redis.opsForValue().set(tokens,"wrong type");
+        try{var b=actor(false);assertEquals(503,submit(b,f.tier(),key()).statusCode());assertEquals(1,free(f));assertEquals(0,count("SELECT COUNT(*) FROM tf_async_request WHERE user_id=?",b.id()));}
+        finally{redis.delete(tokens);redis.opsForHash().putAll(tokens,saved);}
+    }
+    @Test void malformedEnvelopeCannotCreateOrderOrInventARelease()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);var real=message(id);
+        var unknown=new AsyncMessage(1,key(),id,f.session(),real.epoch(),real.createdAt(),"test");
+        assertEquals(AsyncDisposition.DEAD_LETTER,worker.consume(unknown));balance(f,1,0,0);assertEquals(2,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=?",id));consume(id);
+    }
+    @Test void queryQuotaIsIndependentAndExistingResultNeedsNoRedis()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();String id=data(submit(a,f.tier(),k),202).path("requestId").asString();
+        doThrow(new IllegalStateException("test disconnected")).when(lua).reserve(anyLong(),anyLong(),anyLong(),anyString(),anyString(),anyLong(),anyString(),anyString(),anyLong());
+        while(System.nanoTime()%1_000_000_000L>100_000_000L)Thread.sleep(5);
+        purchases.get(a.id(),id);purchases.get(a.id(),id);
+        assertThrows(com.ticketflow.common.exception.RateLimitedException.class,()->purchases.get(a.id(),id));
+        assertEquals(id,data(submit(a,f.tier(),k),202).path("requestId").asString());reset(lua);consume(id);
+    }
+    @Test void expiredWorkerLeaseRetriesWithoutReleasingBeforeBusinessDeadline()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);var calls=new java.util.concurrent.atomic.AtomicInteger();
+        doAnswer(call->{LocalDateTime now=(LocalDateTime)call.callRealMethod();return calls.incrementAndGet()==2?now.plusSeconds(9):now;}).when(clock).nowUtc();
+        consume(id);reset(clock);assertEquals("RETRY_WAIT",state(id));balance(f,1,0,0);
+        assertEquals(0,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND event_type='RELEASE'",id));
+        db.update("UPDATE tf_async_request SET next_retry_at=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);consume(id);balance(f,0,1,0);
+    }
+    @Test void staleWorkVersionCannotCommitAnOrder()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);var calls=new java.util.concurrent.atomic.AtomicInteger();
+        doAnswer(call->{var row=call.callRealMethod();if(calls.incrementAndGet()==2)db.update("UPDATE tf_async_request SET work_version=work_version+1,lease_owner='test-new-worker' WHERE id=?",id);return row;})
+                .when(async).get(eq(id),eq(true));
+        consume(id);reset(async);assertEquals("PROCESSING",state(id));balance(f,1,0,0);assertEquals(0,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));
+        db.update("UPDATE tf_async_request SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();
+        db.update("UPDATE tf_async_request SET next_retry_at=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);consume(id);balance(f,0,1,0);
+    }
+    @Test void retryThresholdDeadLettersButDeadlineScanStillConverges()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);db.update("UPDATE tf_async_request SET attempt_count=4 WHERE id=?",id);
+        doThrow(new org.springframework.dao.DataAccessResourceFailureException("test fifth failure")).when(async).complete(any(AsyncRequest.class),notNull(),eq("OK"),any(LocalDateTime.class));
+        assertEquals(AsyncDisposition.DEAD_LETTER,worker.consume(message(id)));assertEquals(5,async.get(id,false).attempts());assertEquals("RETRY_WAIT",state(id));balance(f,1,0,0);
+        reset(async);db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();assertEquals("REJECTED",state(id));balance(f,0,0,0);flush(f);
+    }
+    @Test void preSaleCapacityChangePausesViewAndExplicitRefreshUsesNewEpoch()throws Exception {
+        var f=asyncFixture(1,false);long epoch=gates.read(f.session()).epoch();
+        data(request("PUT","/api/v1/admin/tiers/"+f.tier(),Map.of("name","Standard","priceFen",58000,"capacity",2,"expectedVersion",0),admin.token(),null),200);
+        assertEquals("PAUSED",gates.read(f.session()).phase());assertTrue(gates.read(f.session()).epoch()>epoch);
+        assertEquals(503,submit(actor(false),f.tier(),key()).statusCode());
+        data(mode(f,"ASYNC",1),200);assertEquals(2,free(f));open(f);String id=accepted(actor(false),f);consume(id);balance(f,0,1,0);
+    }
+    @Test void asyncExpiryCloseReleasesOnceEvenIfOwnerIsDisabled()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String id=accepted(a,f);consume(id);long order=order(id);
+        db.update("UPDATE tf_order SET expires_at=created_at+INTERVAL 1 MICROSECOND WHERE id=?",order);db.update("UPDATE tf_user SET enabled=FALSE WHERE id=?",a.id());
+        assertTrue(lifecycle.closeExpired(order));assertFalse(lifecycle.closeExpired(order));flush(f);balance(f,0,0,0);assertEquals(1,free(f));assertEquals("SUCCEEDED",state(id));
+    }
+    @Test void actualMalformedRabbitMessageGoesToDurableDeadLetterQueue()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);broker.startConsumers();
+        var factory=new ConnectionFactory();factory.setHost("127.0.0.1");factory.setPort(15673);factory.setVirtualHost(vhost);factory.setUsername(user);factory.setPassword(pass);
+        try(var c=factory.newConnection();var ch=c.createChannel()) {
+            ch.confirmSelect();ch.basicPublish(broker.exchange(),"create",true,new AMQP.BasicProperties.Builder().contentType("application/json").deliveryMode(2).messageId(key()).build(),"{\"schemaVersion\":999}".getBytes(StandardCharsets.UTF_8));assertTrue(ch.waitForConfirms(2000));
+            GetResponse dead=null;long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);
+            while(dead==null&&System.nanoTime()<end){dead=ch.basicGet(broker.deadQueue(),true);if(dead==null)Thread.sleep(100);}
+            assertNotNull(dead);assertEquals(2,dead.getProps().getDeliveryMode());balance(f,1,0,0);assertEquals("ACCEPTED",state(id));consume(id);
+        }
+    }
+    @Test void newAdmissionQuotaDoesNotPersist429OrBlockOriginalKeyRecovery()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();String id=data(submit(a,f.tier(),k),202).path("requestId").asString();
+        String rate=lua.keys(f.session(),gates.read(f.session()).epoch()).get(7);
+        redis.opsForHash().putAll(rate,Map.of("window",Long.toString(Instant.now().toEpochMilli()/60_000),"u:"+a.id(),"1000","s","1000"));
+        // Replaying the durable key never visits Lua, regardless of new-request quota.
+        assertEquals(id,data(submit(a,f.tier(),k),202).path("requestId").asString());
+        while(Instant.now().toEpochMilli()%60_000>58_500)Thread.sleep(50);
+        redis.opsForHash().putAll(rate,Map.of("window",Long.toString(Instant.now().toEpochMilli()/60_000),"u:"+a.id(),"1000","s","1000"));
+        String next=key();var response=submit(a,f.tier(),next);
+        if(response.statusCode()==429){assertEquals("1",response.headers().firstValue("Retry-After").orElseThrow());assertEquals(0,count("SELECT COUNT(*) FROM tf_async_request WHERE user_id=? AND request_key=?",a.id(),next));}
+        else fail("Expected quota rejection in seeded current Redis window");
+        redis.delete(rate);consume(id);
+    }
+}

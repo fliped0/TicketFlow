@@ -1,0 +1,5 @@
+Command: ./scripts/test.ps1 -WithAsync -Clean
+BUILD SUCCESS
+Finished at: 2026-10-07T22:51:15+08:00
+Unit: 14; integration: 117; total: 131; failure/error/skipped: 0
+OpenAPI: 0.7.0; 30 operations; 163 local references resolved

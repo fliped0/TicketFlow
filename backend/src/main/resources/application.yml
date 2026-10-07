@@ -44,6 +44,17 @@ server:
   port: ${TF_PORT:8080}
   shutdown: graceful
 ticketflow:
+  async:
+    enabled: ${TF_ASYNC_ENABLED:false}
+    jobs-enabled: ${TF_ASYNC_JOBS_ENABLED:true}
+    host: ${TF_RABBITMQ_HOST:127.0.0.1}
+    port: ${TF_RABBITMQ_PORT:15673}
+    username: ${TF_RABBITMQ_USER:tf_app}
+    password: ${TF_RABBITMQ_PASSWORD:}
+    vhost: ${TF_RABBITMQ_VHOST:/ticketflow-dev}
+    broker-prefix: ${TF_RABBITMQ_PREFIX:tf.dev.async}
+    query-limit: ${TF_ASYNC_QUERY_LIMIT:30}
+    query-concurrency: ${TF_ASYNC_QUERY_CONCURRENCY:16}
   redis:
     enabled: ${TF_REDIS_ENABLED:false}
     namespace: ${TF_REDIS_NAMESPACE:tf:dev:v1}

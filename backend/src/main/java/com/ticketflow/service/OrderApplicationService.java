@@ -27,11 +27,13 @@ public class OrderApplicationService {
     private final PaymentSimulator simulator;
     private final PurchaseRateLimiter limiter;
     private final MeterRegistry metrics;
+    private final AsyncLifecycleService async;
+    private final com.ticketflow.mapper.AsyncGateMapper gates;
     public OrderApplicationService(TradeExecutor executor, OrderMapper db, InventoryService stock, DatabaseClock clock, JsonMapper json,
-                                   PaymentMapper payments, PaymentSimulator simulator, PurchaseRateLimiter limiter, MeterRegistry metrics) {
+                                   PaymentMapper payments, PaymentSimulator simulator, PurchaseRateLimiter limiter, MeterRegistry metrics, AsyncLifecycleService async, com.ticketflow.mapper.AsyncGateMapper gates) {
         this.executor=executor; this.db=db; this.stock=stock; this.clock=clock; this.json=json; this.payments=payments; this.simulator=simulator;
         this.limiter=limiter;
-        this.metrics=metrics;
+        this.metrics=metrics;this.async=async;this.gates=gates;
     }
     private static BusinessException invalid() { return new BusinessException(400,"VALIDATION_ERROR","请求参数不合法"); }
     public static long id(String value) {
@@ -45,7 +47,7 @@ public class OrderApplicationService {
         TradeExecutor.validateKey(key);
         try {
             limiter.check(user,tier,key);
-            var result=executor.execute(user,TradeOperation.CREATE,key,TradeExecutor.hash("CREATE:v1\ntierId="+tier+"\nquantity=1"),201,()->createLocked(user,tier));
+            var result=executor.executeInSession(user,db.sessionForTier(tier),TradeOperation.CREATE,key,TradeExecutor.hash("CREATE:v1\ntierId="+tier+"\nquantity=1"),201,()->createLocked(user,tier));
             String outcome=result.replayed()?"replayed":switch(result.code()) {
                 case "OK" -> "created";
                 case "SOLD_OUT" -> "sold_out";
@@ -64,6 +66,7 @@ public class OrderApplicationService {
     private TradeResultVO createLocked(long user, long tier) {
         var catalog=db.lockCatalog(tier);
         if (catalog==null) throw new BusinessRejection(404,"NOT_FOUND","资源不存在");
+        if("ASYNC".equals(gates.read(catalog.sessionId()).mode()))throw new BusinessRejection(409,"ASYNC_REQUIRED","请使用 /api/v1/purchase-requests");
         if (db.hasSlot(user,catalog.sessionId())) throw OrderPolicy.rejected("PURCHASE_LIMIT");
         int available=stock.lock(tier);
         LocalDateTime now=clock.nowUtc(); // New SQL statement after all business locks.
@@ -89,9 +92,11 @@ public class OrderApplicationService {
     public TradeOutcome refund(long user, String key, String orderId) { return lifecycle(user,key,orderId,TradeOperation.REFUND); }
     private TradeOutcome lifecycle(long user, String key, String orderId, TradeOperation operation) {
         long order=id(orderId); TradeExecutor.validateKey(key);
-        return executor.execute(user,operation,key,TradeExecutor.hash(operation.name()+":v1\norderId="+order),200,()->{
+        return executor.executeInSession(user,db.sessionForOrder(order),operation,key,TradeExecutor.hash(operation.name()+":v1\norderId="+order),200,()->{
+            var route=db.owned(user,order);if(route!=null)async.beforeOrder(route);
             var row=db.lockOwned(user,order);
             if (row==null) throw new BusinessRejection(404,"NOT_FOUND","资源不存在");
+            async.check(row.sessionId());
             return switch (operation) {
                 case CANCEL -> cancelLocked(row);
                 case PAY -> payLocked(row);
@@ -106,7 +111,7 @@ public class OrderApplicationService {
                 payment==null?null:Long.toString(payment),refund==null?null:Long.toString(refund));
     }
     private LocalDateTime lockBalances(OrderRecord order) {
-        db.requireSlot(order); stock.lock(order.tierId()); return clock.nowUtc();
+        db.requireSlot(order);stock.lock(order.tierId());async.afterStock(order);return clock.nowUtc();
     }
     private TradeResultVO cancelLocked(OrderRecord order) {
         if (order.status()==OrderStatus.CANCELLED || order.status()==OrderStatus.CLOSED) return result(order,order.status(),order.status(),null,null);
@@ -117,7 +122,7 @@ public class OrderApplicationService {
         return result(order,target,target,null,null);
     }
     private void releaseLocked(OrderRecord order, OrderStatus target, LocalDateTime now) {
-        db.transition(order,target,now); stock.release(order.tierId(),order.id(),now); db.deleteSlot(order);
+        db.transition(order,target,now); stock.release(order.tierId(),order.id(),now); db.deleteSlot(order);async.released(order,now);
     }
     private TradeResultVO payLocked(OrderRecord order) {
         var payment=payments.payment(order.id());
@@ -145,15 +150,17 @@ public class OrderApplicationService {
         LocalDateTime now=lockBalances(order); OrderPolicy.checkRefund(now,order.startsAt());
         if (!simulator.refund(order.id(),order.amountFen())) throw new BusinessRejection(422,"REFUND_SIMULATED_FAILURE","模拟退款失败");
         db.transition(order,OrderStatus.REFUNDED,now); stock.refund(order.tierId(),order.id(),now);
-        long id=payments.insertRefund(order.id(),order.amountFen(),now); db.deleteSlot(order);
+        long id=payments.insertRefund(order.id(),order.amountFen(),now); db.deleteSlot(order);async.released(order,now);
         return result(order,OrderStatus.REFUNDED,OrderStatus.REFUNDED,payment.id(),id);
     }
     public boolean closeExpired(long orderId) { return closeExpired(orderId,System.nanoTime()+5_000_000_000L); }
     public boolean closeExpired(long orderId, long deadline) {
         Long owner=db.owner(orderId); if (owner==null) return false;
-        return executor.internal(owner,deadline,()->{
+        return executor.internalInSession(owner,db.sessionForOrder(orderId),deadline,()->{
+            var route=db.owned(owner,orderId);if(route!=null)async.beforeOrder(route);
             var order=db.lockOwned(owner,orderId);
             if (order==null || order.status()!=OrderStatus.PENDING) return false;
+            async.check(order.sessionId());
             LocalDateTime now=lockBalances(order);
             if (now.isBefore(order.expiresAt())) return false;
             releaseLocked(order,OrderStatus.CLOSED,now); return true;

@@ -18,6 +18,7 @@ public class OrderMapper {
         return rows.isEmpty() ? null : rows.get(0);
     }
     private final JdbcTemplate db;
+    public Long sessionForOrder(long order) {var rows=db.queryForList("SELECT session_id FROM tf_order WHERE id=?",Long.class,order);return rows.isEmpty()?null:rows.get(0);}
     public OrderMapper(JdbcTemplate db) { this.db = db; }
     private static LocalDateTime at(ResultSet r, String key) throws SQLException { return LocalDateTime.parse(r.getString(key).replace(' ','T')); }
     private static String ts(LocalDateTime t) { return t.toString().replace('T',' '); }

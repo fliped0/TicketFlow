@@ -1,6 +1,6 @@
 # TicketFlow 接口文档
 
-版本 0.6.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录及可选Redis缓存/下单限流、订单生命周期、本人订单查询、管理员订单查询与统计和健康检查，共 27 个 HTTP 操作。支付和退款为本地模拟。
+版本 0.7.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录及可选Redis缓存/下单限流、订单生命周期、本人订单查询、管理员订单查询与统计、可选异步抢票主流程和健康检查，共 30 个 HTTP 操作。支付和退款为本地模拟。
 
 [OpenAPI 3.1 JSON](openapi.json) 可导入 Apifox / Postman。当前不提供在线 Swagger UI。
 
@@ -220,3 +220,26 @@ netAmountFen 为该期间支付额减退款额，可为负数；不是按订单�
 ## 批次8接口边界
 
 批次8新增的是`scripts/mq-lab.ps1`及测试目录内RabbitMQ实验，没有新增业务HTTP接口、请求字段或异步路由。OpenAPI继续0.6.0、27个已实现HTTP操作；发布确认/重试/死信实验不表示`POST /api/v1/purchase-requests`可用。该接口及持久受理、发件箱仍见[v2设计草案](v2-draft.md)，待批次9实现。实验运行方式见部署7.3节，结果见[批次8报告](../assets/04/20261007-batch8/summary.md)。
+
+
+### 批次 9：异步抢票
+
+默认关闭，启用方式见部署运维第 7.4 节。新场次默认 SYNC，配置 ASYNC 后所有票档统一使用异步入口。
+
+| 方法 | 路径 | 认证 | 结果 |
+| --- | --- | --- | --- |
+| PUT | /api/v1/admin/sessions/{id}/purchase-mode | ADMIN | 200，mode/version/phase |
+| POST | /api/v1/purchase-requests | Bearer + Idempotency-Key | 202 可靠受理；业务拒绝 409 |
+| GET | /api/v1/purchase-requests/{id} | 本人 Bearer | 200，持久状态及当前订单状态；他人/不存在 404 |
+
+配置输入为 `{"mode":"ASYNC","expectedVersion":0}`。仅冻结及首次开售前、无历史订单及在途/临时预占时允许；版本、模式、审计和目录 revision 同事务提交。ASYNC 的 Redis 视图初始化成功才 READY，失败返回 503 并保留已提交模式及 PAUSED；重新读取管理员场次版本再重试。提前修改时间/容量/票档会暂停并切换 epoch，需在开售前再次配置 ASYNC 完成新视图。客户端不能指定 epoch/phase。
+
+提交输入沿用 `{"tierId":"123","quantity":1}`，数量只允许 1，价格和用户取自服务器。202 的 data 包含 requestId（UUID）、state、acceptedAt、createDeadline、orderId、failureCode、currentOrderStatus、snapshot；尚未建单的订单字段为 null。只有受理记录、在途资格、queued_count 和发件箱已共同提交才返回 202，附 Location 查询路径和 Retry-After: 1。
+
+同键同参返回同一请求，replayed=true；已受理的非终态重放 202，终态重放 200，失败原因看 state=REJECTED/failureCode。受理前售空/限购等业务拒绝持久化后保持原 409；同键異参数 409 IDEMPOTENCY_CONFLICT。参数/认证错误、无效票档及 SYNC_REQUIRED 不创建异步记录，429 不消耗该请求键。所有 503 返回 retryWithSameKey=true；不能据此认定未受理或改用新键。
+
+状态为 ACCEPTED → PROCESSING → SUCCEEDED / REJECTED，系统失败另行持久化 RETRY_WAIT 与下一发件箱事件。期限为受理时起最多 30 秒，且不超过停售/开场；消费重新校验账号、上下架、时间及数据库库存。成功后走原订单支付/取消/退款接口，输入体仍为 `{}`。SUCCEEDED 保留历史建单成功，取消或退款后 currentOrderStatus 分别为 CANCELLED/REFUNDED。
+
+新请求默认每用户每场次 10 次、每场次 50 次/1 秒，包含进入 Lua 有效准入后的售空和限购尝试；同键预占恢复与 DB 原结果重放优先于新请求额度。结果查询单实例独立每用户 30 次/秒、全局最多 16 个同时查询，4096 个窗口内用户上限；耗尽返回 429 + Retry-After: 1，查询不依赖 Redis。此保护不是多实例全局限流。
+
+SYNC 异步提交返回 409 SYNC_REQUIRED；ASYNC 旧同步入口返回 409 ASYNC_REQUIRED 并提示新路径。异步依赖异常、关键键缺失、部分回执或时钟偏差会暂停相关场次；不降级绕过 Lua。批次 10 才提供开售后恢复与 epoch 重建，当前不能宣称自动恢复完整闭环。

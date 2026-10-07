@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-07T14:53:28.2329537Z",
+  "testedJarSha256": "143c94dc5cf7548270ed466b808326490b7a934133775b964e75187424109969",
+  "health": "UP",
+  "port": 18992,
+  "runtimeUser": "tf_app",
+  "permissions": [
+    {
+      "vhost": "/ticketflow-dev",
+      "configure": "^tf\\.dev\\.async\\..*",
+      "write": "^tf\\.dev\\.async\\..*",
+      "read": "^tf\\.dev\\.async\\..*"
+    }
+  ],
+  "managementTags": [],
+  "queueType": "quorum",
+  "consumerCount": 4,
+  "deadLetterStrategy": "at-least-once",
+  "expiryDisabledForSmoke": true,
+  "applicationProcessStopped": true,
+  "observedApplicationStartupSeconds": 6.61
+}

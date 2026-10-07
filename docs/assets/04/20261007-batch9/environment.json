@@ -1,0 +1,31 @@
+{
+  "application": "Windows local",
+  "database": "MySQL 8.0.45 ticketflow_test/tf_test; existing grants; no DROP/reset",
+  "java": "17",
+  "springBoot": "4.1.1",
+  "maven": "3.9.12",
+  "redis": "8.2.10-alpine",
+  "rabbitmq": "4.3.6-management",
+  "amqpClient": "5.30.0",
+  "cloud": "Ubuntu 22.04.5 x86_64 2 vCPU/4 GiB/40 GiB; Redis/Rabbit only",
+  "transport": "SSH loopback 16379/15673/15672; original trusted host key verified at new IP",
+  "concurrency": "async races 2/6 workers; production consumers 4, prefetch 8",
+  "testOverrides": {
+    "asyncJobs": false,
+    "asyncQueryLimit": 2,
+    "asyncRedisWindowMillis": 60000,
+    "redisCommandTimeout": "unchanged 1000ms",
+    "catalogCacheTtlSeconds": 30,
+    "catalogEmptyTtlSeconds": 10,
+    "expiryTest": "assert configured TTL then shorten only the tested key to 100ms and verify expiry/reload"
+  },
+  "productionDefaults": {
+    "asyncEnabled": false,
+    "queryLimit": 30,
+    "queryConcurrency": 16,
+    "userAttempts": 10,
+    "sessionAttempts": 50,
+    "redisWindowMillis": 1000
+  },
+  "capacityOrSlaClaim": false
+}

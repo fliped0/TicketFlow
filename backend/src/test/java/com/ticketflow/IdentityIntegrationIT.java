@@ -100,12 +100,12 @@ class IdentityIntegrationIT {
         return body(response).path("data").path("accessToken").asString();
     }
 
-    @Test void migrationCreatesThirteenTablesAndIsRepeatable() {
-        assertEquals(13, db.queryForObject(
+    @Test void migrationCreatesEighteenTablesAndIsRepeatable() {
+        assertEquals(18, db.queryForObject(
                 "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name LIKE 'tf_%'",
                 Integer.class));
         assertEquals(0, flyway.migrate().migrationsExecuted);
-        assertEquals(2, db.queryForObject("SELECT COUNT(*) FROM flyway_schema_history WHERE success=1", Integer.class));
+        assertEquals(3, db.queryForObject("SELECT COUNT(*) FROM flyway_schema_history WHERE success=1", Integer.class));
     }
 
     @Test void registrationLoginAndMeUseCurrentDatabaseRole() throws Exception {

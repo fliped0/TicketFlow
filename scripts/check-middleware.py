@@ -26,6 +26,7 @@ def main():
     parser.add_argument('--restart', action='store_true')
     args = parser.parse_args()
     ssh = ['ssh', '-i', str(args.key), '-o', 'BatchMode=yes',
+           '-o', 'StrictHostKeyChecking=yes', '-o', 'HostKeyAlias=118.178.253.75',
            '-o', 'ConnectTimeout=8', 'root@' + args.host]
 
     def remote(command):

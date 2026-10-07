@@ -84,14 +84,17 @@ public class CatalogMapper {
     }
     public void setStatus(long id, String status) { db.update("UPDATE tf_event SET status=?,version=version+1,updated_at=UTC_TIMESTAMP(6) WHERE id=?", status, id); }
     public long createSession(long eventId, LocalDateTime start, LocalDateTime saleStart, LocalDateTime saleEnd) {
-        return inserted("INSERT INTO tf_session(event_id,starts_at,sale_start_at,sale_end_at,freeze_at,version,created_at,updated_at) VALUES(?,?,?,?,?,0,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))", eventId, ts(start), ts(saleStart), ts(saleEnd), ts(saleStart));
+        long id=inserted("INSERT INTO tf_session(event_id,starts_at,sale_start_at,sale_end_at,freeze_at,version,created_at,updated_at) VALUES(?,?,?,?,?,0,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))", eventId, ts(start), ts(saleStart), ts(saleEnd), ts(saleStart));
+        db.update("INSERT INTO tf_async_gate(session_id,updated_at) VALUES(?,UTC_TIMESTAMP(6))",id);return id;
     }
+    public void setPurchaseMode(long id,String mode) {TradeMapper.requireOne(db.update("UPDATE tf_session SET purchase_mode=?,version=version+1,updated_at=UTC_TIMESTAMP(6) WHERE id=?",mode,id));}
     public void updateSession(long id, LocalDateTime start, LocalDateTime saleStart, LocalDateTime saleEnd, LocalDateTime freezeAt) {
         db.update("UPDATE tf_session SET starts_at=?,sale_start_at=?,sale_end_at=?,freeze_at=?,version=version+1,updated_at=UTC_TIMESTAMP(6) WHERE id=?", ts(start), ts(saleStart), ts(saleEnd), ts(freezeAt), id);
     }
     public long createTier(long sessionId, String name, long priceFen, int capacity) {
         long id = inserted("INSERT INTO tf_tier(session_id,name,price_fen,version,created_at,updated_at) VALUES(?,?,?,0,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))", sessionId, name, priceFen);
         db.update("INSERT INTO tf_stock(tier_id,capacity,available,reserved,sold,updated_at) VALUES(?,?,?,0,0,UTC_TIMESTAMP(6))", id, capacity, capacity);
+        db.update("INSERT INTO tf_async_tier_balance(tier_id) VALUES(?)",id);
         return id;
     }
     public void updateTier(long id, String name, long priceFen, int capacity, boolean capacityChanged) {

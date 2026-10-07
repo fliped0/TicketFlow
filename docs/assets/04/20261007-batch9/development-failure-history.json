@@ -1,0 +1,78 @@
+[
+  {
+    "stage": "initial compile",
+    "result": "failed",
+    "cause": "bulk editor used Windows default decoding and stopped before adding CatalogMapper method",
+    "fix": "UTF-8 edits; compiled and unit tested"
+  },
+  {
+    "stage": "first MySQL regression",
+    "result": "60 tests; one error",
+    "cause": "CHECK name was schema-wide and collided in randomized empty namespace",
+    "fix": "namespace test constraint, leave V3 migration unchanged"
+  },
+  {
+    "stage": "first async run",
+    "result": "22 tests; seven failures",
+    "cause": "UTC DATETIME mapped through JVM-local Timestamp; three lifecycle tests omitted required empty JSON body",
+    "fix": "UTC string parsing and correct test body"
+  },
+  {
+    "stage": "second async run",
+    "result": "22 passed",
+    "cause": null
+  },
+  {
+    "stage": "expanded third async run",
+    "result": "28 tests; two failures and one error",
+    "cause": "real cloud Redis exceeded unchanged 1-second timeout",
+    "fix": "retained failures and reran full suite; no larger timeout or skipped assertions"
+  },
+  {
+    "stage": "old server address",
+    "result": "connection refused",
+    "cause": "user confirmed new public IP after stop/start",
+    "fix": "120.27.140.184, original trusted host-key alias; authenticated preflight"
+  },
+  {
+    "stage": "first full clean verify",
+    "result": "failed; all 30 async tests passed, later MQ/Redis failed",
+    "cause": "SSH client_loop Connection reset; listeners disappeared",
+    "fix": "bounded test-lifetime tunnel supervision; preserve actual errors and rerun"
+  },
+  {
+    "stage": "pre-review clean verify",
+    "result": "131 passed; no failures/errors/skips",
+    "finishedAt": "2026-10-07T21:22:58+08:00"
+  },
+  {
+    "stage": "runtime package smoke first attempt",
+    "result": "45-second health wait exceeded and SSH reset; not passed",
+    "cause": "actual Java launcher spawned a child JVM; application startup observed at 192.983 seconds, cause not established",
+    "fix": "restored original-host-key authenticated tunnel, verified health UP/4 consumers/exact tf_app permissions on actual child, then stopped that exact command-line/PID"
+  },
+  {
+    "stage": "post-review clean verify",
+    "result": "131 tests; two failures and one error; all 30 async passed",
+    "finishedAt": "2026-10-07T21:53:29+08:00",
+    "cause": "Hikari logged approximately 99-second thread starvation/clock leap concurrently with HTTP interruption and SSH reset; precise host-stall cause not established. Cache assertions used 1/2-second TTL across remote round trips.",
+    "fix": "Preserve failure; keep HTTP/Redis production timeouts. Give non-expiry cache assertions a 30/10-second fixture TTL; explicitly shorten the tested negative key lifetime for the expiry assertion. Rerun full verification."
+  },
+  {
+    "stage": "interrupted host/network run",
+    "finishedAt": "2026-10-07T22:43:14+08:00",
+    "result": {
+      "tests": 119,
+      "failures": 1,
+      "errors": 15,
+      "skipped": 0
+    },
+    "cause": "43-minute wall time, interrupted HTTP, expired business deadline, lost tunnel and one-shot reconnection failure stopped supervision; detailed host suspension cause not established",
+    "fix": "Keep business deadlines and assertions; supervise later reconnect cycles after transient failure; finish positive-cache fixture alignment and rerun entire suite"
+  },
+  {
+    "stage": "delivery clean verify",
+    "result": "131 passed; no failures/errors/skips",
+    "finishedAt": "2026-10-07T22:51:15+08:00"
+  }
+]

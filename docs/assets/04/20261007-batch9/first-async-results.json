@@ -1,0 +1,101 @@
+{
+  "suite": "com.ticketflow.AsyncPurchaseIT",
+  "tests": 22,
+  "failures": 7,
+  "errors": 0,
+  "skipped": 0,
+  "cases": [
+    {
+      "name": "malformedEnvelopeCannotCreateOrderOrInventARelease",
+      "status": "passed"
+    },
+    {
+      "name": "actualRabbitDeliveryCreatesOneOrderAndConfirmMarksOutboxSent",
+      "status": "passed"
+    },
+    {
+      "name": "brokerUnavailableLeavesOutboxPendingAndCanLaterPublish",
+      "status": "passed"
+    },
+    {
+      "name": "reliable202ContainsFourDurableFactsBeforeBrokerPublication",
+      "status": "passed"
+    },
+    {
+      "name": "sentMarkerFailureAllowsRetransmissionWithoutAnotherOrder",
+      "status": "passed"
+    },
+    {
+      "name": "concurrentDifferentTiersShareTheSameSessionQualification",
+      "status": "passed"
+    },
+    {
+      "name": "sixBuyersCompeteForTheLastTicketWithoutOverselling",
+      "status": "passed"
+    },
+    {
+      "name": "requestOwnershipValidationAndModeRulesAreEnforced",
+      "status": "passed"
+    },
+    {
+      "name": "consumerChecksBusinessDeadlineAfterWaitingForStockLock",
+      "status": "failed"
+    },
+    {
+      "name": "consumerTransactionFailureCommitsRetryIntentBeforeAcknowledgement",
+      "status": "failed"
+    },
+    {
+      "name": "admissionRechecksSaleTimeAfterLuaReservation",
+      "status": "passed"
+    },
+    {
+      "name": "syncSessionRetainsOriginalPathAndAsyncModeUsesOptimisticVersion",
+      "status": "passed"
+    },
+    {
+      "name": "sameKeyReplaysQueuedAndTerminalResultAndChangedParametersConflict",
+      "status": "passed"
+    },
+    {
+      "name": "concurrentIdenticalRequestsAndDuplicateMessagesDoNotCreateTwice",
+      "status": "passed"
+    },
+    {
+      "name": "cancellationAndRefundReturnInventoryOnceAndHistoricalSuccessRemains",
+      "status": "failed"
+    },
+    {
+      "name": "offSaleBetweenAdmissionAndConsumptionRejectsAndReleases",
+      "status": "passed"
+    },
+    {
+      "name": "projectionDuplicateGapAndWrongRedisTypeDoNotDoubleRelease",
+      "status": "failed"
+    },
+    {
+      "name": "crossSessionSameKeyReleasesOnlyTheLosingCandidate",
+      "status": "passed"
+    },
+    {
+      "name": "initialSoldOutFailureRemainsImmutableAfterCancellation",
+      "status": "failed"
+    },
+    {
+      "name": "failedRecoveryWriteStopsConsumerAndKeepsDurableClaimForScanner",
+      "status": "failed"
+    },
+    {
+      "name": "admissionTransactionFailureRollsBackAllFourDurableFactsAndSameKeyRetries",
+      "status": "passed"
+    },
+    {
+      "name": "disabledOwnerAndDeadlineScannerReleaseDurableQueuedBalance",
+      "status": "failed"
+    }
+  ],
+  "causes": [
+    "ResultSet Timestamp.toLocalDateTime applied JVM timezone; use UTC SQL date strings",
+    "lifecycle HTTP test must send the existing empty JSON object body"
+  ]
+}

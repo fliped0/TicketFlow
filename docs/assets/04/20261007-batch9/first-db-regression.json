@@ -1,0 +1,417 @@
+{
+  "scope": "MySQL-only regression; cloud tests not run",
+  "suites": [
+    {
+      "suite": "com.ticketflow.AdminReportingIT",
+      "tests": 12,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "unchangedMigrationBuildsAnEmptyTableNamespaceAndDoesNotRepeat",
+          "status": "error"
+        },
+        {
+          "name": "managementOrdersExposeOwnersSnapshotsAndLifecycleRecordsWithFilters",
+          "status": "passed"
+        },
+        {
+          "name": "soldOutRejectionStaysImmutableAfterRealCancellationReleasesStock",
+          "status": "passed"
+        },
+        {
+          "name": "databaseRejectsDuplicateTransactionsAndIncorrectCompositeOwnership",
+          "status": "passed"
+        },
+        {
+          "name": "offSalePreservesExistingLifecycleAndManagementSnapshots",
+          "status": "passed"
+        },
+        {
+          "name": "reconciliationUsesOneSnapshotWhileCancellationCommits",
+          "status": "passed"
+        },
+        {
+          "name": "statisticsKeepOneSnapshotWhenRefundCommitsBetweenAggregates",
+          "status": "passed"
+        },
+        {
+          "name": "orderPageKeepsOneSnapshotBetweenRowsAndCount",
+          "status": "passed"
+        },
+        {
+          "name": "statisticsUseIndependentHalfOpenTimeWindowsAndCanHaveNegativeNet",
+          "status": "passed"
+        },
+        {
+          "name": "localSecurityDoesNotExposeManagementEndpointsOrAllowCrossOriginAccess",
+          "status": "passed"
+        },
+        {
+          "name": "readOnlyReconciliationFindsCorruptionAndAcceptsEveryLifecycleState",
+          "status": "passed"
+        },
+        {
+          "name": "managementAuthorizationAndValidationAreEnforced",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "suite": "com.ticketflow.IdentityIntegrationIT",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "catalogHistoryPreventsCapacityResetEvenWithZeroBalances",
+          "status": "passed"
+        },
+        {
+          "name": "savepointRollsBackBusinessChangesWithoutLosingRequestResult",
+          "status": "passed"
+        },
+        {
+          "name": "jwtEnforcesIssuerAudienceExpiryNotBeforeAndSignature",
+          "status": "passed"
+        },
+        {
+          "name": "unknownFieldsAndInputBoundsAreRejected",
+          "status": "passed"
+        },
+        {
+          "name": "catalogSearchPaginationAndLiteralWildcards",
+          "status": "passed"
+        },
+        {
+          "name": "registrationLoginAndMeUseCurrentDatabaseRole",
+          "status": "passed"
+        },
+        {
+          "name": "catalogRejectsMalformedFieldsAndKeepsPublicQueriesOpen",
+          "status": "passed"
+        },
+        {
+          "name": "protectedRoutesRejectMissingInvalidOrInsufficientCredentials",
+          "status": "passed"
+        },
+        {
+          "name": "healthIsPublicAndDoesNotExposeDetails",
+          "status": "passed"
+        },
+        {
+          "name": "catalogPermissionsVersionReplayAndAudit",
+          "status": "passed"
+        },
+        {
+          "name": "catalogSaleStatusAndCapacityUpdateFollowDatabaseFacts",
+          "status": "passed"
+        },
+        {
+          "name": "catalogStockAndAuditRollbackTogether",
+          "status": "passed"
+        },
+        {
+          "name": "migrationCreatesEighteenTablesAndIsRepeatable",
+          "status": "passed"
+        },
+        {
+          "name": "passwordIsSaltedAndLoginFailureDoesNotRevealAccountExistence",
+          "status": "passed"
+        },
+        {
+          "name": "catalogFrozenTimeCannotMoveForwardAndStockUpdateIsAtomic",
+          "status": "passed"
+        },
+        {
+          "name": "schemaEnforcesUniquenessForeignKeysAndChecks",
+          "status": "passed"
+        },
+        {
+          "name": "duplicateAccountsAndConcurrentRegistrationAreRejected",
+          "status": "passed"
+        },
+        {
+          "name": "catalogPublishRequiresCompleteHierarchyAndPublicVisibility",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "suite": "com.ticketflow.OrderIntegrationIT",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "validationAndAuthenticationFailBeforeRequestPersistence",
+          "status": "passed"
+        },
+        {
+          "name": "twoUsersCompeteForLastTicketWithoutOversell",
+          "status": "passed"
+        },
+        {
+          "name": "systemFailuresAtEveryWriteStageRollbackEntireTransactionAndSameKeyRecovers",
+          "status": "passed"
+        },
+        {
+          "name": "realLockTimeoutReturnsRetryableErrorWithoutCommittedProcessing",
+          "status": "passed"
+        },
+        {
+          "name": "userDisabledWhileWaitingIsRecheckedInsideTransaction",
+          "status": "passed"
+        },
+        {
+          "name": "twentyDuplicateRequestsReplayOneOrderAndConflictOnChangedPayload",
+          "status": "passed"
+        },
+        {
+          "name": "realExecutorSavepointRevertsOrderSlotStockAndLogButCommitsRejection",
+          "status": "passed"
+        },
+        {
+          "name": "unexpectedSqlConstraintFailureRollsBackAndIsNotBusinessRejection",
+          "status": "passed"
+        },
+        {
+          "name": "saleTimeIsReadAfterWaitingForStockLock",
+          "status": "passed"
+        },
+        {
+          "name": "createSnapshotsExpiryAndOwnerQueriesSurviveCatalogChanges",
+          "status": "passed"
+        },
+        {
+          "name": "createHoldingSharedCatalogLockCommitsBeforeWaitingOffSale",
+          "status": "passed"
+        },
+        {
+          "name": "concurrentDifferentKeysAcrossTiersEnforceSessionLimit",
+          "status": "passed"
+        },
+        {
+          "name": "rejectedSaleResultsPersistAndReplayAfterConditionsChange",
+          "status": "passed"
+        },
+        {
+          "name": "lockFailuresRetryWholeTransactionAtMostTwice",
+          "status": "passed"
+        },
+        {
+          "name": "offSaleHoldingEventLockWinsAgainstWaitingCreate",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "suite": "com.ticketflow.OrderLifecycleIT",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "everyLifecycleWriteFailureRollsBackAndOriginalKeyCanRecover",
+          "status": "passed"
+        },
+        {
+          "name": "paymentAndSystemCloseCompetitionHonorsBothLockOrders",
+          "status": "passed"
+        },
+        {
+          "name": "scanPagesMoreThanHundredOrdersContinuesAfterOneFailureAndRetriesNextRound",
+          "status": "passed"
+        },
+        {
+          "name": "knownSimulatorRejectionAfterWritesUsesSavepointAndStillCommitsFailure",
+          "status": "passed"
+        },
+        {
+          "name": "unauthorizedOperationsAndNonemptyBodiesHaveNoSideEffects",
+          "status": "passed"
+        },
+        {
+          "name": "disabledOwnerAndDuplicateSystemClosesReleaseOnlyOnceAndFailuresRollback",
+          "status": "passed"
+        },
+        {
+          "name": "applicationRestartRunsStartupRecoveryAndSchedulingClosesLaterExpiries",
+          "status": "passed"
+        },
+        {
+          "name": "slowRoundStopsAtBudgetAndDoesNotOverlapOrLoseNextRoundCandidates",
+          "status": "passed"
+        },
+        {
+          "name": "lifecycleStateMatrixAndIdempotencyScopeAreEnforced",
+          "status": "passed"
+        },
+        {
+          "name": "paymentAndRefundWaitForStockThenRecheckTheirDeadlines",
+          "status": "passed"
+        },
+        {
+          "name": "simulatedFailureIsImmutableForOriginalKeyAndNewKeyCanRetry",
+          "status": "passed"
+        },
+        {
+          "name": "inconsistentSuccessfulRecordsAreSystemErrorsAndDoNotPersistRejection",
+          "status": "passed"
+        },
+        {
+          "name": "cancellationRepeatsAndReleasesForAnotherPurchaseIncludingExpiredCancellation",
+          "status": "passed"
+        },
+        {
+          "name": "repeatedPaymentsRefundsAndHistoricalReplaysKeepIdsAndReleaseEligibility",
+          "status": "passed"
+        },
+        {
+          "name": "paymentAndCancellationCompetitionHonorsBothLockOrders",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "suite": "com.ticketflow.RabbitMqLabIT",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "confirmedPersistentMessageAndCommitBeforeAck",
+          "status": "passed"
+        },
+        {
+          "name": "mandatoryReturnMustNotBeMistakenForPublishSuccess",
+          "status": "passed"
+        },
+        {
+          "name": "brokerExplicitNackOnBoundedQueueOverflow",
+          "status": "passed"
+        },
+        {
+          "name": "lostConfirmCausesSafeDuplicatePublish",
+          "status": "passed"
+        },
+        {
+          "name": "duplicatesHandledByTwoConcurrentConsumers",
+          "status": "passed"
+        },
+        {
+          "name": "conflictingPayloadIsQuarantined",
+          "status": "passed"
+        },
+        {
+          "name": "transactionFailureRollsBackInboxLedgerAndEffect",
+          "status": "passed"
+        },
+        {
+          "name": "killConsumerBeforeDatabaseCommit",
+          "status": "passed"
+        },
+        {
+          "name": "killConsumerAfterCommitBeforeAck",
+          "status": "passed"
+        },
+        {
+          "name": "boundedBackoffThenSuccessfulRetry",
+          "status": "passed"
+        },
+        {
+          "name": "poisonMessageDeadLettersAndControlledReplayRecovers",
+          "status": "passed"
+        },
+        {
+          "name": "malformedEnvelopeIsIsolatedWithoutDatabaseEffect",
+          "status": "passed"
+        },
+        {
+          "name": "confirmedPendingMessageSurvivesBrokerRestart",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "suite": "com.ticketflow.RedisCatalogIT",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "cacheHitAndFilterPageKeysAvoidRepeatedCatalogSql",
+          "status": "passed"
+        },
+        {
+          "name": "lateOldSnapshotCannotRefillNewGenerationAfterDelisting",
+          "status": "passed"
+        },
+        {
+          "name": "committedEditInvalidatesButRolledBackEditDoesNot",
+          "status": "passed"
+        },
+        {
+          "name": "negativeCacheExpiresAndPublicationChangesItsGeneration",
+          "status": "passed"
+        },
+        {
+          "name": "saturatedQueryBudgetRejectsWithoutUnboundedDatabaseFallback",
+          "status": "passed"
+        },
+        {
+          "name": "corruptPayloadIsReplacedFromDatabase",
+          "status": "passed"
+        },
+        {
+          "name": "dualQuotaRejectionDoesNotChargeOtherDimensionAndRetryDoesNotRecharge",
+          "status": "passed"
+        },
+        {
+          "name": "inventoryAndClockRemainLiveAfterMetadataCacheHit",
+          "status": "passed"
+        },
+        {
+          "name": "cacheWriteFailureAfterCommitCannotMakeOldGenerationVisible",
+          "status": "passed"
+        },
+        {
+          "name": "userLimitDoesNotConsumeRejectedKeyOrBlockReplayAndQuery",
+          "status": "passed"
+        },
+        {
+          "name": "configuredPositiveTtlExpiresAndReloads",
+          "status": "passed"
+        },
+        {
+          "name": "sameHotMissIsMergedAndNoRedisCallRunsInTransaction",
+          "status": "passed"
+        },
+        {
+          "name": "sessionLimitIsAtomicAcrossUsersAndTiers",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "suite": "com.ticketflow.RedisOutageIT",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "name": "refusedRedisFallsBackAndSyncTradeStillEnforcesDatabaseRules",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "failure": "isolated test CHECK constraint name collided in the same MySQL schema; fix namespaces the test constraint only"
+}
