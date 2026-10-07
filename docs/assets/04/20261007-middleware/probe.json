@@ -1,0 +1,18 @@
+{
+  "startedAt": "2026-10-07T03:36:24.324223+00:00",
+  "scope": "middleware smoke; not Java/business integration or capacity test",
+  "restartRequested": true,
+  "checks": {
+    "redis_authenticated_write": true,
+    "amqp_authenticated_confirmed_publish": true,
+    "mandatory_unroutable_detected": true,
+    "unacked_redelivery": true,
+    "manual_ack_removes_message": true,
+    "redis_graceful_restart_persistence": true,
+    "rabbitmq_graceful_restart_persistence": true
+  },
+  "rabbitmqVersion": "4.3.6",
+  "passed": true,
+  "cleanupErrors": [],
+  "finishedAt": "2026-10-07T03:36:43.293473+00:00"
+}

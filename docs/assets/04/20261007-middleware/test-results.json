@@ -1,0 +1,89 @@
+{
+  "command": "Maven 3.9.12 clean verify via scripts/common.ps1 dedicated test config",
+  "finishedAt": "2026-10-07T11:38:09+08:00",
+  "buildSuccess": true,
+  "suites": [
+    {
+      "kind": "unit",
+      "name": "com.ticketflow.config.AdminInitializerTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "kind": "unit",
+      "name": "com.ticketflow.config.OperationalMetricsSamplerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "kind": "unit",
+      "name": "com.ticketflow.service.AccountRulesTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "kind": "unit",
+      "name": "com.ticketflow.service.IdentityServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "kind": "unit",
+      "name": "com.ticketflow.service.OrderPolicyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "kind": "integration",
+      "name": "com.ticketflow.AdminReportingIT",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "kind": "integration",
+      "name": "com.ticketflow.IdentityIntegrationIT",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "kind": "integration",
+      "name": "com.ticketflow.OrderIntegrationIT",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "kind": "integration",
+      "name": "com.ticketflow.OrderLifecycleIT",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 74,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "sha256": {
+    "scripts\\check-middleware.py": "29cccda4fd6b683293d558d05f22dddaedbc321fa42d23737ec4262fd757df76",
+    "backend\\target\\ticketflow-0.1.0-SNAPSHOT.jar": "afcf08298efe724ef5f01c3d7cd06bafd8e7d114ff492bb94da9e2550193b32a"
+  }
+}
