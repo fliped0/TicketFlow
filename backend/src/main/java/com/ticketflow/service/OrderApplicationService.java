@@ -11,6 +11,7 @@ import com.ticketflow.model.entity.TradeOperation;
 import com.ticketflow.model.vo.*;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.json.JsonMapper;
@@ -24,9 +25,13 @@ public class OrderApplicationService {
     private final JsonMapper json;
     private final PaymentMapper payments;
     private final PaymentSimulator simulator;
+    private final PurchaseRateLimiter limiter;
+    private final MeterRegistry metrics;
     public OrderApplicationService(TradeExecutor executor, OrderMapper db, InventoryService stock, DatabaseClock clock, JsonMapper json,
-                                   PaymentMapper payments, PaymentSimulator simulator) {
+                                   PaymentMapper payments, PaymentSimulator simulator, PurchaseRateLimiter limiter, MeterRegistry metrics) {
         this.executor=executor; this.db=db; this.stock=stock; this.clock=clock; this.json=json; this.payments=payments; this.simulator=simulator;
+        this.limiter=limiter;
+        this.metrics=metrics;
     }
     private static BusinessException invalid() { return new BusinessException(400,"VALIDATION_ERROR","请求参数不合法"); }
     public static long id(String value) {
@@ -38,7 +43,23 @@ public class OrderApplicationService {
         if (input==null || input.quantity()==null || input.quantity()!=1) throw invalid();
         long tier=id(input.tierId());
         TradeExecutor.validateKey(key);
-        return executor.execute(user,TradeOperation.CREATE,key,TradeExecutor.hash("CREATE:v1\ntierId="+tier+"\nquantity=1"),201,()->createLocked(user,tier));
+        try {
+            limiter.check(user,tier,key);
+            var result=executor.execute(user,TradeOperation.CREATE,key,TradeExecutor.hash("CREATE:v1\ntierId="+tier+"\nquantity=1"),201,()->createLocked(user,tier));
+            String outcome=result.replayed()?"replayed":switch(result.code()) {
+                case "OK" -> "created";
+                case "SOLD_OUT" -> "sold_out";
+                case "PURCHASE_LIMIT" -> "purchase_limit";
+                case "NOT_ON_SALE" -> "not_on_sale";
+                case "SALE_NOT_STARTED" -> "sale_not_started";
+                case "SALE_ENDED" -> "sale_ended";
+                default -> "other_rejection";
+            };
+            metrics.counter("ticketflow.purchase.result","outcome",outcome).increment();
+            return result;
+        } catch (org.springframework.dao.DataAccessException | org.springframework.transaction.TransactionException | IllegalStateException error) {
+            metrics.counter("ticketflow.purchase.result","outcome","system_error").increment(); throw error;
+        }
     }
     private TradeResultVO createLocked(long user, long tier) {
         var catalog=db.lockCatalog(tier);

@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "TicketFlow API",
-    "version": "0.5.0",
-    "description": "已实现认证、目录、订单生命周期、管理员订单查询与统计；模拟支付退款，无外部支付渠道。"
+    "version": "0.6.0",
+    "description": "已实现认证、公开目录Redis缓存、下单限流、订单生命周期及管理报表；异步抢票仍为设计，支付退款为模拟。"
   },
   "servers": [
     {
@@ -292,7 +292,14 @@
             "description": "NOT_FOUND"
           },
           "503": {
-            "description": "TEMPORARILY_UNAVAILABLE"
+            "description": "CATALOG_BUSY：启用缓存时查询并发额度或热点等待耗尽；TEMPORARILY_UNAVAILABLE：数据库故障。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -384,7 +391,14 @@
             "description": "NOT_FOUND"
           },
           "503": {
-            "description": "TEMPORARILY_UNAVAILABLE"
+            "description": "CATALOG_BUSY：启用缓存时查询并发额度或热点等待耗尽；TEMPORARILY_UNAVAILABLE：数据库故障。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -443,7 +457,14 @@
             "description": "NOT_FOUND"
           },
           "503": {
-            "description": "TEMPORARILY_UNAVAILABLE"
+            "description": "CATALOG_BUSY：启用缓存时查询并发额度或热点等待耗尽；TEMPORARILY_UNAVAILABLE：数据库故障。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -521,7 +542,14 @@
             "description": "NOT_FOUND"
           },
           "503": {
-            "description": "TEMPORARILY_UNAVAILABLE"
+            "description": "CATALOG_BUSY：启用缓存时查询并发额度或热点等待耗尽；TEMPORARILY_UNAVAILABLE：数据库故障。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -1447,6 +1475,25 @@
           },
           "500": {
             "description": "INTERNAL_ERROR；通过原键或查询确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "启用Redis后用户或场次新请求额度耗尽；不持久化原键，已落库原键重放优先。",
+            "headers": {
+              "Retry-After": {
+                "description": "再次尝试前至少等待的秒数",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {

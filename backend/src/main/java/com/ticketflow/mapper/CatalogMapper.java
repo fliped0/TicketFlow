@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -32,6 +34,24 @@ public class CatalogMapper {
     private final JdbcTemplate db;
 
     public CatalogMapper(JdbcTemplate db) { this.db = db; }
+    public long revision() { return db.queryForObject("SELECT revision FROM tf_catalog_revision WHERE id=1", Long.class); }
+    public void advanceRevision() { TradeMapper.requireOne(db.update("UPDATE tf_catalog_revision SET revision=revision+1 WHERE id=1")); }
+    public Map<Long,Integer> availableForTiers(List<Long> ids) {
+        if (ids.isEmpty()) return Map.of();
+        Map<Long,Integer> result = new HashMap<>();
+        db.query("SELECT tier_id,available FROM tf_stock WHERE tier_id IN ("
+                + String.join(",", java.util.Collections.nCopies(ids.size(), "?")) + ")",
+                (org.springframework.jdbc.core.RowCallbackHandler) row -> result.put(row.getLong(1),row.getInt(2)), ids.toArray());
+        return result;
+    }
+    public Map<Long,Integer> availableForSessions(List<Long> ids) {
+        if (ids.isEmpty()) return Map.of();
+        Map<Long,Integer> result = new HashMap<>();
+        db.query("SELECT t.session_id,COALESCE(SUM(s.available),0) FROM tf_tier t JOIN tf_stock s ON s.tier_id=t.id WHERE t.session_id IN ("
+                + String.join(",", java.util.Collections.nCopies(ids.size(), "?")) + ") GROUP BY t.session_id",
+                (org.springframework.jdbc.core.RowCallbackHandler) row -> result.put(row.getLong(1),row.getInt(2)), ids.toArray());
+        return result;
+    }
     private static LocalDateTime at(ResultSet r, String key) throws SQLException { return LocalDateTime.parse(r.getString(key).replace(' ','T')); }
     private static String ts(LocalDateTime value) { return value.toString().replace('T',' '); }
     private static <T> T one(List<T> rows) { return rows.isEmpty() ? null : rows.get(0); }

@@ -187,18 +187,21 @@ class AdminReportingIT extends OrderTestSupport {
         if (!Files.exists(migration)) migration=Path.of("backend/src/main/resources/db/migration/V1__init_schema.sql");
         Path folder=Files.createTempDirectory("ticketflow-empty-namespace-"); Path script=folder.resolve("V1__init_schema.sql");
         String ddl=Files.readString(migration); Files.writeString(script,ddl.replace("tf_",prefix+"tf_"));
+        Path revisionScript=folder.resolve("V2__catalog_revision.sql");
+        Files.writeString(revisionScript,Files.readString(migration.resolveSibling("V2__catalog_revision.sql")).replace("tf_",prefix+"tf_"));
         // Dedicated test database: only newly generated names are used. The
         // least-privilege account has no DROP permission, so retain the empty
         // namespace for inspection, just like other append-only test fixtures.
         try {
             var flyway=org.flywaydb.core.Flyway.configure().dataSource(source).table(prefix+"history")
                     .locations("filesystem:"+folder).baselineOnMigrate(true).baselineVersion("0").cleanDisabled(true).load();
-            assertEquals(1,flyway.migrate().migrationsExecuted);
-            assertEquals(12,count("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,?)=?",prefix.length()+3,prefix+"tf_"));
+            assertEquals(2,flyway.migrate().migrationsExecuted);
+            assertEquals(13,count("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,?)=?",prefix.length()+3,prefix+"tf_"));
+            assertEquals(0,count("SELECT revision FROM "+prefix+"tf_catalog_revision WHERE id=1"));
             assertEquals(0,flyway.migrate().migrationsExecuted); assertTrue(flyway.validateWithResult().validationSuccessful);
         } finally {
             assertEquals("ticketflow_test",db.queryForObject("SELECT DATABASE()",String.class));
-            Files.deleteIfExists(script); Files.deleteIfExists(folder);
+            Files.deleteIfExists(script); Files.deleteIfExists(revisionScript); Files.deleteIfExists(folder);
         }
     }
 }

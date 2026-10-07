@@ -12,6 +12,11 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.slf4j.LoggerFactory;
 @RestControllerAdvice
 public class ApiExceptionHandler {
+ @ExceptionHandler(RateLimitedException.class)
+ ResponseEntity<?> limited(RateLimitedException e) {
+  return ResponseEntity.status(429).header("Retry-After",Long.toString(e.retryAfterSeconds()))
+    .body(ApiResponse.error(e.code(),e.getMessage()));
+ }
  @ExceptionHandler(BusinessException.class)
  ResponseEntity<?> business(BusinessException e) { return ResponseEntity.status(e.status()).body(ApiResponse.error(e.code(),e.getMessage())); }
  @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class, ConstraintViolationException.class, MethodArgumentTypeMismatchException.class, HandlerMethodValidationException.class, MissingRequestHeaderException.class, MissingServletRequestParameterException.class})

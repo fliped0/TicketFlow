@@ -24,3 +24,34 @@ function Import-TicketFlowConfig {
     $env:TF_JWT_PRIVATE_KEY = Join-Path $project 'config/local/jwt-private.pem'
     $env:TF_JWT_PUBLIC_KEY = Join-Path $project 'config/local/jwt-public.pem'
 }
+function Import-TicketFlowRedisConfig {
+    param([ValidateSet('dev','test')] [string]$Mode)
+    & "$PSScriptRoot/start-tunnel.ps1"
+    $sshKey = Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
+    $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o ConnectTimeout=8 root@118.178.253.75 'cat /opt/ticketflow/.env'
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot read middleware credentials over authorized SSH.' }
+    $redisPassword = $privateConfig | Where-Object { $_ -match '^REDIS_PASSWORD=[a-f0-9]{48}$' } | Select-Object -First 1
+    if (-not $redisPassword) { throw 'Missing server Redis configuration.' }
+    $env:TF_REDIS_PASSWORD = $redisPassword.Substring('REDIS_PASSWORD='.Length)
+    $env:TF_REDIS_PORT = '16379'
+    $env:TF_REDIS_NAMESPACE = "tf:${Mode}:v1"
+    $probe = [System.Net.Sockets.TcpClient]::new()
+    try {
+        if (-not $probe.ConnectAsync('127.0.0.1',16379).Wait(3000)) { throw 'Redis tunnel preflight timed out.' }
+        $probe.ReceiveTimeout = 3000
+        $probe.SendTimeout = 3000
+        $stream = $probe.GetStream()
+        $packet = [System.Text.Encoding]::ASCII.GetBytes("AUTH $env:TF_REDIS_PASSWORD`r`nPING`r`n")
+        $stream.Write($packet,0,$packet.Length)
+        $reader = [System.IO.StreamReader]::new($stream)
+        try {
+            if ($reader.ReadLine() -ne '+OK' -or $reader.ReadLine() -ne '+PONG') { throw 'Redis authentication preflight failed.' }
+        } finally { $reader.Dispose() }
+    } finally { $probe.Dispose() }
+    if ($Mode -eq 'dev') { $env:TF_REDIS_ENABLED = 'true' }
+    else { $env:TF_REDIS_IT = 'true' }
+}
+function Remove-TicketFlowRedisConfig {
+    @('TF_REDIS_PASSWORD','TF_REDIS_PORT','TF_REDIS_NAMESPACE','TF_REDIS_ENABLED','TF_REDIS_IT') |
+        ForEach-Object { Remove-Item "Env:$_" -ErrorAction SilentlyContinue }
+}

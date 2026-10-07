@@ -12,6 +12,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Arrays;
+import tools.jackson.core.type.TypeReference;
 import org.slf4j.MDC;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,8 @@ import tools.jackson.databind.json.JsonMapper;
 public class CatalogService {
     private final CatalogMapper db;
     private final JsonMapper json;
-    public CatalogService(CatalogMapper db, JsonMapper json) { this.db = db; this.json = json; }
+    private final CatalogCacheService cache;
+    public CatalogService(CatalogMapper db, JsonMapper json, CatalogCacheService cache) { this.db = db; this.json = json; this.cache = cache; }
 
     private static BusinessException invalid() { return new BusinessException(400,"VALIDATION_ERROR","请求参数不合法"); }
     private static BusinessException missing() { return new BusinessException(404,"NOT_FOUND","资源不存在"); }
@@ -62,6 +65,7 @@ public class CatalogService {
         String trace = MDC.get("traceId");
         db.audit(actor,action,type,id,before == null ? null : json.writeValueAsString(before),
                 json.writeValueAsString(after),trace == null ? "server" : trace);
+        db.advanceRevision(); // Atomic logical invalidation: visible only when this write commits.
     }
     private static CatalogVO.Event view(EventRow row) { return new CatalogVO.Event(Long.toString(row.id()),row.name(),row.description(),row.category(),row.city(),row.venue(),row.status(),row.version()); }
     private String saleStatus(EventRow event, SessionRow session, int available, LocalDateTime now) {
@@ -163,27 +167,70 @@ public class CatalogService {
         } catch (DuplicateKeyException e) { throw conflict("TIER_NAME_EXISTS"); }
     }
 
-    @Transactional(readOnly=true)
     public CatalogVO.Page<CatalogVO.Event> events(boolean admin,String status,String keyword,String city,String category,Integer p,Integer s) {
         int page=page(p),size=size(s),offset=offset(page,size);
         if (!admin) status="ON_SALE";
         else if (status!=null && !List.of("DRAFT","ON_SALE","OFF_SALE").contains(status)) throw invalid();
         String pattern=like(keyword); city=optionalFilter(city,64); category=optionalFilter(category,32);
-        return new CatalogVO.Page<>(db.events(status,pattern,city,category,size,offset).stream().map(CatalogService::view).toList(),page,size,
-                db.countEvents(status,pattern,city,category));
+        String filterStatus=status, filterCity=city, filterCategory=category;
+        java.util.function.Supplier<CatalogVO.Page<CatalogVO.Event>> loader=()->new CatalogVO.Page<>(
+                db.events(filterStatus,pattern,filterCity,filterCategory,size,offset).stream().map(CatalogService::view).toList(),
+                page,size,db.countEvents(filterStatus,pattern,filterCity,filterCategory));
+        if (admin) return cache.snapshot(loader);
+        return cache.query(()->cache.get("events",Arrays.asList(pattern,filterCity,filterCategory,page,size),
+                new TypeReference<CatalogVO.Page<CatalogVO.Event>>() {},loader,value->value.items().isEmpty()));
     }
-    @Transactional(readOnly=true)
-    public CatalogVO.Event event(long id,boolean admin) { EventRow row=requireEvent(id,false); if (!admin && !row.status().equals("ON_SALE")) throw missing(); return view(row); }
-    @Transactional(readOnly=true)
+    public CatalogVO.Event event(long id,boolean admin) {
+        if (admin) return cache.snapshot(()->view(requireEvent(id,false)));
+        return cache.query(()->{
+            var result=cache.get("event",List.of(id),new TypeReference<CatalogVO.Event>() {},()->{
+                EventRow row=db.event(id,false); return row==null || !row.status().equals("ON_SALE") ? null : view(row);
+            },value->value==null);
+            if (result==null) throw missing();
+            return result;
+        });
+    }
     public CatalogVO.Page<CatalogVO.Session> sessions(long eventId,boolean admin,Integer p,Integer s) {
-        int page=page(p),size=size(s),offset=offset(page,size); EventRow parent=requireEvent(eventId,false);
-        if (!admin && !parent.status().equals("ON_SALE")) throw missing(); LocalDateTime now=db.now();
-        return new CatalogVO.Page<>(db.pageSessions(eventId,size,offset).stream().map(row->view(row,parent,now)).toList(),page,size,db.countSessions(eventId));
+        int page=page(p),size=size(s),offset=offset(page,size);
+        if (admin) return cache.snapshot(()->{
+            EventRow parent=requireEvent(eventId,false); LocalDateTime now=db.now();
+            return new CatalogVO.Page<>(db.pageSessions(eventId,size,offset).stream().map(row->view(row,parent,now)).toList(),page,size,db.countSessions(eventId));
+        });
+        return cache.query(()->{
+            var cached=cache.get("sessions",List.of(eventId,page,size),new TypeReference<CatalogVO.Page<CatalogVO.Session>>() {},()->{
+                EventRow parent=requireEvent(eventId,false); if (!parent.status().equals("ON_SALE")) throw missing();
+                return new CatalogVO.Page<>(db.pageSessions(eventId,size,offset).stream().map(row->new CatalogVO.Session(
+                        Long.toString(row.id()),Long.toString(row.eventId()),iso(row.startsAt()),iso(row.saleStartAt()),iso(row.saleEndAt()),"",row.version())).toList(),
+                        page,size,db.countSessions(eventId));
+            },value->value.items().isEmpty());
+            EventRow parent=requireEvent(eventId,false); if (!parent.status().equals("ON_SALE")) throw missing();
+            LocalDateTime now=db.now();
+            var available=db.availableForSessions(cached.items().stream().map(row->Long.parseLong(row.id())).toList());
+            return new CatalogVO.Page<>(cached.items().stream().map(row->new CatalogVO.Session(row.id(),row.eventId(),row.startsAt(),
+                    row.saleStartAt(),row.saleEndAt(),saleStatus(parent,new SessionRow(Long.parseLong(row.id()),eventId,utc(row.startsAt()),
+                    utc(row.saleStartAt()),utc(row.saleEndAt()),utc(row.saleStartAt()),row.version()),available.getOrDefault(Long.parseLong(row.id()),0),now),row.version())).toList(),page,size,cached.total());
+        });
     }
-    @Transactional(readOnly=true)
     public CatalogVO.Page<CatalogVO.Tier> tiers(long sessionId,boolean admin,Integer p,Integer s) {
-        int page=page(p),size=size(s),offset=offset(page,size); SessionRow session=session(sessionId,false); EventRow parent=requireEvent(session.eventId(),false);
-        if (!admin && !parent.status().equals("ON_SALE")) throw missing(); LocalDateTime now=db.now();
-        return new CatalogVO.Page<>(db.pageTiers(sessionId,size,offset).stream().map(row->view(row,session,parent,now)).toList(),page,size,db.countTiers(sessionId));
+        int page=page(p),size=size(s),offset=offset(page,size);
+        if (admin) return cache.snapshot(()->{
+            SessionRow session=session(sessionId,false); EventRow parent=requireEvent(session.eventId(),false); LocalDateTime now=db.now();
+            return new CatalogVO.Page<>(db.pageTiers(sessionId,size,offset).stream().map(row->view(row,session,parent,now)).toList(),page,size,db.countTiers(sessionId));
+        });
+        return cache.query(()->{
+            var cached=cache.get("tiers",List.of(sessionId,page,size),new TypeReference<CatalogVO.Page<CatalogVO.Tier>>() {},()->{
+                SessionRow session=session(sessionId,false); EventRow parent=requireEvent(session.eventId(),false);
+                if (!parent.status().equals("ON_SALE")) throw missing();
+                return new CatalogVO.Page<>(db.pageTiers(sessionId,size,offset).stream().map(row->new CatalogVO.Tier(Long.toString(row.id()),
+                        Long.toString(row.sessionId()),row.name(),row.priceFen(),0,row.capacity(),"",row.refundPolicy(),row.version())).toList(),page,size,db.countTiers(sessionId));
+            },value->value.items().isEmpty());
+            SessionRow session=session(sessionId,false); EventRow parent=requireEvent(session.eventId(),false);
+            if (!parent.status().equals("ON_SALE")) throw missing(); LocalDateTime now=db.now();
+            var available=db.availableForTiers(cached.items().stream().map(row->Long.parseLong(row.id())).toList());
+            return new CatalogVO.Page<>(cached.items().stream().map(row->{
+                int free=available.getOrDefault(Long.parseLong(row.id()),0);
+                return new CatalogVO.Tier(row.id(),row.sessionId(),row.name(),row.priceFen(),free,row.capacity(),saleStatus(parent,session,free,now),row.refundPolicy(),row.version());
+            }).toList(),page,size,cached.total());
+        });
     }
 }

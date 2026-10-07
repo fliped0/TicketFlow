@@ -1,0 +1,56 @@
+[
+  {
+    "run": "batch7-first-verify",
+    "finishedAt": "2026-10-07T11:55:37+08:00",
+    "unit": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "integration": {
+      "tests": 73,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "cause": "IdentityIntegrationIT.migrationCreatesTwelveTablesAndIsRepeatable expected 12 tables, actual 13 after V2. Redis 12 + outage 1 tests passed.",
+    "resolution": "Update exact current table/migration assertions; empty-namespace test now includes V1 and V2."
+  },
+  {
+    "run": "batch7-final-verify",
+    "finishedAt": "2026-10-07T11:59:27+08:00",
+    "unit": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "integration": {
+      "tests": 74,
+      "failures": 0,
+      "errors": 2,
+      "skipped": 0
+    },
+    "cause": "RedisCatalogIT setup failed for cacheHitAndFilterPageKeysAvoidRepeatedCatalogSql and lateOldSnapshotCannotRefillNewGenerationAfterDelisting. Connection initialization timed out after 300ms; service and tunnel checked healthy.",
+    "resolution": "Configurable Redis command/connect timeout, default 1000ms. Preserve failed result; run full regression again."
+  },
+  {
+    "run": "batch7-delivery-verify",
+    "finishedAt": "2026-10-07T12:12:49+08:00",
+    "unit": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "integration": {
+      "tests": 74,
+      "failures": 0,
+      "errors": 13,
+      "skipped": 0
+    },
+    "cause": "All RedisCatalogIT setup attempts received TCP connection refused; tool-owned SSH tunnel was no longer listening. Middleware server remained available via direct SSH.",
+    "resolution": "start-tunnel.ps1 starts/reuses a hidden standalone process; WithRedis verifies authenticated Redis connectivity before Maven. Subsequent middleware probe passed; full regression rerun."
+  }
+]

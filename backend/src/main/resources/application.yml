@@ -1,4 +1,13 @@
 spring:
+  data:
+    redis:
+      host: ${TF_REDIS_HOST:127.0.0.1}
+      port: ${TF_REDIS_PORT:16379}
+      password: ${TF_REDIS_PASSWORD:}
+      timeout: ${TF_REDIS_TIMEOUT:1000ms}
+      connect-timeout: ${TF_REDIS_CONNECT_TIMEOUT:1000ms}
+      repositories:
+        enabled: false
   application:
     name: ticketflow
   datasource:
@@ -21,6 +30,9 @@ mybatis-plus:
     local-cache-scope: STATEMENT
     map-underscore-to-camel-case: true
 management:
+  health:
+    redis:
+      enabled: ${TF_REDIS_ENABLED:false}
   endpoints:
     web:
       exposure:
@@ -32,6 +44,16 @@ server:
   port: ${TF_PORT:8080}
   shutdown: graceful
 ticketflow:
+  redis:
+    enabled: ${TF_REDIS_ENABLED:false}
+    namespace: ${TF_REDIS_NAMESPACE:tf:dev:v1}
+    cache-ttl-seconds: ${TF_CACHE_TTL_SECONDS:30}
+    empty-ttl-seconds: ${TF_CACHE_EMPTY_TTL_SECONDS:3}
+    query-concurrency: ${TF_CATALOG_QUERY_CONCURRENCY:8}
+    merge-wait-millis: ${TF_CACHE_MERGE_WAIT_MILLIS:500}
+    user-limit: ${TF_PURCHASE_USER_LIMIT:10}
+    session-limit: ${TF_PURCHASE_SESSION_LIMIT:50}
+    window-millis: ${TF_PURCHASE_WINDOW_MILLIS:1000}
   observability:
     enabled: ${TF_OBSERVABILITY_ENABLED:false}
     interval-ms: ${TF_OBSERVABILITY_INTERVAL_MS:5000}

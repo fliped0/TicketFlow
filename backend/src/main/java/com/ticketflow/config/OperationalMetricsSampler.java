@@ -23,7 +23,7 @@ public class OperationalMetricsSampler {
         for (Meter meter:registry.getMeters()) {
             String name=meter.getId().getName();
             if (!(name.startsWith("hikaricp.") || name.startsWith("jvm.") || name.startsWith("process.")
-                    || name.equals("system.cpu.usage") || name.equals("http.server.requests"))) continue;
+                    || name.equals("system.cpu.usage") || name.equals("http.server.requests") || name.startsWith("ticketflow."))) continue;
             var tags=new TreeMap<String,String>();
             for (var tag:meter.getId().getTags()) if (TAGS.contains(tag.getKey())) tags.put(tag.getKey(),tag.getValue());
             var values=new TreeMap<String,Double>();

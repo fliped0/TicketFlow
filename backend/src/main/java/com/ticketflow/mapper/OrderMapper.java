@@ -13,6 +13,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class OrderMapper {
+    public Long sessionForTier(long tier) {
+        var rows = db.queryForList("SELECT session_id FROM tf_tier WHERE id=?", Long.class, tier);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
     private final JdbcTemplate db;
     public OrderMapper(JdbcTemplate db) { this.db = db; }
     private static LocalDateTime at(ResultSet r, String key) throws SQLException { return LocalDateTime.parse(r.getString(key).replace(' ','T')); }

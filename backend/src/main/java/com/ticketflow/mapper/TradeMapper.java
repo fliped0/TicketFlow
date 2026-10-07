@@ -13,6 +13,10 @@ import org.springframework.stereotype.Repository;
 public class TradeMapper {
     private final JdbcTemplate db;
     public TradeMapper(JdbcTemplate db) { this.db = db; }
+    public boolean hasCreateRequest(long user, String key) {
+        return !db.queryForList("SELECT id FROM tf_request WHERE user_id=? AND operation='CREATE' AND request_key=?",
+                Long.class, user, key).isEmpty();
+    }
     public LocalDateTime now() {
         return LocalDateTime.parse(db.queryForObject("SELECT DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%f')", String.class));
     }
