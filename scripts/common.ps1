@@ -55,3 +55,19 @@ function Remove-TicketFlowRedisConfig {
     @('TF_REDIS_PASSWORD','TF_REDIS_PORT','TF_REDIS_NAMESPACE','TF_REDIS_ENABLED','TF_REDIS_IT') |
         ForEach-Object { Remove-Item "Env:$_" -ErrorAction SilentlyContinue }
 }
+function Import-TicketFlowRabbitConfig {
+    & "$PSScriptRoot/start-tunnel.ps1"
+    $sshKey = Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
+    $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o ConnectTimeout=8 root@118.178.253.75 'cat /opt/ticketflow/.env'
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot read RabbitMQ configuration over authorized SSH.' }
+    $rabbitPassword = $privateConfig | Where-Object { $_ -match '^RABBITMQ_PASSWORD=[a-f0-9]{48}$' } | Select-Object -First 1
+    if (-not $rabbitPassword) { throw 'Missing RabbitMQ server configuration.' }
+    $env:TF_RABBITMQ_PASSWORD = $rabbitPassword.Substring('RABBITMQ_PASSWORD='.Length)
+    $env:TF_RABBITMQ_IT = 'true'
+    $basic = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("tf_admin:$env:TF_RABBITMQ_PASSWORD"))
+    $overview = Invoke-RestMethod -Uri 'http://127.0.0.1:15672/api/overview' -Headers @{ Authorization = "Basic $basic" } -TimeoutSec 5
+    if ($overview.rabbitmq_version -ne '4.3.6') { throw 'Unexpected RabbitMQ version; review environment before running the lab.' }
+}
+function Remove-TicketFlowRabbitConfig {
+    Remove-Item Env:TF_RABBITMQ_PASSWORD,Env:TF_RABBITMQ_IT -ErrorAction SilentlyContinue
+}

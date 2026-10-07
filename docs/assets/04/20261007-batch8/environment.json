@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-07T13:17:54.5266584+08:00",
+  "deployment": "Windows Java/MySQL + Ubuntu cloud Redis/RabbitMQ via SSH loopback",
+  "redisAuthenticatedPing": true,
+  "rabbitManagementAuthenticated": true,
+  "remainingLabVhosts": [],
+  "remainingLabUsers": [],
+  "services": [
+    {
+      "Service": "rabbitmq",
+      "State": "running",
+      "Health": "healthy",
+      "Ports": "4369/tcp, 5671/tcp, 127.0.0.1:5672->5672/tcp, 15671/tcp, 15691-15692/tcp, 25672/tcp, 127.0.0.1:15672->15672/tcp"
+    },
+    {
+      "Service": "redis",
+      "State": "running",
+      "Health": "healthy",
+      "Ports": "127.0.0.1:6379->6379/tcp"
+    }
+  ],
+  "cloudRestartScope": "RabbitMQ only; Redis not restarted",
+  "cloudHa": false,
+  "dbLabTables": "random b8 prefix retained; no DROP permission",
+  "remainingLabVhostCount": 0,
+  "remainingLabUserCount": 0
+}

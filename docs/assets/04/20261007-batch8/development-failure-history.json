@@ -1,0 +1,33 @@
+[
+  {
+    "run": "batch8-first-lab",
+    "phase": "RabbitMQ management vhost provisioning",
+    "unit": {"tests":14,"failures":0,"errors":0,"skipped":0},
+    "integration": {"tests":1,"failures":0,"errors":1,"skipped":0},
+    "cause": "Java HttpClient HTTP/2 upgrade failed with EOF reached while reading; BeforeAll failed before lab cases.",
+    "resolution": "Use explicit HTTP_1_1 for management requests. Independent lab rerun: 13 tests, zero failure/error/skip. Provisioning cleanup now also covers unknown HTTP completion."
+  },
+  {
+    "run": "batch8-first-full-clean-verify",
+    "finishedAt": "2026-10-07T13:06:11+08:00",
+    "unit": {"tests":14,"failures":0,"errors":0,"skipped":0},
+    "integration": {"tests":87,"failures":1,"errors":0,"skipped":0},
+    "case": "RabbitMqLabIT.confirmedPersistentMessageAndCommitBeforeAck",
+    "cause": "Immediate management GET effective_policy_definition was empty, expected at-least-once. Other 12 MQ and all Redis/V1 tests passed. Management data has an asynchronous collection window.",
+    "resolution": "Poll management with a 10-second bound, preserve exact quorum/dead-letter assertions, then rerun the entire clean verify. Failed result and observations retained separately."
+  },
+  {
+    "run": "batch8-second-full-clean-verify",
+    "finishedAt": "2026-10-07T13:10:22+08:00",
+    "unit": {"tests":14,"failures":0,"errors":0,"skipped":0},
+    "integration": {"tests":75,"failures":0,"errors":14,"skipped":0},
+    "cause": "Existing SSH tunnel exited with client_loop: send disconnect: Connection reset during regression. MQ BeforeAll could not connect (one class-level error instead of 13 executed cases), 13 Redis setup errors; cloud containers were healthy over direct SSH.",
+    "resolution": "Preserve unexecuted/failed coverage, recreate tunnel and authenticated preflight, rerun all tests. This is a real network interruption, not a business assertion failure. No skipped tests are counted as passed."
+  },
+  {
+    "run": "batch8-evidence-validation",
+    "phase": "migration content comparison",
+    "cause": "Initial raw-byte assertion compared Git LF blobs with existing Windows CRLF working files; failed although migrations were unmodified.",
+    "resolution": "Compare migration content after CRLF/LF normalization, record that rule explicitly; keep source manifest hashes of actual working files. Validation passed; no SQL source was changed."
+  }
+]

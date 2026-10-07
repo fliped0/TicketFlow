@@ -1,0 +1,14 @@
+{
+  "openapiVersion": "0.6.0",
+  "httpOperations": 27,
+  "localRefsValidated": 137,
+  "apiContractChanged": false,
+  "jarSha256": "03db352183e3bf8bd0d799fa0e98d0928b529017b960eac71e707ac08946e2df",
+  "labClassesInApplicationJar": false,
+  "testAmqpClientInApplicationJar": false,
+  "migrationContentIdenticalToBatch7IgnoringGitLineEndings": true,
+  "migrationHashes": {
+    "V1__init_schema.sql": "32c86d64c69df7dabe98f3f9339dbe9598b5bdd57b90d4342474a3a8d45582ac",
+    "V2__catalog_revision.sql": "d6c4324039633b6f91e156d0c33dbef9ef1ba83c85fe4b3071219d0ee121e6e9"
+  }
+}

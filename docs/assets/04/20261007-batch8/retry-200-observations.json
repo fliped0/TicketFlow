@@ -1,0 +1,1 @@
+{"scope":"synthetic account/inbox/ledger; not ticket orders","dbTablePrefix":"b8_2f106607c9b2_","rabbitmqVersion":"4.3.6","cases":[{"detail":{"observedDelayMillis":[358,619,945],"expectedMinimumMillis":[200,400,800]},"inbox":1,"effects":1,"ledger":1,"case":"bounded TTL backoff then success"}],"scopedUserDeleted":true,"vhostDeleted":true,"retryBaseMillis":200}
