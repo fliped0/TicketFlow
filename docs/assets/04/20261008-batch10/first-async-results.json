@@ -1,0 +1,257 @@
+{
+  "tests": "41",
+  "failures": "2",
+  "errors": "0",
+  "cases": [
+    {
+      "name": "crossSessionOrphanSealingReleasesOnlyLosingToken",
+      "time": "5.892",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "malformedEnvelopeCannotCreateOrderOrInventARelease",
+      "time": "1.406",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "actualMalformedRabbitMessageGoesToDurableDeadLetterQueue",
+      "time": "3.7",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "staleWorkVersionCannotCommitAnOrder",
+      "time": "1.424",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "actualRabbitDeliveryCreatesOneOrderAndConfirmMarksOutboxSent",
+      "time": "2.572",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "oneHundredInFlightConvergeWithinSixtySecondsIncludingRebuild",
+      "time": "76.643",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "brokerUnavailableLeavesOutboxPendingAndCanLaterPublish",
+      "time": "16.262",
+      "failure": "expected: <1> but was: <0>",
+      "error": null
+    },
+    {
+      "name": "retryThresholdDeadLettersButDeadlineScanStillConverges",
+      "time": "8.071",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "reliable202ContainsFourDurableFactsBeforeBrokerPublication",
+      "time": "1.383",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "sentMarkerFailureAllowsRetransmissionWithoutAnotherOrder",
+      "time": "1.586",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "committedAdmissionWithLostResponseIsNotReleasedByOrphanSweep",
+      "time": "1.651",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "orphanSweepPersistsFenceBeforeReleaseAndLateOriginalKeyCannotBeAccepted",
+      "time": "2.34",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "concurrentDifferentTiersShareTheSameSessionQualification",
+      "time": "1.435",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "preSaleCapacityChangePausesViewAndExplicitRefreshUsesNewEpoch",
+      "time": "1.827",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "sixBuyersCompeteForTheLastTicketWithoutOverselling",
+      "time": "2.504",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "requestOwnershipValidationAndModeRulesAreEnforced",
+      "time": "1.601",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "snapshotMismatchCannotReopenGateOrInventFreeStock",
+      "time": "2.418",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "asyncExpiryCloseReleasesOnceEvenIfOwnerIsDisabled",
+      "time": "1.509",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "consumerChecksBusinessDeadlineAfterWaitingForStockLock",
+      "time": "2.449",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "consumerTransactionFailureCommitsRetryIntentBeforeAcknowledgement",
+      "time": "1.352",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "admissionRechecksSaleTimeAfterLuaReservation",
+      "time": "1.369",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "syncSessionRetainsOriginalPathAndAsyncModeUsesOptimisticVersion",
+      "time": "0.559",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "sameKeyReplaysQueuedAndTerminalResultAndChangedParametersConflict",
+      "time": "1.372",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "deadReplayIsDurableIdempotentAndKeepsOriginalDeadline",
+      "time": "1.572",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "maintenanceOwnerChangeFencesStaleCoordinatorBeforeReady",
+      "time": "2.01",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "expiredWorkerLeaseRetriesWithoutReleasingBeforeBusinessDeadline",
+      "time": "1.301",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "concurrentIdenticalRequestsAndDuplicateMessagesDoNotCreateTwice",
+      "time": "1.58",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "newAdmissionQuotaDoesNotPersist429OrBlockOriginalKeyRecovery",
+      "time": "2.671",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "queryQuotaIsIndependentAndExistingResultNeedsNoRedis",
+      "time": "1.746",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "cancellationAndRefundReturnInventoryOnceAndHistoricalSuccessRemains",
+      "time": "3.059",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "offSaleBetweenAdmissionAndConsumptionRejectsAndReleases",
+      "time": "1.399",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "projectionDuplicateGapAndWrongRedisTypeDoNotDoubleRelease",
+      "time": "2.315",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "projectionGapReplaysEvenPreviouslySentPredecessorBeforeRelease",
+      "time": "1.592",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "redisLossRebuildsQueuedAndPaidTokensAndOldEventsCannotDoubleRelease",
+      "time": "1.275",
+      "failure": "{\"code\":\"NOT_FOUND\",\"message\":\"资源不存在\",\"data\":null,\"traceId\":\"32de4d64-3aa8-46e1-b783-df0498f38e65\",\"replayed\":false} ==> expected: <200> but was: <404>",
+      "error": null
+    },
+    {
+      "name": "failedSnapshotWriteStaysClosedAndExpiredMaintenanceUsesFreshEpoch",
+      "time": "3.257",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "crossSessionSameKeyReleasesOnlyTheLosingCandidate",
+      "time": "1.823",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "initialSoldOutFailureRemainsImmutableAfterCancellation",
+      "time": "2.569",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "rebuildSealsVisibleOrphansAndDoesNotExtendAcceptedDeadlines",
+      "time": "2.755",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "failedRecoveryWriteStopsConsumerAndKeepsDurableClaimForScanner",
+      "time": "1.38",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "admissionTransactionFailureRollsBackAllFourDurableFactsAndSameKeyRetries",
+      "time": "1.769",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "disabledOwnerAndDeadlineScannerReleaseDurableQueuedBalance",
+      "time": "2.195",
+      "failure": null,
+      "error": null
+    }
+  ],
+  "notes": [
+    "First development run: incorrect payment path in a new test; dispatch budget/starvation failure.",
+    "100-request convergence 40549 ms; all 100 rejected at their original deadline."
+  ]
+}

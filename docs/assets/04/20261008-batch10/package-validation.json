@@ -1,0 +1,25 @@
+{
+  "jarSha256": "0919900AFBA403F90919D8022CC952C1951AD0F9495459C1235B25B8C6DAB6FC",
+  "testCodeExcluded": true,
+  "recoveryClassesPresent": true,
+  "powerShellSyntaxValid": true,
+  "historicalMigrationsUnchanged": true,
+  "migrations": [
+    {
+      "sha256": "32C86D64C69DF7DABE98F3F9339DBE9598B5BDD57B90D4342474A3A8D45582AC",
+      "name": "V1__init_schema.sql"
+    },
+    {
+      "sha256": "D6C4324039633B6F91E156D0C33DBEF9EF1BA83C85FE4B3071219D0EE121E6E9",
+      "name": "V2__catalog_revision.sql"
+    },
+    {
+      "sha256": "1545EBF9C26E9837B180EDCEA5107EEFC9CB4C08CD65C6E4953621AB7C2C53BD",
+      "name": "V3__async_purchase.sql"
+    },
+    {
+      "sha256": "E043B3543A06479565A99776A5A79BF2E6317B40A7238AA720B0B40CEC768BEB",
+      "name": "V4__async_recovery_operations.sql"
+    }
+  ]
+}

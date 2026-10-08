@@ -3,7 +3,7 @@
   "info": {
     "title": "TicketFlow API",
     "version": "0.7.0",
-    "description": "认证、公开目录缓存和限流、订单生命周期及报表、可选 Redis/Lua/RabbitMQ 异步抢票主流程；支付退款为模拟，完整故障恢复与 Redis 重建留批次 10。"
+    "description": "认证、公开目录缓存和限流、订单生命周期及报表、可选 Redis/Lua/RabbitMQ 异步抢票；含孤立预占封口、Redis epoch 重建与恢复对账。支付退款为模拟，运维命令不新增 HTTP 路由。"
   },
   "servers": [
     {

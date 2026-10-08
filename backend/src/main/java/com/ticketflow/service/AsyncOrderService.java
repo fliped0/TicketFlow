@@ -27,8 +27,10 @@ public class AsyncOrderService {
     private AsyncDisposition consumeMessage(AsyncMessage message) {
         var envelope=outbox.get(message.eventId());var route=requests.get(message.requestId(),false);
         if(envelope==null || route==null || !"BROKER".equals(envelope.destination()) || !envelope.aggregate().equals(route.id())
-                || message.sessionId()!=route.sessionId() || message.epoch()!=route.epoch() || !json.readValue(envelope.payload(),AsyncMessage.class).equals(message))return AsyncDisposition.DEAD_LETTER;
+                || message.sessionId()!=route.sessionId() || !json.readValue(envelope.payload(),AsyncMessage.class).equals(message))return AsyncDisposition.DEAD_LETTER;
         if(route.terminal())return AsyncDisposition.ACK;
+        // Epoch migration creates replacement outbox work in the same transaction.
+        if(message.epoch()!=route.epoch())return AsyncDisposition.ACK;
         AsyncRequest work;
         try {
             work=tx.execute(()->{
@@ -75,7 +77,7 @@ public class AsyncOrderService {
             } catch(RuntimeException recoveryFailed) {return AsyncDisposition.STOP;}
         }
     }
-    /** Minimal lease/deadline liveness; batch 10 adds orphan and epoch reconstruction. */
+    /** Work/deadline liveness remains independent from broker availability. */
     public void sweep() {
         long end=System.nanoTime()+5_000_000_000L;
         for(String id:requests.due()) {

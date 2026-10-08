@@ -39,6 +39,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         p.add("ticketflow.redis.namespace",()->"tf:test:v1");
         p.add("ticketflow.redis.enabled",()->false);
         p.add("ticketflow.redis.window-millis",()->60000);
+        p.add("ticketflow.redis.session-limit",()->1000);
     }
     @Autowired StringRedisTemplate redis;
     @Autowired AsyncGateMapper gates;
@@ -51,6 +52,11 @@ class AsyncPurchaseIT extends OrderTestSupport {
     @MockitoSpyBean AsyncBrokerGateway broker;
     @MockitoSpyBean DatabaseClock clock;
     @Autowired PurchaseRequestService purchases;
+    @Autowired AsyncRecoveryService recovery;
+    @MockitoSpyBean AsyncRecoveryMapper recoveryMapper;
+    @Autowired AsyncDeadReplayService deadReplay;
+    @Autowired AsyncReconciliationService reconciliation;
+    @Autowired AsyncOperationsMapper operations;
     final List<Fixture> fixtures=new ArrayList<>();
     Actor admin;
     String enc(){return URLEncoder.encode(vhost,StandardCharsets.UTF_8);}
@@ -77,7 +83,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         finally {management("DELETE","users/"+user,null,204);}
     }
     @AfterEach void finishOwnRequests()throws Exception {
-        broker.close();reset(async,outbox,lua,broker,orders,inventory,trades,catalog,clock);
+        broker.close();reset(async,outbox,lua,broker,orders,inventory,trades,catalog,clock,recoveryMapper);
         for(var f:fixtures) {
             db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE session_id=? AND state IN ('ACCEPTED','PROCESSING','RETRY_WAIT')",f.session());
             db.update("UPDATE tf_async_request SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE session_id=? AND state='PROCESSING'",f.session());
@@ -129,6 +135,252 @@ class AsyncPurchaseIT extends OrderTestSupport {
             Thread.sleep(100);
         }while(System.nanoTime()<end);
         fail("Redis projection backlog for own session");
+    }
+    AsyncToken orphan(Actor a,Fixture f,String key) {
+        long epoch=gates.read(f.session()).epoch();
+        var r=lua.reserve(f.session(),epoch,a.id(),key,TradeExecutor.hash("ASYNC:v1\ntierId="+f.tier()+"\nquantity=1"),f.tier(),key(),key(),clock.nowUtc().toInstant(ZoneOffset.UTC).toEpochMilli());
+        assertEquals("RESERVED",r.code());
+        return lua.tentative(f.session(),epoch,0,0).stream().filter(t->t.token().equals(r.token())).findFirst().orElseThrow();
+    }
+    void age(AsyncToken token,Fixture f) {
+        var keys=lua.keys(f.session(),gates.read(f.session()).epoch());var node=(tools.jackson.databind.node.ObjectNode)json.readTree(redis.opsForHash().get(keys.get(2),token.token()).toString());
+        long at=Instant.now().minusSeconds(11).toEpochMilli();node.put("at",at);
+        redis.opsForHash().put(keys.get(2),token.token(),json.writeValueAsString(node));redis.opsForZSet().add(keys.get(5),token.token(),at);
+    }
+    void expireMaintenance(Fixture f) {db.update("UPDATE tf_async_gate SET updated_at=UTC_TIMESTAMP(6)-INTERVAL 31 SECOND WHERE session_id=?",f.session());}
+
+    @Test void orphanSweepPersistsFenceBeforeReleaseAndLateOriginalKeyCannotBeAccepted()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();var t=orphan(a,f,k);age(t,f);
+        recovery.sweepOrphans(f.session());recovery.sweepOrphans(f.session());
+        assertEquals("REJECTED",state(t.id()));assertEquals(0,free(f));balance(f,0,0,0);
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=?",t.id()));
+        rejected(submit(a,f.tier(),k),"ADMISSION_EXPIRED");flush(f);assertEquals(1,free(f));
+        assertEquals("OBSERVED_MATCH",reconciliation.inspect(f.session()).get("status"));
+    }
+    @Test void committedAdmissionWithLostResponseIsNotReleasedByOrphanSweep()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();String id=data(submit(a,f.tier(),k),202).path("requestId").asString();
+        var t=lua.tentative(f.session(),gates.read(f.session()).epoch(),0,0).get(0);age(t,f);recovery.sweepOrphans(f.session());
+        assertEquals("ACCEPTED",state(id));balance(f,1,0,0);assertEquals(0,free(f));
+        assertEquals(id,data(submit(a,f.tier(),k),202).path("requestId").asString());consume(id);flush(f);
+    }
+    @Test void crossSessionOrphanSealingReleasesOnlyLosingToken()throws Exception {
+        var f=asyncFixture(1,true);var g=asyncFixture(1,true);var a=actor(false);String k=key();var losing=orphan(a,f,k);
+        String winner=data(submit(a,g.tier(),k),202).path("requestId").asString();age(losing,f);recovery.sweepOrphans(f.session());flush(f);
+        assertEquals(1,free(f));assertEquals("ACCEPTED",state(winner));balance(g,1,0,0);consume(winner);
+    }
+    @Test void redisLossRebuildsQueuedAndPaidTokensAndOldEventsCannotDoubleRelease()throws Exception {
+        var f=asyncFixture(3,true);var a=actor(false);String paid=accepted(a,f);consume(paid);act(a,order(paid),"payments",key());
+        var b=actor(false);String pending=accepted(b,f);var oldMessage=message(pending);long old=gates.read(f.session()).epoch();
+        redis.delete(lua.keys(f.session(),old));assertTrue(recovery.rebuild(f.session()));
+        assertEquals(old+1,gates.read(f.session()).epoch());assertEquals(1,free(f));balance(f,1,0,1);
+        assertEquals(AsyncDisposition.ACK,worker.consume(oldMessage));assertEquals("ACCEPTED",state(pending));
+        String payload=db.queryForObject("SELECT payload FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER' AND epoch=?",String.class,pending,old+1);
+        assertEquals(AsyncDisposition.ACK,worker.consume(json.readValue(payload,AsyncMessage.class)));flush(f);balance(f,0,1,1);
+        act(a,order(paid),"refunds",key());act(b,order(pending),"cancel",key());flush(f);assertEquals(3,free(f));
+        assertEquals("OBSERVED_MATCH",reconciliation.inspect(f.session()).get("status"));
+    }
+    @Test void rebuildSealsVisibleOrphansAndDoesNotExtendAcceptedDeadlines()throws Exception {
+        var f=asyncFixture(2,true);String pending=accepted(actor(false),f);var deadline=async.get(pending,false).deadline();
+        var t=orphan(actor(false),f,key());assertTrue(recovery.rebuild(f.session()));
+        assertEquals("REJECTED",state(t.id()));assertEquals(deadline,async.get(pending,false).deadline());assertEquals(1,free(f));balance(f,1,0,0);
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",pending);worker.sweep();flush(f);assertEquals(2,free(f));
+    }
+    @Test void failedSnapshotWriteStaysClosedAndExpiredMaintenanceUsesFreshEpoch()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);long epoch=gates.read(f.session()).epoch();
+        doAnswer(call->{call.callRealMethod();throw new IllegalStateException("test reply lost after Redis restore");}).when(lua).restore(any(AsyncSnapshot.class));
+        assertThrows(IllegalStateException.class,()->recovery.rebuild(f.session()));reset(lua);
+        assertEquals("REBUILDING",gates.read(f.session()).phase());assertFalse(recovery.rebuild(f.session()));assertEquals(1,count("SELECT COUNT(*) FROM tf_async_alert WHERE category='REBUILD' AND resource_id=? AND resolved_at IS NULL",Long.toString(f.session())));
+        expireMaintenance(f);assertTrue(recovery.rebuild(f.session()));assertEquals(epoch+2,gates.read(f.session()).epoch());assertEquals(0,free(f));balance(f,1,0,0);
+        assertEquals(0,count("SELECT COUNT(*) FROM tf_async_alert WHERE category='REBUILD' AND resource_id=? AND resolved_at IS NULL",Long.toString(f.session())));
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();flush(f);assertEquals(1,free(f));
+    }
+    @Test void snapshotMismatchCannotReopenGateOrInventFreeStock()throws Exception {
+        var f=asyncFixture(2,true);String id=accepted(actor(false),f);db.update("UPDATE tf_async_tier_balance SET queued_count=0 WHERE tier_id=?",f.tier());
+        try {assertEquals("DB_MISMATCH",reconciliation.inspect(f.session()).get("status"));assertThrows(IllegalStateException.class,()->recovery.rebuild(f.session()));assertEquals("PAUSED",gates.read(f.session()).phase());}
+        finally {db.update("UPDATE tf_async_tier_balance SET queued_count=1 WHERE tier_id=?",f.tier());expireMaintenance(f);assertTrue(recovery.rebuild(f.session()));}
+        balance(f,1,0,0);assertEquals(1,free(f));
+    }
+    @Test void projectionGapReplaysEvenPreviouslySentPredecessorBeforeRelease()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String id=accepted(a,f);consume(id);
+        // Simulate the sender's SENT fact surviving a lost Redis projection.
+        db.update("UPDATE tf_outbox SET state='SENT',sent_at=UTC_TIMESTAMP(6) WHERE aggregate_id=? AND event_type='ACTIVATE'",id);
+        flush(f);assertEquals("ORDER",json.readTree(redis.opsForHash().get(lua.keys(f.session(),gates.read(f.session()).epoch()).get(2),async.get(id,false).token()).toString()).path("state").asString());
+        act(a,order(id),"cancel",key());flush(f);assertEquals(1,free(f));
+    }
+    @Test void maintenanceOwnerChangeFencesStaleCoordinatorBeforeReady()throws Exception {
+        var f=asyncFixture(1,true);orphan(actor(false),f,key());
+        doAnswer(call->{call.callRealMethod();db.update("UPDATE tf_async_gate SET maintenance_version=maintenance_version+1,maintenance_owner='replacement' WHERE session_id=?",f.session());return null;}).when(lua).restore(any(AsyncSnapshot.class));
+        assertThrows(IllegalStateException.class,()->recovery.rebuild(f.session()));reset(lua);assertEquals("REBUILDING",gates.read(f.session()).phase());
+        expireMaintenance(f);assertTrue(recovery.rebuild(f.session()));assertEquals(1,free(f));
+    }
+    @Test void deadReplayIsDurableIdempotentAndKeepsOriginalDeadline()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);var m=message(id);var deadline=async.get(id,false).deadline();
+        db.update("UPDATE tf_async_request SET attempt_count=5,state='RETRY_WAIT',next_retry_at=UTC_TIMESTAMP(6) WHERE id=?",id);
+        assertTrue(deadReplay.replay(m));assertTrue(deadReplay.replay(m));assertEquals(1,count("SELECT COUNT(*) FROM tf_async_dead_replay WHERE event_id=?",m.eventId()));
+        assertEquals(2,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER'",id));assertEquals(deadline,async.get(id,false).deadline());consume(id);balance(f,0,1,0);
+        var malformed=new AsyncMessage(1,m.eventId(),m.requestId(),m.sessionId(),m.epoch(),m.createdAt(),"tampered");assertFalse(deadReplay.replay(malformed));
+    }
+    @Test void oneHundredInFlightConvergeWithinSixtySecondsIncludingRebuild()throws Exception {
+        var f=asyncFixture(100,true);var actors=new ArrayList<Actor>();for(int i=0;i<100;i++)actors.add(actor(false));
+        var pool=Executors.newFixedThreadPool(5);var ids=new ArrayList<String>();
+        try {
+            var pending=new ArrayList<Future<String>>();
+            for(var a:actors)pending.add(pool.submit(()->accepted(a,f)));
+            for(var future:pending)ids.add(future.get(60,TimeUnit.SECONDS));
+        }finally{pool.shutdownNow();}
+        balance(f,100,0,0);redis.delete(lua.keys(f.session(),gates.read(f.session()).epoch()));long start=System.nanoTime();
+        assertTrue(recovery.rebuild(f.session()));broker.startConsumers();
+        while(System.nanoTime()-start<TimeUnit.SECONDS.toNanos(60)) {
+            worker.sweep();publisher.tick();
+            if(count("SELECT COUNT(*) FROM tf_async_request WHERE session_id=? AND state IN ('ACCEPTED','PROCESSING','RETRY_WAIT')",f.session())==0)break;
+            Thread.sleep(100);
+        }
+        long elapsed=TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-start);
+        assertEquals(0,count("SELECT COUNT(*) FROM tf_async_slot WHERE session_id=?",f.session()));
+        assertEquals(100,count("SELECT COUNT(*) FROM tf_async_request WHERE session_id=? AND state IN ('SUCCEEDED','REJECTED')",f.session()));
+        assertTrue(elapsed<60_000,"Recovery exceeded 60s: "+elapsed);flush(f);assertTrue(recoveryMapper.differences(f.session()).isEmpty());
+        System.out.println("BATCH10_CONVERGENCE session="+f.session()+" requests=100 elapsedMs="+elapsed+" succeeded="+count("SELECT COUNT(*) FROM tf_async_request WHERE session_id=? AND state='SUCCEEDED'",f.session()));
+    }
+    Process child(String mode,java.nio.file.Path folder,Fixture f,Actor a,String id,String key)throws Exception {
+        return child(mode,folder,f,a,id,key,3306);
+    }
+    Process child(String mode,java.nio.file.Path folder,Fixture f,Actor a,String id,String key,int databasePort)throws Exception {
+        String cp=System.getProperty("surefire.test.class.path",System.getProperty("java.class.path"));
+        var command=new ArrayList<String>(List.of(java.nio.file.Path.of(System.getProperty("java.home"),"bin","java.exe").toString(),"-cp",cp,AsyncCrashWorker.class.getName(),mode,folder.toString(),id,Long.toString(f.session()),Long.toString(a.id()),Long.toString(f.tier()),key,
+            "--server.port=0","--server.address=127.0.0.1","--ticketflow.async.enabled=true","--ticketflow.async.jobs-enabled=false","--ticketflow.expiry.enabled=false","--ticketflow.redis.enabled=false","--ticketflow.redis.namespace=tf:test:v1","--logging.level.root=WARN",
+            "--ticketflow.jwt.private-key="+IdentityIntegrationIT.testKeys.resolve("private.pem"),"--ticketflow.jwt.public-key="+IdentityIntegrationIT.testKeys.resolve("public.pem")));
+        if(databasePort!=3306)command.add("--spring.datasource.url=jdbc:mysql://127.0.0.1:"+databasePort+"/ticketflow_test?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true&sslMode=DISABLED&allowPublicKeyRetrieval=true");
+        var builder=new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(folder.resolve("worker.log").toFile());
+        builder.environment().put("TF_RABBITMQ_USER",user);builder.environment().put("TF_RABBITMQ_PASSWORD",pass);builder.environment().put("TF_RABBITMQ_VHOST",vhost);builder.environment().put("TF_RABBITMQ_PREFIX",prefix);
+        return builder.start();
+    }
+    void marker(Process process,java.nio.file.Path folder,String name)throws Exception {
+        long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(60);
+        while(!java.nio.file.Files.exists(folder.resolve(name)) && process.isAlive() && System.nanoTime()<end)Thread.sleep(50);
+        assertTrue(java.nio.file.Files.exists(folder.resolve(name)),()->"Missing "+name+" in "+folder+"; child alive="+process.isAlive());
+    }
+    void kill(Process process)throws Exception {process.destroyForcibly();assertTrue(process.waitFor(10,TimeUnit.SECONDS));}
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
+    void realCommitDisconnectUsesDurableOutcomeWithoutBlindCompensation(boolean afterCommit)throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();var folder=java.nio.file.Files.createTempDirectory("tf-async-commit-network-");
+        try(var proxy=new AsyncMysqlCommitProxy(afterCommit)) {
+            var process=child("admission-network",folder,f,a,key(),k,proxy.port());
+            try {marker(process,folder,"ready");assertTrue(proxy.awaitFault(),"Real target COMMIT was not intercepted");}
+            finally {if(process.isAlive())kill(process);}
+        }
+        var r=async.byKey(a.id(),k,false);var token=lua.tentative(f.session(),gates.read(f.session()).epoch(),0,0).get(0);
+        if(afterCommit) {
+            assertNotNull(r);assertEquals("ACCEPTED",r.state());assertEquals(r.id(),data(submit(a,f.tier(),k),202).path("requestId").asString());
+            age(token,f);recovery.sweepOrphans(f.session());assertEquals(0,free(f));consume(r.id());balance(f,0,1,0);
+        } else {
+            assertNull(r);age(token,f);recovery.sweepOrphans(f.session());flush(f);assertEquals(1,free(f));rejected(submit(a,f.tier(),k),"ADMISSION_EXPIRED");balance(f,0,0,0);
+        }
+        System.out.println("BATCH10_DB_NETWORK afterCommit="+afterCommit+" folder="+folder);
+    }
+
+    @Test void actualDeadLetterReplaySurvivesLostAckWithoutSchedulingTwice()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);var m=message(id);
+        db.update("UPDATE tf_async_request SET attempt_count=4 WHERE id=?",id);
+        doThrow(new org.springframework.dao.DataAccessResourceFailureException("test DLQ threshold")).when(async).complete(argThat(r->r.id().equals(id)),notNull(),eq("OK"),any());
+        broker.startConsumers();assertTrue(broker.publish(outbox.get(m.eventId())));
+        long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);
+        while(count("SELECT COUNT(*) FROM tf_async_alert WHERE category='DEAD_LETTER' AND resource_id=?",m.eventId())==0 && System.nanoTime()<end)Thread.sleep(100);
+        assertEquals(5,async.get(id,false).attempts());broker.close();reset(async);
+        boolean fault=false;end=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);
+        while(!fault && System.nanoTime()<end) {
+            try {broker.replayDead(m.eventId(),message->{assertTrue(deadReplay.replay(message));throw new IllegalStateException("test ACK lost after durable replay");});}
+            catch(IllegalStateException expected){fault=true;}
+            if(!fault)Thread.sleep(100);
+        }
+        assertTrue(fault);assertTrue(broker.replayDead(m.eventId(),deadReplay::replay));
+        assertEquals(1,count("SELECT COUNT(*) FROM tf_async_dead_replay WHERE event_id=?",m.eventId()));
+        assertEquals(2,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER'",id));consume(id);balance(f,0,1,0);
+    }
+
+    @Test void partialRedisTokenLossRetiresOldEpochWithoutReleasingCommittedRequest()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);long old=gates.read(f.session()).epoch();
+        redis.delete(lua.keys(f.session(),old).get(2));assertTrue(recovery.rebuild(f.session()));
+        assertEquals(old+1,gates.read(f.session()).epoch());assertEquals(0,free(f));balance(f,1,0,0);
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();flush(f);assertEquals(1,free(f));
+    }
+    @Test void orphanFenceWinsAgainstAnHttpRequestPausedAfterLua()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();var reserved=new CountDownLatch(1);var resume=new CountDownLatch(1);
+        doAnswer(call->{Object result=call.callRealMethod();reserved.countDown();assertTrue(resume.await(5,TimeUnit.SECONDS));return result;})
+            .when(lua).reserve(eq(f.session()),anyLong(),eq(a.id()),anyString(),anyString(),anyLong(),anyString(),anyString(),anyLong());
+        var pool=Executors.newSingleThreadExecutor();
+        try {
+            var pending=pool.submit(()->submit(a,f.tier(),k));assertTrue(reserved.await(5,TimeUnit.SECONDS));
+            var token=lua.tentative(f.session(),gates.read(f.session()).epoch(),0,0).get(0);age(token,f);recovery.sweepOrphans(f.session());resume.countDown();
+            rejected(pending.get(5,TimeUnit.SECONDS),"ADMISSION_EXPIRED");assertEquals("REJECTED",state(token.id()));balance(f,0,0,0);flush(f);assertEquals(1,free(f));
+        }finally{resume.countDown();pool.shutdownNow();reset(lua);}
+    }
+    @Test void admissionCommitWinsAgainstOrphanSealingWaitingForOwnerLock()throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();var inserted=new CountDownLatch(1);var resume=new CountDownLatch(1);
+        doAnswer(call->{call.callRealMethod();inserted.countDown();assertTrue(resume.await(4,TimeUnit.SECONDS));return null;})
+            .when(async).slot(argThat(r->r.userId()==a.id()));
+        var pool=Executors.newFixedThreadPool(2);
+        try {
+            var pending=pool.submit(()->submit(a,f.tier(),k));assertTrue(inserted.await(5,TimeUnit.SECONDS));
+            var token=lua.tentative(f.session(),gates.read(f.session()).epoch(),0,0).get(0);age(token,f);
+            var sweep=pool.submit(()->recovery.sweepOrphans(f.session()));Thread.sleep(100);assertFalse(sweep.isDone());resume.countDown();
+            String id=data(pending.get(5,TimeUnit.SECONDS),202).path("requestId").asString();sweep.get(5,TimeUnit.SECONDS);
+            assertEquals("ACCEPTED",state(id));balance(f,1,0,0);assertEquals(0,free(f));consume(id);
+        }finally{resume.countDown();pool.shutdownNow();reset(async);}
+    }
+    @Test void scheduledRecoveryDetectsLostViewAndRebuildsBeforeReopening()throws Exception {
+        var f=asyncFixture(1,true);String id=accepted(actor(false),f);long old=gates.read(f.session()).epoch();redis.delete(lua.keys(f.session(),old));
+        doReturn(List.of(f.session())).when(recoveryMapper).sessions(anyLong());recovery.tick();reset(recoveryMapper);
+        assertEquals("READY",gates.read(f.session()).phase());assertEquals(old+1,gates.read(f.session()).epoch());assertEquals(0,free(f));balance(f,1,0,0);
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();flush(f);assertEquals(1,free(f));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"admission-before","admission-after"})
+    void killedAdmissionResolvesFromDurableFacts(String mode)throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String k=key();var folder=java.nio.file.Files.createTempDirectory("tf-async-"+mode+"-");
+        var process=child(mode,folder,f,a,key(),k);
+        try {marker(process,folder,"window");kill(process);}finally{if(process.isAlive())kill(process);}
+        var persisted=async.byKey(a.id(),k,false);var token=lua.tentative(f.session(),gates.read(f.session()).epoch(),0,0).get(0);
+        if(mode.equals("admission-before")) {
+            assertNull(persisted);age(token,f);recovery.sweepOrphans(f.session());rejected(submit(a,f.tier(),k),"ADMISSION_EXPIRED");flush(f);assertEquals(1,free(f));balance(f,0,0,0);
+        } else {
+            assertNotNull(persisted);assertEquals(persisted.id(),data(submit(a,f.tier(),k),202).path("requestId").asString());
+            age(token,f);recovery.sweepOrphans(f.session());assertEquals(0,free(f));consume(persisted.id());balance(f,0,1,0);
+        }
+        System.out.println("BATCH10_KILL window="+mode+" folder="+folder);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"order-before","order-after"})
+    void killedConsumerRedeliveryHasOnlyOneCommittedOrder(String mode)throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String id=accepted(a,f);var folder=java.nio.file.Files.createTempDirectory("tf-async-"+mode+"-");
+        var process=child(mode,folder,f,a,id,key());
+        try {
+            marker(process,folder,"ready");
+            // Fixture window begins after subprocess startup; this is a crash test, not a deadline timing test.
+            db.update("UPDATE tf_async_request SET create_deadline=UTC_TIMESTAMP(6)+INTERVAL 30 SECOND WHERE id=?",id);
+            assertTrue(broker.publish(outbox.get(message(id).eventId())));marker(process,folder,"window");kill(process);
+        }finally{if(process.isAlive())kill(process);}
+        assertEquals(mode.equals("order-after")?1:0,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));
+        db.update("UPDATE tf_async_request SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=? AND state='PROCESSING'",id);
+        broker.startConsumers();long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(15);
+        while(!"SUCCEEDED".equals(state(id)) && System.nanoTime()<end){publisher.tick();Thread.sleep(100);}
+        assertEquals("SUCCEEDED",state(id));consume(id);balance(f,0,1,0);assertEquals(1,count("SELECT COUNT(*) FROM tf_order WHERE session_id=?",f.session()));flush(f);
+        System.out.println("BATCH10_KILL window="+mode+" folder="+folder);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"rebuild-paused","rebuild-frozen","rebuild-snapshot","rebuild-restored","rebuild-db-ready","rebuild-ready"})
+    void killedRebuildAtEveryPublishedBoundaryCanResume(String mode)throws Exception {
+        var f=asyncFixture(1,true);var a=actor(false);String id=accepted(a,f);var deadline=async.get(id,false).deadline();
+        var folder=java.nio.file.Files.createTempDirectory("tf-async-"+mode+"-");var process=child(mode,folder,f,a,id,key());
+        try {marker(process,folder,"window");kill(process);}finally{if(process.isAlive())kill(process);}
+        expireMaintenance(f);assertTrue(recovery.rebuild(f.session()));assertEquals(deadline,async.get(id,false).deadline());
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();flush(f);
+        assertEquals("REJECTED",state(id));assertEquals(1,free(f));balance(f,0,0,0);assertTrue(recoveryMapper.differences(f.session()).isEmpty());
+        System.out.println("BATCH10_KILL window="+mode+" folder="+folder);
     }
     @Test void reliable202ContainsFourDurableFactsBeforeBrokerPublication()throws Exception {
         var f=asyncFixture(1,true);var a=actor(false);var response=submit(a,f.tier(),key());String id=data(response,202).path("requestId").asString();
@@ -274,7 +526,9 @@ class AsyncPurchaseIT extends OrderTestSupport {
         var f=asyncFixture(1,true);String id=accepted(actor(false),f);
         doThrow(new java.io.IOException("test broker connection unavailable")).when(broker).topology();
         doThrow(new java.io.IOException("test unavailable")).when(broker).publish(argThat(e->e.aggregate().equals(id)));
-        new AsyncJob(broker,publisher,worker).dispatch();
+        long dispatchEnd=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);
+        do {new AsyncJob(broker,publisher,worker,recovery).dispatch();}
+        while(count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='REDIS' AND state='SENT'",id)==0 && System.nanoTime()<dispatchEnd);
         assertEquals(1,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='REDIS' AND state='SENT'",id));
         assertEquals(1,count("SELECT COUNT(*) FROM tf_outbox WHERE aggregate_id=? AND destination='BROKER' AND state='PENDING'",id));balance(f,1,0,0);
         reset(broker);db.update("UPDATE tf_outbox SET next_attempt_at=UTC_TIMESTAMP(6) WHERE aggregate_id=? AND destination='BROKER'",id);publisher.tick();

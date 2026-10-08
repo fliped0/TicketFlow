@@ -193,19 +193,21 @@ class AdminReportingIT extends OrderTestSupport {
         // MySQL CHECK names are schema-wide, so isolated tables need isolated names too.
         Files.writeString(asyncScript,Files.readString(migration.resolveSibling("V3__async_purchase.sql"))
                 .replace("tf_",prefix+"tf_").replace("ck_session_purchase_mode",prefix+"ck_mode"));
+        Path recoveryScript=folder.resolve("V4__async_recovery_operations.sql");
+        Files.writeString(recoveryScript,Files.readString(migration.resolveSibling("V4__async_recovery_operations.sql")).replace("tf_",prefix+"tf_"));
         // Dedicated test database: only newly generated names are used. The
         // least-privilege account has no DROP permission, so retain the empty
         // namespace for inspection, just like other append-only test fixtures.
         try {
             var flyway=org.flywaydb.core.Flyway.configure().dataSource(source).table(prefix+"history")
                     .locations("filesystem:"+folder).baselineOnMigrate(true).baselineVersion("0").cleanDisabled(true).load();
-            assertEquals(3,flyway.migrate().migrationsExecuted);
-            assertEquals(18,count("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,?)=?",prefix.length()+3,prefix+"tf_"));
+            assertEquals(4,flyway.migrate().migrationsExecuted);
+            assertEquals(20,count("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND LEFT(table_name,?)=?",prefix.length()+3,prefix+"tf_"));
             assertEquals(0,count("SELECT revision FROM "+prefix+"tf_catalog_revision WHERE id=1"));
             assertEquals(0,flyway.migrate().migrationsExecuted); assertTrue(flyway.validateWithResult().validationSuccessful);
         } finally {
             assertEquals("ticketflow_test",db.queryForObject("SELECT DATABASE()",String.class));
-            Files.deleteIfExists(script); Files.deleteIfExists(revisionScript); Files.deleteIfExists(asyncScript); Files.deleteIfExists(folder);
+            Files.deleteIfExists(script); Files.deleteIfExists(revisionScript); Files.deleteIfExists(asyncScript); Files.deleteIfExists(recoveryScript); Files.deleteIfExists(folder);
         }
     }
 }

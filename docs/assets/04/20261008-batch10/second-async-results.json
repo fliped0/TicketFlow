@@ -1,0 +1,318 @@
+{
+  "tests": "51",
+  "failures": "4",
+  "errors": "0",
+  "cases": [
+    {
+      "name": "crossSessionOrphanSealingReleasesOnlyLosingToken",
+      "time": "2.956",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "malformedEnvelopeCannotCreateOrderOrInventARelease",
+      "time": "1.542",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "actualMalformedRabbitMessageGoesToDurableDeadLetterQueue",
+      "time": "3.684",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "staleWorkVersionCannotCommitAnOrder",
+      "time": "1.423",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "actualRabbitDeliveryCreatesOneOrderAndConfirmMarksOutboxSent",
+      "time": "2.496",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "oneHundredInFlightConvergeWithinSixtySecondsIncludingRebuild",
+      "time": "77.845",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "brokerUnavailableLeavesOutboxPendingAndCanLaterPublish",
+      "time": "16.228",
+      "failure": "expected: <1> but was: <0>",
+      "error": null
+    },
+    {
+      "name": "retryThresholdDeadLettersButDeadlineScanStillConverges",
+      "time": "3.009",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "reliable202ContainsFourDurableFactsBeforeBrokerPublication",
+      "time": "1.308",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "sentMarkerFailureAllowsRetransmissionWithoutAnotherOrder",
+      "time": "1.555",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "committedAdmissionWithLostResponseIsNotReleasedByOrphanSweep",
+      "time": "1.63",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "orphanSweepPersistsFenceBeforeReleaseAndLateOriginalKeyCannotBeAccepted",
+      "time": "2.328",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "concurrentDifferentTiersShareTheSameSessionQualification",
+      "time": "1.368",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "preSaleCapacityChangePausesViewAndExplicitRefreshUsesNewEpoch",
+      "time": "1.762",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "sixBuyersCompeteForTheLastTicketWithoutOverselling",
+      "time": "2.52",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "requestOwnershipValidationAndModeRulesAreEnforced",
+      "time": "1.68",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "snapshotMismatchCannotReopenGateOrInventFreeStock",
+      "time": "2.569",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "asyncExpiryCloseReleasesOnceEvenIfOwnerIsDisabled",
+      "time": "1.519",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "consumerChecksBusinessDeadlineAfterWaitingForStockLock",
+      "time": "2.427",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "consumerTransactionFailureCommitsRetryIntentBeforeAcknowledgement",
+      "time": "1.369",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "admissionRechecksSaleTimeAfterLuaReservation",
+      "time": "1.342",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "syncSessionRetainsOriginalPathAndAsyncModeUsesOptimisticVersion",
+      "time": "0.526",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "sameKeyReplaysQueuedAndTerminalResultAndChangedParametersConflict",
+      "time": "1.247",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "deadReplayIsDurableIdempotentAndKeepsOriginalDeadline",
+      "time": "1.534",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "maintenanceOwnerChangeFencesStaleCoordinatorBeforeReady",
+      "time": "1.972",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "expiredWorkerLeaseRetriesWithoutReleasingBeforeBusinessDeadline",
+      "time": "1.31",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "concurrentIdenticalRequestsAndDuplicateMessagesDoNotCreateTwice",
+      "time": "1.504",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[1]",
+      "time": "9.644",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[2]",
+      "time": "10.93",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[3]",
+      "time": "12.234",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[4]",
+      "time": "13.077",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[5]",
+      "time": "13.319",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[6]",
+      "time": "15.258",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedAdmissionResolvesFromDurableFacts(String)[1]",
+      "time": "7.649",
+      "failure": "Missing window in C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-admission-before-9762858992373334315; child alive=false ==> expected: <true> but was: <false>",
+      "error": null
+    },
+    {
+      "name": "killedAdmissionResolvesFromDurableFacts(String)[2]",
+      "time": "60.58",
+      "failure": "Missing window in C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-admission-after-14492957498098443551; child alive=true ==> expected: <true> but was: <false>",
+      "error": null
+    },
+    {
+      "name": "newAdmissionQuotaDoesNotPersist429OrBlockOriginalKeyRecovery",
+      "time": "1.51",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedConsumerRedeliveryHasOnlyOneCommittedOrder(String)[1]",
+      "time": "6.534",
+      "failure": "Missing ready in C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-order-before-3299748438299713626; child alive=false ==> expected: <true> but was: <false>",
+      "error": null
+    },
+    {
+      "name": "killedConsumerRedeliveryHasOnlyOneCommittedOrder(String)[2]",
+      "time": "13.037",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "queryQuotaIsIndependentAndExistingResultNeedsNoRedis",
+      "time": "1.736",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "cancellationAndRefundReturnInventoryOnceAndHistoricalSuccessRemains",
+      "time": "3.02",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "offSaleBetweenAdmissionAndConsumptionRejectsAndReleases",
+      "time": "1.367",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "projectionDuplicateGapAndWrongRedisTypeDoNotDoubleRelease",
+      "time": "2.234",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "projectionGapReplaysEvenPreviouslySentPredecessorBeforeRelease",
+      "time": "1.669",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "redisLossRebuildsQueuedAndPaidTokensAndOldEventsCannotDoubleRelease",
+      "time": "4.34",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "failedSnapshotWriteStaysClosedAndExpiredMaintenanceUsesFreshEpoch",
+      "time": "3.32",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "crossSessionSameKeyReleasesOnlyTheLosingCandidate",
+      "time": "1.862",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "initialSoldOutFailureRemainsImmutableAfterCancellation",
+      "time": "2.527",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "rebuildSealsVisibleOrphansAndDoesNotExtendAcceptedDeadlines",
+      "time": "2.539",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "failedRecoveryWriteStopsConsumerAndKeepsDurableClaimForScanner",
+      "time": "1.308",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "admissionTransactionFailureRollsBackAllFourDurableFactsAndSameKeyRetries",
+      "time": "1.741",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "disabledOwnerAndDeadlineScannerReleaseDurableQueuedBalance",
+      "time": "2.216",
+      "failure": null,
+      "error": null
+    }
+  ],
+  "notes": [
+    "Six rebuild crash boundaries passed; test-only repository spy setup and cold-client clock measurement prevented three crash cases from reaching their fault window.",
+    "Existing single-dispatch test needed bounded dispatch polling after the new 100-request fixture.",
+    "100-request convergence 42378 ms; 100 rejected. Obsolete BROKER work then identified and skipped after durable epoch migration."
+  ]
+}

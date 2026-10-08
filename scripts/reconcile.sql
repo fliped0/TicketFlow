@@ -52,5 +52,31 @@ LEFT JOIN tf_order o ON o.id=q.order_id
 WHERE (q.state='PROCESSING' OR (q.state='REJECTED' AND q.order_id IS NOT NULL)
   OR (q.state='SUCCEEDED' AND (o.id IS NULL OR o.user_id<>q.user_id OR q.result_code<>'OK'
     OR COALESCE(JSON_UNQUOTE(JSON_EXTRACT(q.result_json,'$.data.orderId')),'')<>CAST(q.order_id AS CHAR))))
+UNION ALL
+SELECT 'ASYNC_BALANCE',CAST(b.tier_id AS CHAR),'queued count differs from live requests or exceeds available'
+FROM tf_async_tier_balance b JOIN tf_stock s ON s.tier_id=b.tier_id
+WHERE (@tf_reconcile_tier IS NULL OR b.tier_id=@tf_reconcile_tier)
+ AND (b.queued_count>s.available OR b.queued_count<>(SELECT COUNT(*) FROM tf_async_request r WHERE r.tier_id=b.tier_id AND r.state IN ('ACCEPTED','PROCESSING','RETRY_WAIT')))
+UNION ALL
+SELECT 'ASYNC_SLOT',r.id,'in-flight qualification differs from durable request state'
+FROM tf_async_request r LEFT JOIN tf_async_slot a ON a.request_id=r.id
+WHERE (@tf_reconcile_tier IS NULL OR r.tier_id=@tf_reconcile_tier)
+ AND ((r.state IN ('ACCEPTED','PROCESSING','RETRY_WAIT') AND (a.request_id IS NULL OR a.user_id<>r.user_id OR a.session_id<>r.session_id))
+  OR (r.state IN ('SUCCEEDED','REJECTED') AND a.request_id IS NOT NULL))
+UNION ALL
+SELECT 'ASYNC_COMBINED_SLOT',r.id,'user has both an in-flight and an order qualification'
+FROM tf_async_request r JOIN tf_async_slot a ON a.request_id=r.id
+JOIN tf_purchase_slot p ON p.user_id=a.user_id AND p.session_id=a.session_id
+WHERE @tf_reconcile_tier IS NULL OR r.tier_id=@tf_reconcile_tier
+UNION ALL
+SELECT 'ASYNC_ORDER',r.id,'successful request differs from order ownership or result'
+FROM tf_async_request r LEFT JOIN tf_order o ON o.id=r.order_id
+WHERE (@tf_reconcile_tier IS NULL OR r.tier_id=@tf_reconcile_tier) AND r.state='SUCCEEDED'
+ AND (o.id IS NULL OR o.user_id<>r.user_id OR o.session_id<>r.session_id OR o.tier_id<>r.tier_id OR r.result_code<>'OK')
+UNION ALL
+SELECT 'ASYNC_PROJECTION_SEQUENCE',CAST(b.tier_id AS CHAR),'projection history is not continuous through its durable watermark'
+FROM tf_async_tier_balance b WHERE (@tf_reconcile_tier IS NULL OR b.tier_id=@tf_reconcile_tier)
+ AND (b.projection_version<>(SELECT COUNT(*) FROM tf_outbox e WHERE e.tier_id=b.tier_id AND e.destination='REDIS')
+  OR b.projection_version<>COALESCE((SELECT MAX(projection_seq) FROM tf_outbox e WHERE e.tier_id=b.tier_id AND e.destination='REDIS'),0))
 ORDER BY category,resource_id;
 COMMIT;

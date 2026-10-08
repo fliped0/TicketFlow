@@ -29,7 +29,7 @@ public class PurchaseRequestService {
     }
     private AsyncRequest replay(AsyncRequest r,String hash) {if(!r.hash().equals(hash))throw error(409,"IDEMPOTENCY_CONFLICT");return r;}
     private void pause(long session,long epoch,String cause) {
-        tx.execute(()->{var gate=gates.lock(session,true);if(gate.epoch()==epoch && "ASYNC".equals(gate.mode()))gates.pause(session);return null;});
+        tx.execute(()->{var gate=gates.lock(session,true);if(gate.epoch()==epoch && "ASYNC".equals(gate.mode()) && "READY".equals(gate.phase()))gates.pause(session);return null;});
         org.slf4j.LoggerFactory.getLogger(getClass()).warn("async_admission_paused sessionId={} cause={}",session,cause);
     }
     public PurchaseOutcome submit(long user,String key,CreateOrderDTO input) {
@@ -51,7 +51,7 @@ public class PurchaseRequestService {
         if(!"ASYNC".equals(gate.mode()))throw error(409,"SYNC_REQUIRED");
         if(!settings.enabled())throw error(503,"ASYNC_DISABLED");if(!"READY".equals(gate.phase()))throw error(503,"ASYNC_PAUSED");
         String candidate=UUID.randomUUID().toString();AsyncReservation reservation;
-        try {reservation=redis.reserve(session,gate.epoch(),user,TradeExecutor.hash(key),hash,tier,candidate,UUID.randomUUID().toString(),clock.nowUtc().toInstant(ZoneOffset.UTC).toEpochMilli());}
+        try {reservation=redis.reserve(session,gate.epoch(),user,key,hash,tier,candidate,UUID.randomUUID().toString(),clock.nowUtc().toInstant(ZoneOffset.UTC).toEpochMilli());}
         catch(RuntimeException unknown) {pause(session,gate.epoch(),"unknown_redis_result");throw error(503,"DEPENDENCY_UNAVAILABLE");}
         if("RATE_LIMITED".equals(reservation.code()))throw new RateLimitedException(1);
         if("IDEMPOTENCY_CONFLICT".equals(reservation.code()))throw error(409,"IDEMPOTENCY_CONFLICT");
@@ -62,7 +62,7 @@ public class PurchaseRequestService {
             var current=gates.lock(session,false);if(!users.lockOwner(user))throw error(401,"UNAUTHENTICATED");
             var existing=requests.byKey(user,key,true);
             if(existing!=null) {
-                if(reservation.token()!=null && !reservation.token().equals(existing.token())) {
+                if(current.epoch()==gate.epoch() && "READY".equals(current.phase()) && reservation.token()!=null && !reservation.token().equals(existing.token())) {
                     orders.lockCatalog(tier);orders.hasSlot(user,session);requests.hasSlot(user,session);stock.lock(tier);requests.lockBalance(tier);
                     String event=UUID.nameUUIDFromBytes(("RELEASE:"+reservation.token()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
                     events.projection(event,reservation.requestId(),user,session,tier,gate.epoch(),reservation.token(),"RELEASE",null,clock.nowUtc());

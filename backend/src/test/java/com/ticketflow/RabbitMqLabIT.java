@@ -232,7 +232,7 @@ class RabbitMqLabIT extends OrderTestSupport {
         Path log=Files.createTempFile(Path.of("target"),"mq-lab-restart-",".log");
         var restart=new ProcessBuilder("ssh","-i",Path.of(System.getProperty("user.home"),".ssh","ticketflow_ecs").toString(),
                 "-o","BatchMode=yes","-o","StrictHostKeyChecking=yes","-o","HostKeyAlias=118.178.253.75","-o","ConnectTimeout=8",
-                "root@"+System.getenv().getOrDefault("TF_ECS_HOST","120.27.140.184"),
+                "root@"+System.getenv().getOrDefault("TF_ECS_HOST","118.178.253.75"),
                 "cd /opt/ticketflow && docker compose restart rabbitmq").redirectErrorStream(true).redirectOutput(log.toFile()).start();
         try { assertTrue(restart.waitFor(60,TimeUnit.SECONDS),"Broker restart timed out");assertEquals(0,restart.exitValue()); }
         finally { if(restart.isAlive())restart.destroyForcibly(); }

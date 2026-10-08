@@ -1,7 +1,7 @@
 . "$PSScriptRoot/common.ps1"
 try {
     Import-TicketFlowRabbitConfig
-    $server = if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}
+    $server = if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'118.178.253.75'}
     $sshKey = Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
     # Generate once on the authorized development host; capture, never print credentials.
     $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlias=118.178.253.75 -o ConnectTimeout=8 "root@$server" 'cd /opt/ticketflow && if ! grep -q "^RABBITMQ_APP_PASSWORD=" .env; then printf "RABBITMQ_APP_PASSWORD=%s\n" "$(openssl rand -hex 24)" >> .env; fi; chmod 600 .env; cat .env'

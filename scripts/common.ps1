@@ -28,7 +28,7 @@ function Import-TicketFlowRedisConfig {
     param([ValidateSet('dev','test')] [string]$Mode)
     & "$PSScriptRoot/start-tunnel.ps1"
     $sshKey = Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
-    $server = if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}
+    $server = if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'118.178.253.75'}
     $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlias=118.178.253.75 -o ConnectTimeout=8 "root@$server" 'cat /opt/ticketflow/.env'
     if ($LASTEXITCODE -ne 0) { throw 'Cannot read middleware credentials over authorized SSH.' }
     $redisPassword = $privateConfig | Where-Object { $_ -match '^REDIS_PASSWORD=[a-f0-9]{48}$' } | Select-Object -First 1
@@ -59,7 +59,7 @@ function Remove-TicketFlowRedisConfig {
 function Import-TicketFlowRabbitConfig {
     & "$PSScriptRoot/start-tunnel.ps1"
     $sshKey = Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
-    $server = if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}
+    $server = if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'118.178.253.75'}
     $privateConfig = & ssh -i $sshKey -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlias=118.178.253.75 -o ConnectTimeout=8 "root@$server" 'cat /opt/ticketflow/.env'
     if ($LASTEXITCODE -ne 0) { throw 'Cannot read RabbitMQ configuration over authorized SSH.' }
     $rabbitPassword = $privateConfig | Where-Object { $_ -match '^RABBITMQ_PASSWORD=[a-f0-9]{48}$' } | Select-Object -First 1
@@ -76,7 +76,7 @@ function Remove-TicketFlowRabbitConfig {
 function Import-TicketFlowAsyncConfig {
     & "$PSScriptRoot/start-tunnel.ps1"
     $sshKey=Join-Path $env:USERPROFILE '.ssh/ticketflow_ecs'
-    $server=if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}
+    $server=if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'118.178.253.75'}
     $privateConfig=& ssh -i $sshKey -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlias=118.178.253.75 -o ConnectTimeout=8 "root@$server" 'cat /opt/ticketflow/.env'
     if($LASTEXITCODE -ne 0){throw 'Cannot read scoped application configuration.'}
     $line=$privateConfig | Where-Object {$_ -match '^RABBITMQ_APP_PASSWORD=[a-f0-9]{48}$'} | Select-Object -First 1

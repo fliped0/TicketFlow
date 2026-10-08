@@ -1,0 +1,76 @@
+{
+  "tests": "10",
+  "failures": "0",
+  "errors": "0",
+  "cases": [
+    {
+      "name": "oneHundredInFlightConvergeWithinSixtySecondsIncludingRebuild",
+      "time": "68.402",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "brokerUnavailableLeavesOutboxPendingAndCanLaterPublish",
+      "time": "1.484",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "realCommitDisconnectUsesDurableOutcomeWithoutBlindCompensation(boolean)[1]",
+      "time": "8.127",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "realCommitDisconnectUsesDurableOutcomeWithoutBlindCompensation(boolean)[2]",
+      "time": "11.714",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "partialRedisTokenLossRetiresOldEpochWithoutReleasingCommittedRequest",
+      "time": "2.135",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedAdmissionResolvesFromDurableFacts(String)[1]",
+      "time": "13.596",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedAdmissionResolvesFromDurableFacts(String)[2]",
+      "time": "14.238",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedConsumerRedeliveryHasOnlyOneCommittedOrder(String)[1]",
+      "time": "15.371",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "killedConsumerRedeliveryHasOnlyOneCommittedOrder(String)[2]",
+      "time": "15.096",
+      "failure": null,
+      "error": null
+    },
+    {
+      "name": "actualDeadLetterReplaySurvivesLostAckWithoutSchedulingTwice",
+      "time": "4.702",
+      "failure": null,
+      "error": null
+    }
+  ],
+  "observations": [
+    "BATCH10_CONVERGENCE session=17122 requests=100 elapsedMs=40726 succeeded=60",
+    "BATCH10_DB_NETWORK afterCommit=false folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-commit-network-6067167733851171369",
+    "BATCH10_DB_NETWORK afterCommit=true folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-commit-network-17517194294839402344",
+    "BATCH10_KILL window=admission-before folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-admission-before-82115573014334389",
+    "BATCH10_KILL window=admission-after folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-admission-after-15620600256813411213",
+    "BATCH10_KILL window=order-before folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-order-before-811680985326628176",
+    "BATCH10_KILL window=order-after folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-order-after-10998548084273680282"
+  ]
+}

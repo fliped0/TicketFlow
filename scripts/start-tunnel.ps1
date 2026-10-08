@@ -1,4 +1,4 @@
-param([string]$Server = $(if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.27.140.184'}))
+param([string]$Server = $(if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'118.178.253.75'}))
 $ErrorActionPreference = 'Stop'
 $project = Split-Path $PSScriptRoot
 $ports = @(16379,15673,15672)

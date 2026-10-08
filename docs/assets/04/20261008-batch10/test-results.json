@@ -1,0 +1,965 @@
+{
+  "command": "./scripts/test.ps1 -WithAsync -Clean",
+  "finishedAt": "2026-10-08T20:57:18+08:00",
+  "total": 159,
+  "unit": 14,
+  "integration": 145,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "category": "surefire",
+      "name": "com.ticketflow.config.AdminInitializerTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.088,
+      "cases": [
+        {
+          "name": "concurrentAccountCreationDoesNotResetTheWinningAccount",
+          "seconds": 1.044,
+          "status": "PASSED"
+        },
+        {
+          "name": "emptyConfigurationCreatesNothing",
+          "seconds": 0.008,
+          "status": "PASSED"
+        },
+        {
+          "name": "existingUserIsNeverPromotedOrReset",
+          "seconds": 0.003,
+          "status": "PASSED"
+        },
+        {
+          "name": "configuredNewAccountIsEncodedAndCreatedAsAdmin",
+          "seconds": 0.003,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "surefire",
+      "name": "com.ticketflow.config.OperationalMetricsSamplerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.32,
+      "cases": [
+        {
+          "name": "samplerKeepsFiniteOperationalMeasuresAndExcludesUnrelatedMetersAndTags",
+          "seconds": 0.318,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "surefire",
+      "name": "com.ticketflow.service.AccountRulesTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.01,
+      "cases": [
+        {
+          "name": "normalizesAsciiOnlyAndRejectsInvalidNames",
+          "seconds": 0.004,
+          "status": "PASSED"
+        },
+        {
+          "name": "passwordUsesCodePointsAndDoesNotTrim",
+          "seconds": 0.003,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "surefire",
+      "name": "com.ticketflow.service.IdentityServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.036,
+      "cases": [
+        {
+          "name": "currentUserUsesDatabaseRoleAndReturnsPublicData",
+          "seconds": 0.028,
+          "status": "PASSED"
+        },
+        {
+          "name": "disabledUserIsRejectedAfterEarlierAuthentication",
+          "seconds": 0.003,
+          "status": "PASSED"
+        },
+        {
+          "name": "missingUserIsRejectedAfterEarlierAuthentication",
+          "seconds": 0.002,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "surefire",
+      "name": "com.ticketflow.service.OrderPolicyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.026,
+      "cases": [
+        {
+          "name": "keyAndIdValidationRejectAmbiguousOrInvalidInputs",
+          "seconds": 0.015,
+          "status": "PASSED"
+        },
+        {
+          "name": "statusPrecedesSaleWindowAndExpiryIsCappedAtStart",
+          "seconds": 0.001,
+          "status": "PASSED"
+        },
+        {
+          "name": "paymentAndRefundExcludeTheirMicrosecondDeadline",
+          "seconds": 0.002,
+          "status": "PASSED"
+        },
+        {
+          "name": "saleBoundariesArePreciseToOneMicrosecond",
+          "seconds": 0.003,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "failsafe",
+      "name": "com.ticketflow.AdminReportingIT",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 20.771,
+      "cases": [
+        {
+          "name": "unchangedMigrationBuildsAnEmptyTableNamespaceAndDoesNotRepeat",
+          "seconds": 2.727,
+          "status": "PASSED"
+        },
+        {
+          "name": "managementOrdersExposeOwnersSnapshotsAndLifecycleRecordsWithFilters",
+          "seconds": 2.499,
+          "status": "PASSED"
+        },
+        {
+          "name": "soldOutRejectionStaysImmutableAfterRealCancellationReleasesStock",
+          "seconds": 0.64,
+          "status": "PASSED"
+        },
+        {
+          "name": "databaseRejectsDuplicateTransactionsAndIncorrectCompositeOwnership",
+          "seconds": 0.429,
+          "status": "PASSED"
+        },
+        {
+          "name": "offSalePreservesExistingLifecycleAndManagementSnapshots",
+          "seconds": 1.232,
+          "status": "PASSED"
+        },
+        {
+          "name": "reconciliationUsesOneSnapshotWhileCancellationCommits",
+          "seconds": 0.386,
+          "status": "PASSED"
+        },
+        {
+          "name": "statisticsKeepOneSnapshotWhenRefundCommitsBetweenAggregates",
+          "seconds": 0.761,
+          "status": "PASSED"
+        },
+        {
+          "name": "orderPageKeepsOneSnapshotBetweenRowsAndCount",
+          "seconds": 0.585,
+          "status": "PASSED"
+        },
+        {
+          "name": "statisticsUseIndependentHalfOpenTimeWindowsAndCanHaveNegativeNet",
+          "seconds": 0.657,
+          "status": "PASSED"
+        },
+        {
+          "name": "localSecurityDoesNotExposeManagementEndpointsOrAllowCrossOriginAccess",
+          "seconds": 0.371,
+          "status": "PASSED"
+        },
+        {
+          "name": "readOnlyReconciliationFindsCorruptionAndAcceptsEveryLifecycleState",
+          "seconds": 1.602,
+          "status": "PASSED"
+        },
+        {
+          "name": "managementAuthorizationAndValidationAreEnforced",
+          "seconds": 0.744,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "failsafe",
+      "name": "com.ticketflow.AsyncPurchaseIT",
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 340.347,
+      "cases": [
+        {
+          "name": "crossSessionOrphanSealingReleasesOnlyLosingToken",
+          "seconds": 2.747,
+          "status": "PASSED"
+        },
+        {
+          "name": "malformedEnvelopeCannotCreateOrderOrInventARelease",
+          "seconds": 1.569,
+          "status": "PASSED"
+        },
+        {
+          "name": "actualMalformedRabbitMessageGoesToDurableDeadLetterQueue",
+          "seconds": 3.582,
+          "status": "PASSED"
+        },
+        {
+          "name": "staleWorkVersionCannotCommitAnOrder",
+          "seconds": 1.434,
+          "status": "PASSED"
+        },
+        {
+          "name": "actualRabbitDeliveryCreatesOneOrderAndConfirmMarksOutboxSent",
+          "seconds": 2.627,
+          "status": "PASSED"
+        },
+        {
+          "name": "oneHundredInFlightConvergeWithinSixtySecondsIncludingRebuild",
+          "seconds": 68.84,
+          "status": "PASSED"
+        },
+        {
+          "name": "brokerUnavailableLeavesOutboxPendingAndCanLaterPublish",
+          "seconds": 1.498,
+          "status": "PASSED"
+        },
+        {
+          "name": "retryThresholdDeadLettersButDeadlineScanStillConverges",
+          "seconds": 1.356,
+          "status": "PASSED"
+        },
+        {
+          "name": "reliable202ContainsFourDurableFactsBeforeBrokerPublication",
+          "seconds": 1.436,
+          "status": "PASSED"
+        },
+        {
+          "name": "sentMarkerFailureAllowsRetransmissionWithoutAnotherOrder",
+          "seconds": 1.598,
+          "status": "PASSED"
+        },
+        {
+          "name": "committedAdmissionWithLostResponseIsNotReleasedByOrphanSweep",
+          "seconds": 1.573,
+          "status": "PASSED"
+        },
+        {
+          "name": "orphanSweepPersistsFenceBeforeReleaseAndLateOriginalKeyCannotBeAccepted",
+          "seconds": 2.328,
+          "status": "PASSED"
+        },
+        {
+          "name": "concurrentDifferentTiersShareTheSameSessionQualification",
+          "seconds": 1.279,
+          "status": "PASSED"
+        },
+        {
+          "name": "preSaleCapacityChangePausesViewAndExplicitRefreshUsesNewEpoch",
+          "seconds": 1.73,
+          "status": "PASSED"
+        },
+        {
+          "name": "sixBuyersCompeteForTheLastTicketWithoutOverselling",
+          "seconds": 2.454,
+          "status": "PASSED"
+        },
+        {
+          "name": "requestOwnershipValidationAndModeRulesAreEnforced",
+          "seconds": 1.521,
+          "status": "PASSED"
+        },
+        {
+          "name": "scheduledRecoveryDetectsLostViewAndRebuildsBeforeReopening",
+          "seconds": 2.364,
+          "status": "PASSED"
+        },
+        {
+          "name": "realCommitDisconnectUsesDurableOutcomeWithoutBlindCompensation(boolean)[1]",
+          "seconds": 10.023,
+          "status": "PASSED"
+        },
+        {
+          "name": "realCommitDisconnectUsesDurableOutcomeWithoutBlindCompensation(boolean)[2]",
+          "seconds": 12.202,
+          "status": "PASSED"
+        },
+        {
+          "name": "snapshotMismatchCannotReopenGateOrInventFreeStock",
+          "seconds": 2.204,
+          "status": "PASSED"
+        },
+        {
+          "name": "asyncExpiryCloseReleasesOnceEvenIfOwnerIsDisabled",
+          "seconds": 1.451,
+          "status": "PASSED"
+        },
+        {
+          "name": "consumerChecksBusinessDeadlineAfterWaitingForStockLock",
+          "seconds": 2.409,
+          "status": "PASSED"
+        },
+        {
+          "name": "consumerTransactionFailureCommitsRetryIntentBeforeAcknowledgement",
+          "seconds": 1.274,
+          "status": "PASSED"
+        },
+        {
+          "name": "admissionCommitWinsAgainstOrphanSealingWaitingForOwnerLock",
+          "seconds": 1.954,
+          "status": "PASSED"
+        },
+        {
+          "name": "admissionRechecksSaleTimeAfterLuaReservation",
+          "seconds": 0.651,
+          "status": "PASSED"
+        },
+        {
+          "name": "syncSessionRetainsOriginalPathAndAsyncModeUsesOptimisticVersion",
+          "seconds": 0.533,
+          "status": "PASSED"
+        },
+        {
+          "name": "sameKeyReplaysQueuedAndTerminalResultAndChangedParametersConflict",
+          "seconds": 1.224,
+          "status": "PASSED"
+        },
+        {
+          "name": "deadReplayIsDurableIdempotentAndKeepsOriginalDeadline",
+          "seconds": 1.599,
+          "status": "PASSED"
+        },
+        {
+          "name": "maintenanceOwnerChangeFencesStaleCoordinatorBeforeReady",
+          "seconds": 1.919,
+          "status": "PASSED"
+        },
+        {
+          "name": "expiredWorkerLeaseRetriesWithoutReleasingBeforeBusinessDeadline",
+          "seconds": 1.309,
+          "status": "PASSED"
+        },
+        {
+          "name": "concurrentIdenticalRequestsAndDuplicateMessagesDoNotCreateTwice",
+          "seconds": 1.691,
+          "status": "PASSED"
+        },
+        {
+          "name": "partialRedisTokenLossRetiresOldEpochWithoutReleasingCommittedRequest",
+          "seconds": 2.256,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[1]",
+          "seconds": 13.356,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[2]",
+          "seconds": 14.813,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[3]",
+          "seconds": 15.206,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[4]",
+          "seconds": 14.528,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[5]",
+          "seconds": 15.128,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[6]",
+          "seconds": 21.281,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedAdmissionResolvesFromDurableFacts(String)[1]",
+          "seconds": 15.391,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedAdmissionResolvesFromDurableFacts(String)[2]",
+          "seconds": 14.268,
+          "status": "PASSED"
+        },
+        {
+          "name": "newAdmissionQuotaDoesNotPersist429OrBlockOriginalKeyRecovery",
+          "seconds": 1.651,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedConsumerRedeliveryHasOnlyOneCommittedOrder(String)[1]",
+          "seconds": 17.514,
+          "status": "PASSED"
+        },
+        {
+          "name": "killedConsumerRedeliveryHasOnlyOneCommittedOrder(String)[2]",
+          "seconds": 15.275,
+          "status": "PASSED"
+        },
+        {
+          "name": "orphanFenceWinsAgainstAnHttpRequestPausedAfterLua",
+          "seconds": 0.926,
+          "status": "PASSED"
+        },
+        {
+          "name": "queryQuotaIsIndependentAndExistingResultNeedsNoRedis",
+          "seconds": 1.976,
+          "status": "PASSED"
+        },
+        {
+          "name": "cancellationAndRefundReturnInventoryOnceAndHistoricalSuccessRemains",
+          "seconds": 3.162,
+          "status": "PASSED"
+        },
+        {
+          "name": "offSaleBetweenAdmissionAndConsumptionRejectsAndReleases",
+          "seconds": 1.382,
+          "status": "PASSED"
+        },
+        {
+          "name": "projectionDuplicateGapAndWrongRedisTypeDoNotDoubleRelease",
+          "seconds": 2.231,
+          "status": "PASSED"
+        },
+        {
+          "name": "projectionGapReplaysEvenPreviouslySentPredecessorBeforeRelease",
+          "seconds": 1.685,
+          "status": "PASSED"
+        },
+        {
+          "name": "redisLossRebuildsQueuedAndPaidTokensAndOldEventsCannotDoubleRelease",
+          "seconds": 3.796,
+          "status": "PASSED"
+        },
+        {
+          "name": "failedSnapshotWriteStaysClosedAndExpiredMaintenanceUsesFreshEpoch",
+          "seconds": 2.897,
+          "status": "PASSED"
+        },
+        {
+          "name": "crossSessionSameKeyReleasesOnlyTheLosingCandidate",
+          "seconds": 1.928,
+          "status": "PASSED"
+        },
+        {
+          "name": "initialSoldOutFailureRemainsImmutableAfterCancellation",
+          "seconds": 2.748,
+          "status": "PASSED"
+        },
+        {
+          "name": "actualDeadLetterReplaySurvivesLostAckWithoutSchedulingTwice",
+          "seconds": 4.722,
+          "status": "PASSED"
+        },
+        {
+          "name": "rebuildSealsVisibleOrphansAndDoesNotExtendAcceptedDeadlines",
+          "seconds": 2.48,
+          "status": "PASSED"
+        },
+        {
+          "name": "failedRecoveryWriteStopsConsumerAndKeepsDurableClaimForScanner",
+          "seconds": 1.313,
+          "status": "PASSED"
+        },
+        {
+          "name": "admissionTransactionFailureRollsBackAllFourDurableFactsAndSameKeyRetries",
+          "seconds": 1.704,
+          "status": "PASSED"
+        },
+        {
+          "name": "disabledOwnerAndDeadlineScannerReleaseDurableQueuedBalance",
+          "seconds": 2.301,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "failsafe",
+      "name": "com.ticketflow.IdentityIntegrationIT",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6.666,
+      "cases": [
+        {
+          "name": "catalogHistoryPreventsCapacityResetEvenWithZeroBalances",
+          "seconds": 0.42,
+          "status": "PASSED"
+        },
+        {
+          "name": "savepointRollsBackBusinessChangesWithoutLosingRequestResult",
+          "seconds": 0.156,
+          "status": "PASSED"
+        },
+        {
+          "name": "jwtEnforcesIssuerAudienceExpiryNotBeforeAndSignature",
+          "seconds": 0.254,
+          "status": "PASSED"
+        },
+        {
+          "name": "unknownFieldsAndInputBoundsAreRejected",
+          "seconds": 0.267,
+          "status": "PASSED"
+        },
+        {
+          "name": "catalogSearchPaginationAndLiteralWildcards",
+          "seconds": 0.454,
+          "status": "PASSED"
+        },
+        {
+          "name": "registrationLoginAndMeUseCurrentDatabaseRole",
+          "seconds": 0.218,
+          "status": "PASSED"
+        },
+        {
+          "name": "catalogRejectsMalformedFieldsAndKeepsPublicQueriesOpen",
+          "seconds": 0.27,
+          "status": "PASSED"
+        },
+        {
+          "name": "protectedRoutesRejectMissingInvalidOrInsufficientCredentials",
+          "seconds": 0.197,
+          "status": "PASSED"
+        },
+        {
+          "name": "healthIsPublicAndDoesNotExposeDetails",
+          "seconds": 0.033,
+          "status": "PASSED"
+        },
+        {
+          "name": "catalogPermissionsVersionReplayAndAudit",
+          "seconds": 0.549,
+          "status": "PASSED"
+        },
+        {
+          "name": "catalogSaleStatusAndCapacityUpdateFollowDatabaseFacts",
+          "seconds": 0.401,
+          "status": "PASSED"
+        },
+        {
+          "name": "catalogStockAndAuditRollbackTogether",
+          "seconds": 0.239,
+          "status": "PASSED"
+        },
+        {
+          "name": "passwordIsSaltedAndLoginFailureDoesNotRevealAccountExistence",
+          "seconds": 0.461,
+          "status": "PASSED"
+        },
+        {
+          "name": "catalogFrozenTimeCannotMoveForwardAndStockUpdateIsAtomic",
+          "seconds": 0.318,
+          "status": "PASSED"
+        },
+        {
+          "name": "migrationCreatesTwentyTablesAndIsRepeatable",
+          "seconds": 0.024,
+          "status": "PASSED"
+        },
+        {
+          "name": "schemaEnforcesUniquenessForeignKeysAndChecks",
+          "seconds": 0.142,
+          "status": "PASSED"
+        },
+        {
+          "name": "duplicateAccountsAndConcurrentRegistrationAreRejected",
+          "seconds": 0.535,
+          "status": "PASSED"
+        },
+        {
+          "name": "catalogPublishRequiresCompleteHierarchyAndPublicVisibility",
+          "seconds": 0.399,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "failsafe",
+      "name": "com.ticketflow.OrderIntegrationIT",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 18.702,
+      "cases": [
+        {
+          "name": "validationAndAuthenticationFailBeforeRequestPersistence",
+          "seconds": 0.724,
+          "status": "PASSED"
+        },
+        {
+          "name": "twoUsersCompeteForLastTicketWithoutOversell",
+          "seconds": 0.738,
+          "status": "PASSED"
+        },
+        {
+          "name": "systemFailuresAtEveryWriteStageRollbackEntireTransactionAndSameKeyRecovers",
+          "seconds": 2.045,
+          "status": "PASSED"
+        },
+        {
+          "name": "realLockTimeoutReturnsRetryableErrorWithoutCommittedProcessing",
+          "seconds": 5.525,
+          "status": "PASSED"
+        },
+        {
+          "name": "userDisabledWhileWaitingIsRecheckedInsideTransaction",
+          "seconds": 0.26,
+          "status": "PASSED"
+        },
+        {
+          "name": "twentyDuplicateRequestsReplayOneOrderAndConflictOnChangedPayload",
+          "seconds": 0.575,
+          "status": "PASSED"
+        },
+        {
+          "name": "realExecutorSavepointRevertsOrderSlotStockAndLogButCommitsRejection",
+          "seconds": 0.282,
+          "status": "PASSED"
+        },
+        {
+          "name": "unexpectedSqlConstraintFailureRollsBackAndIsNotBusinessRejection",
+          "seconds": 0.263,
+          "status": "PASSED"
+        },
+        {
+          "name": "saleTimeIsReadAfterWaitingForStockLock",
+          "seconds": 2.516,
+          "status": "PASSED"
+        },
+        {
+          "name": "createSnapshotsExpiryAndOwnerQueriesSurviveCatalogChanges",
+          "seconds": 0.708,
+          "status": "PASSED"
+        },
+        {
+          "name": "createHoldingSharedCatalogLockCommitsBeforeWaitingOffSale",
+          "seconds": 0.737,
+          "status": "PASSED"
+        },
+        {
+          "name": "concurrentDifferentKeysAcrossTiersEnforceSessionLimit",
+          "seconds": 0.241,
+          "status": "PASSED"
+        },
+        {
+          "name": "rejectedSaleResultsPersistAndReplayAfterConditionsChange",
+          "seconds": 1.054,
+          "status": "PASSED"
+        },
+        {
+          "name": "lockFailuresRetryWholeTransactionAtMostTwice",
+          "seconds": 1.526,
+          "status": "PASSED"
+        },
+        {
+          "name": "offSaleHoldingEventLockWinsAgainstWaitingCreate",
+          "seconds": 0.45,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "failsafe",
+      "name": "com.ticketflow.OrderLifecycleIT",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 45.245,
+      "cases": [
+        {
+          "name": "everyLifecycleWriteFailureRollsBackAndOriginalKeyCanRecover",
+          "seconds": 5.376,
+          "status": "PASSED"
+        },
+        {
+          "name": "paymentAndSystemCloseCompetitionHonorsBothLockOrders",
+          "seconds": 0.721,
+          "status": "PASSED"
+        },
+        {
+          "name": "scanPagesMoreThanHundredOrdersContinuesAfterOneFailureAndRetriesNextRound",
+          "seconds": 7.72,
+          "status": "PASSED"
+        },
+        {
+          "name": "knownSimulatorRejectionAfterWritesUsesSavepointAndStillCommitsFailure",
+          "seconds": 0.313,
+          "status": "PASSED"
+        },
+        {
+          "name": "unauthorizedOperationsAndNonemptyBodiesHaveNoSideEffects",
+          "seconds": 0.644,
+          "status": "PASSED"
+        },
+        {
+          "name": "disabledOwnerAndDuplicateSystemClosesReleaseOnlyOnceAndFailuresRollback",
+          "seconds": 0.337,
+          "status": "PASSED"
+        },
+        {
+          "name": "applicationRestartRunsStartupRecoveryAndSchedulingClosesLaterExpiries",
+          "seconds": 12.856,
+          "status": "PASSED"
+        },
+        {
+          "name": "slowRoundStopsAtBudgetAndDoesNotOverlapOrLoseNextRoundCandidates",
+          "seconds": 9.774,
+          "status": "PASSED"
+        },
+        {
+          "name": "lifecycleStateMatrixAndIdempotencyScopeAreEnforced",
+          "seconds": 1.43,
+          "status": "PASSED"
+        },
+        {
+          "name": "paymentAndRefundWaitForStockThenRecheckTheirDeadlines",
+          "seconds": 2.531,
+          "status": "PASSED"
+        },
+        {
+          "name": "simulatedFailureIsImmutableForOriginalKeyAndNewKeyCanRetry",
+          "seconds": 0.335,
+          "status": "PASSED"
+        },
+        {
+          "name": "inconsistentSuccessfulRecordsAreSystemErrorsAndDoNotPersistRejection",
+          "seconds": 0.343,
+          "status": "PASSED"
+        },
+        {
+          "name": "cancellationRepeatsAndReleasesForAnotherPurchaseIncludingExpiredCancellation",
+          "seconds": 0.373,
+          "status": "PASSED"
+        },
+        {
+          "name": "repeatedPaymentsRefundsAndHistoricalReplaysKeepIdsAndReleaseEligibility",
+          "seconds": 0.448,
+          "status": "PASSED"
+        },
+        {
+          "name": "paymentAndCancellationCompetitionHonorsBothLockOrders",
+          "seconds": 0.554,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "failsafe",
+      "name": "com.ticketflow.RabbitMqLabIT",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 60.575,
+      "cases": [
+        {
+          "name": "confirmedPersistentMessageAndCommitBeforeAck",
+          "seconds": 2.364,
+          "status": "PASSED"
+        },
+        {
+          "name": "mandatoryReturnMustNotBeMistakenForPublishSuccess",
+          "seconds": 2.43,
+          "status": "PASSED"
+        },
+        {
+          "name": "brokerExplicitNackOnBoundedQueueOverflow",
+          "seconds": 2.6,
+          "status": "PASSED"
+        },
+        {
+          "name": "lostConfirmCausesSafeDuplicatePublish",
+          "seconds": 4.406,
+          "status": "PASSED"
+        },
+        {
+          "name": "duplicatesHandledByTwoConcurrentConsumers",
+          "seconds": 3.332,
+          "status": "PASSED"
+        },
+        {
+          "name": "conflictingPayloadIsQuarantined",
+          "seconds": 3.277,
+          "status": "PASSED"
+        },
+        {
+          "name": "transactionFailureRollsBackInboxLedgerAndEffect",
+          "seconds": 2.422,
+          "status": "PASSED"
+        },
+        {
+          "name": "killConsumerBeforeDatabaseCommit",
+          "seconds": 3.967,
+          "status": "PASSED"
+        },
+        {
+          "name": "killConsumerAfterCommitBeforeAck",
+          "seconds": 4.165,
+          "status": "PASSED"
+        },
+        {
+          "name": "boundedBackoffThenSuccessfulRetry",
+          "seconds": 6.254,
+          "status": "PASSED"
+        },
+        {
+          "name": "poisonMessageDeadLettersAndControlledReplayRecovers",
+          "seconds": 6.84,
+          "status": "PASSED"
+        },
+        {
+          "name": "malformedEnvelopeIsIsolatedWithoutDatabaseEffect",
+          "seconds": 2.352,
+          "status": "PASSED"
+        },
+        {
+          "name": "confirmedPendingMessageSurvivesBrokerRestart",
+          "seconds": 13.98,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "failsafe",
+      "name": "com.ticketflow.RedisCatalogIT",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 90.286,
+      "cases": [
+        {
+          "name": "cacheHitAndFilterPageKeysAvoidRepeatedCatalogSql",
+          "seconds": 8.184,
+          "status": "PASSED"
+        },
+        {
+          "name": "lateOldSnapshotCannotRefillNewGenerationAfterDelisting",
+          "seconds": 6.275,
+          "status": "PASSED"
+        },
+        {
+          "name": "committedEditInvalidatesButRolledBackEditDoesNot",
+          "seconds": 6.201,
+          "status": "PASSED"
+        },
+        {
+          "name": "negativeCacheExpiresAndPublicationChangesItsGeneration",
+          "seconds": 8.475,
+          "status": "PASSED"
+        },
+        {
+          "name": "saturatedQueryBudgetRejectsWithoutUnboundedDatabaseFallback",
+          "seconds": 5.117,
+          "status": "PASSED"
+        },
+        {
+          "name": "corruptPayloadIsReplacedFromDatabase",
+          "seconds": 7.473,
+          "status": "PASSED"
+        },
+        {
+          "name": "dualQuotaRejectionDoesNotChargeOtherDimensionAndRetryDoesNotRecharge",
+          "seconds": 5.843,
+          "status": "PASSED"
+        },
+        {
+          "name": "inventoryAndClockRemainLiveAfterMetadataCacheHit",
+          "seconds": 6.316,
+          "status": "PASSED"
+        },
+        {
+          "name": "cacheWriteFailureAfterCommitCannotMakeOldGenerationVisible",
+          "seconds": 7.144,
+          "status": "PASSED"
+        },
+        {
+          "name": "userLimitDoesNotConsumeRejectedKeyOrBlockReplayAndQuery",
+          "seconds": 8.08,
+          "status": "PASSED"
+        },
+        {
+          "name": "configuredPositiveTtlExpiresAndReloads",
+          "seconds": 7.872,
+          "status": "PASSED"
+        },
+        {
+          "name": "sameHotMissIsMergedAndNoRedisCallRunsInTransaction",
+          "seconds": 5.896,
+          "status": "PASSED"
+        },
+        {
+          "name": "sessionLimitIsAtomicAcrossUsersAndTiers",
+          "seconds": 6.425,
+          "status": "PASSED"
+        }
+      ]
+    },
+    {
+      "category": "failsafe",
+      "name": "com.ticketflow.RedisOutageIT",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.403,
+      "cases": [
+        {
+          "name": "refusedRedisFallsBackAndSyncTradeStillEnforcesDatabaseRules",
+          "seconds": 0.516,
+          "status": "PASSED"
+        }
+      ]
+    }
+  ],
+  "observations": [
+    "BATCH10_CONVERGENCE session=17148 requests=100 elapsedMs=41452 succeeded=60",
+    "BATCH10_DB_NETWORK afterCommit=false folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-commit-network-4272906167376226003",
+    "BATCH10_DB_NETWORK afterCommit=true folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-commit-network-16381445880925109857",
+    "BATCH10_KILL window=rebuild-paused folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-rebuild-paused-8676784652156574537",
+    "BATCH10_KILL window=rebuild-frozen folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-rebuild-frozen-10455382749510905070",
+    "BATCH10_KILL window=rebuild-snapshot folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-rebuild-snapshot-5230380574465448928",
+    "BATCH10_KILL window=rebuild-restored folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-rebuild-restored-14004550592181556397",
+    "BATCH10_KILL window=rebuild-db-ready folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-rebuild-db-ready-7020849053776996858",
+    "BATCH10_KILL window=rebuild-ready folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-rebuild-ready-8069301912401083214",
+    "BATCH10_KILL window=admission-before folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-admission-before-7758521889161646122",
+    "BATCH10_KILL window=admission-after folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-admission-after-3142846374768621959",
+    "BATCH10_KILL window=order-before folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-order-before-2989092629156543135",
+    "BATCH10_KILL window=order-after folder=C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-order-after-173896589221049001"
+  ]
+}

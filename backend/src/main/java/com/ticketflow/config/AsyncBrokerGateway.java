@@ -11,11 +11,28 @@ import tools.jackson.databind.json.JsonMapper;
 @Component
 public class AsyncBrokerGateway {
     private final AsyncProperties settings;private final JsonMapper json;private final AsyncOrderService service;
+    private final com.ticketflow.service.AsyncAlerts alerts;
     private Connection connection;private boolean declared;private final List<Channel> consumers=new ArrayList<>();
-    public AsyncBrokerGateway(AsyncProperties settings,JsonMapper json,AsyncOrderService service) {this.settings=settings;this.json=json;this.service=service;}
+    public AsyncBrokerGateway(AsyncProperties settings,JsonMapper json,AsyncOrderService service,com.ticketflow.service.AsyncAlerts alerts) {this.settings=settings;this.json=json;this.service=service;this.alerts=alerts;}
     public String exchange() {return settings.brokerPrefix()+".x";}
     public String queue() {return settings.brokerPrefix()+".work";}
     public String deadQueue() {return settings.brokerPrefix()+".dead";}
+    public boolean replayDead(String eventId,java.util.function.Predicate<AsyncMessage> persist) throws Exception {
+        outside();UUID.fromString(eventId);topology();
+        // Unselected deliveries stay unacked and return to the DLQ when this channel closes.
+        try(var ch=connected().createChannel()) {
+            for(int i=0;i<1000;i++) {
+                var delivery=ch.basicGet(deadQueue(),false);if(delivery==null)return false;
+                if(!eventId.equals(delivery.getProps().getMessageId()))continue;
+                AsyncMessage message;
+                try {message=json.readValue(delivery.getBody(),AsyncMessage.class);}
+                catch(RuntimeException invalid){return false;}
+                if(!eventId.equals(message.eventId()) || !"application/json".equals(delivery.getProps().getContentType()) || !persist.test(message))return false;
+                ch.basicAck(delivery.getEnvelope().getDeliveryTag(),false);return true;
+            }
+            return false;
+        }
+    }
     private static void outside() {if(TransactionSynchronizationManager.isActualTransactionActive())throw new IllegalStateException("Broker in database transaction");}
     private synchronized Connection connected() throws Exception {
         outside();if(connection!=null && connection.isOpen())return connection;
@@ -58,7 +75,10 @@ public class AsyncBrokerGateway {
                     catch(RuntimeException unavailable) {result=AsyncDisposition.STOP;}
                 }
                 if(result==AsyncDisposition.ACK)ch.basicAck(delivery.getEnvelope().getDeliveryTag(),false);
-                else if(result==AsyncDisposition.DEAD_LETTER)ch.basicNack(delivery.getEnvelope().getDeliveryTag(),false,false);
+                else if(result==AsyncDisposition.DEAD_LETTER) {
+                    alerts.raise("DEAD_LETTER",message==null?"invalid-envelope":message.eventId(),"REQUIRES_OPERATOR_REVIEW");
+                    ch.basicNack(delivery.getEnvelope().getDeliveryTag(),false,false);
+                }
                 else ch.abort();
             },tag->{});
         }
