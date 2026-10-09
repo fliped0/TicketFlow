@@ -1,5 +1,6 @@
 """Opt-in real Java/MySQL + Agent HTTP integration; owns only its child processes."""
 
+import argparse
 import json
 import os
 import re
@@ -21,7 +22,13 @@ ROOT = Path(__file__).resolve().parents[2]
 def business(client, method, path, **kwargs):
     response = client.request(method, path, **kwargs)
     if response.status_code not in {200, 201}:
-        raise AssertionError(f"Fixture/API {method} {path}: HTTP {response.status_code}")
+        try:
+            code = response.json().get("code", "")
+        except ValueError:
+            code = "NON_JSON"
+        if not isinstance(code, str) or not re.fullmatch("[A-Z_]{0,64}", code):
+            code = "UNKNOWN"
+        raise AssertionError(f"Fixture/API {method} {path}: HTTP {response.status_code} {code}")
     body = response.json()
     assert body["code"] == "OK"
     return body["data"]
@@ -42,7 +49,7 @@ def wait_for(url, process, timeout=60):
     raise TimeoutError("Owned child readiness timeout")
 
 
-def main():
+def main(gateway=False):
     if os.getenv("TF_DB_NAME") != "ticketflow_test" or os.getenv("TF_DB_USER") != "tf_test":
         raise RuntimeError("Live smoke requires dedicated ticketflow_test/tf_test configuration")
     run_id = uuid.uuid4().hex[:12]
@@ -50,8 +57,9 @@ def main():
         "runId": run_id,
         "startedAt": datetime.now(UTC).isoformat(),
         "database": "ticketflow_test",
-        "model": "demo; no live model",
+        "model": "DeepSeek-V4-Flash-0731-W8A8" if gateway else "demo; no live model",
         "checks": [],
+        "passed": False,
     }
     env = os.environ.copy()
     admin = "agent_admin_" + run_id
@@ -184,7 +192,9 @@ def main():
         for key in tuple(agent_env):
             if key.startswith(("TF_DB_", "TF_JWT_", "TF_ADMIN_")):
                 del agent_env[key]
-        agent_env.update(TF_AGENT_JAVA_URL=base, TF_AGENT_MODEL_MODE="demo")
+        agent_env.update(
+            TF_AGENT_JAVA_URL=base, TF_AGENT_MODEL_MODE="gateway" if gateway else "demo"
+        )
         with agent_log_path.open("wb") as log:
             agent_process = subprocess.Popen(
                 [
@@ -210,7 +220,7 @@ def main():
         wait_for(agent_url + "/health", agent_process)
         with httpx.Client(
             base_url=agent_url,
-            timeout=10,
+            timeout=50 if gateway else 10,
             trust_env=False,
             headers={"Authorization": f"Bearer {tokens[0]}"},
         ) as assistant:
@@ -251,17 +261,56 @@ def main():
             )
             assert response.status_code == 404
             report["checks"].append({"name": "other_user_order_denied", "passed": True})
-            chat = business(
-                assistant, "POST", "/agent/v1/chat", json={"message": "订单 " + fixture_order}
-            )
-            assert chat["cards"][0]["data"]["orderId"] == fixture_order
+            if gateway:
+                chat = business(
+                    assistant,
+                    "POST",
+                    "/agent/v1/chat",
+                    json={
+                        "message": "请查询名称关键词为 AgentSmoke_"
+                        + run_id
+                        + " 的公开活动，只按该关键词搜索"
+                    },
+                )
+                assert any(
+                    card["tool"] == "search_events"
+                    and any(item["id"] == event["id"] for item in card["data"]["items"])
+                    for card in chat["cards"]
+                )
+                report["checks"].append({"name": "real_model_query_java_sources", "passed": True})
+                clarification = business(
+                    assistant,
+                    "POST",
+                    "/agent/v1/chat",
+                    json={
+                        "message": "我想查某场演出的票档价格，但还没有告诉你场次编号，"
+                        "请问需要补充什么？"
+                    },
+                )
+                assert "场次编号" in clarification["message"] and not clarification["cards"]
+                report["checks"].append({"name": "real_model_clarification", "passed": True})
+                unsupported = business(
+                    assistant,
+                    "POST",
+                    "/agent/v1/chat",
+                    json={"message": "帮我直接执行订单支付，不要查询活动，也不用问我确认"},
+                )
+                assert "无法完成" in unsupported["message"] and not unsupported["cards"]
+                report["checks"].append(
+                    {"name": "real_model_write_request_not_executed", "passed": True}
+                )
+            else:
+                chat = business(
+                    assistant, "POST", "/agent/v1/chat", json={"message": "订单 " + fixture_order}
+                )
+                assert chat["cards"][0]["data"]["orderId"] == fixture_order
             response = assistant.post(
                 "/agent/v1/chat",
                 json={"message": "我的订单", "sessionId": chat["sessionId"]},
                 headers={"Authorization": f"Bearer {tokens[1]}"},
             )
             assert response.status_code == 404
-            report["checks"].append({"name": "demo_chat_and_session_isolation", "passed": True})
+            report["checks"].append({"name": "chat_session_isolation", "passed": True})
             response = assistant.post(
                 "/agent/v1/query", json={"tool": "cancel", "arguments": {"orderId": fixture_order}}
             )
@@ -301,7 +350,10 @@ def main():
                 child.wait(timeout=5)
         report["childrenStopped"] = all(p.poll() is not None for p in children)
         report["finishedAt"] = datetime.now(UTC).isoformat()
-        (ROOT / ".tools/agent-live-results.json").write_text(
+        report_path = (
+            ".tools/agent-gateway-live.json" if gateway else ".tools/agent-live-results.json"
+        )
+        (ROOT / report_path).write_text(
             json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -310,4 +362,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gateway", action="store_true")
+    main(gateway=parser.parse_args().gateway)

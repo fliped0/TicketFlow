@@ -9,6 +9,13 @@ from ticketflow_agent.config import Settings
 from ticketflow_agent.java import CONTRACT
 
 
+@pytest.fixture(autouse=True)
+def isolated_configuration(monkeypatch, tmp_path):
+    monkeypatch.setenv("TF_AGENT_CONFIG", str(tmp_path / "absent-config.json"))
+    for name in ("TF_AGENT_MODEL_MODE", "TF_AGENT_API_KEY", "TF_AGENT_JAVA_URL"):
+        monkeypatch.delenv(name, raising=False)
+
+
 def example(schema):
     if "$ref" in schema:
         return example(CONTRACT["components"]["schemas"][schema["$ref"].split("/")[-1]])

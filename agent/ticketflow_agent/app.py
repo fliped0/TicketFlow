@@ -13,6 +13,7 @@ from pydantic import Field
 
 from .config import Settings
 from .errors import AgentError
+from .gateway import GatewayModel
 from .java import JavaClient
 from .model import DemoModel, DisabledModel
 from .service import Service
@@ -37,7 +38,7 @@ def bearer(authorization: str | None):
     return authorization[7:]
 
 
-def create_app(settings=None, *, transport=None, model=None):
+def create_app(settings=None, *, transport=None, model=None, model_transport=None):
     settings = settings or Settings.from_env()
 
     @asynccontextmanager
@@ -50,16 +51,26 @@ def create_app(settings=None, *, transport=None, model=None):
             handler.setFormatter(logging.Formatter("%(asctime)s %(name)s %(message)s"))
             log.addHandler(handler)
         java = JavaClient(settings, transport)
-        selected = model or (DemoModel() if settings.model_mode == "demo" else DisabledModel())
+        selected = model
+        if selected is None:
+            selected = (
+                GatewayModel(settings, transport=model_transport)
+                if settings.model_mode == "gateway"
+                else DemoModel()
+                if settings.model_mode == "demo"
+                else DisabledModel()
+            )
         app.state.service = Service(settings, java, selected)
         try:
             yield
         finally:
             await java.close()
+            if isinstance(selected, GatewayModel):
+                await selected.close()
 
     app = FastAPI(
         title="TicketFlow Agent",
-        version="0.1.0",
+        version="0.2.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -113,6 +124,7 @@ def create_app(settings=None, *, transport=None, model=None):
 
     @app.exception_handler(AgentError)
     async def agent_error(request, error):
+        log.info("error trace=%s code=%s", request.state.trace_id, error.code)
         return JSONResponse(
             status_code=error.status,
             content={
@@ -142,7 +154,11 @@ def create_app(settings=None, *, transport=None, model=None):
 
     @app.get("/health")
     async def health():
-        return {"status": "UP", "modelMode": settings.model_mode, "liveModelEnabled": False}
+        return {
+            "status": "UP",
+            "modelMode": settings.model_mode,
+            "liveModelEnabled": settings.model_mode == "gateway",
+        }
 
     @app.get("/agent/v1/tools")
     async def tools(request: Request, authorization: Auth = None):

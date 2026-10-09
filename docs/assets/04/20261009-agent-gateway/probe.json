@@ -1,0 +1,23 @@
+{
+  "model": "DeepSeek-V4-Flash-0731-W8A8",
+  "endpoint": "http://aigw.dlut.edu.cn/v1/chat/completions",
+  "passed": true,
+  "calls": [
+    {
+      "name": "search_events",
+      "arguments": {
+        "city": "杭州",
+        "page": 1,
+        "size": 20
+      }
+    }
+  ],
+  "finished": false,
+  "usage": {
+    "dayUtc": "2026-10-09",
+    "requests": 1,
+    "accountedTokens": 1340,
+    "unknownUsageRequests": 0,
+    "billing": "school quota; no currency estimate"
+  }
+}

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from .config import Settings
 from .errors import AgentError
+from .gateway import GatewayDecision, GatewayModel
 from .model import Decision
 from .tools import definitions, get_tool
 
@@ -64,9 +65,14 @@ class Service:
                 if len(json.dumps([message, results], ensure_ascii=False)) > 32000:
                     raise AgentError("CONTEXT_LIMIT", 422, "查询内容过多，请缩小查询范围")
                 try:
-                    decision = await self.model.decide(
-                        message, copy.deepcopy(results), definitions()
-                    )
+                    if isinstance(self.model, GatewayModel):
+                        decision = await self.model.decide_for(
+                            user_id, message, copy.deepcopy(results), definitions()
+                        )
+                    else:
+                        decision = await self.model.decide(
+                            message, copy.deepcopy(results), definitions()
+                        )
                 except AgentError:
                     raise
                 except Exception:
@@ -79,13 +85,33 @@ class Service:
                 ):
                     raise AgentError("MODEL_INVALID_OUTPUT", 502, "模型输出格式无效")
                 if decision.finished:
+                    cards = results
+                    text = (
+                        "查询结果见数据卡片；库存以查询时刻为准。"
+                        if results
+                        else "本轮没有取得业务数据，无法给出业务结论。"
+                    )
+                    if isinstance(decision, GatewayDecision):
+                        cards = [results[i] for i in decision.indices]
+                        if decision.note == "unsupported":
+                            text = "当前仅支持活动和订单查询，无法完成这项请求。"
+                        elif decision.note == "clarification":
+                            labels = {
+                                "eventId": "活动编号",
+                                "sessionId": "场次编号",
+                                "orderId": "订单编号",
+                                "keyword": "活动关键词",
+                                "city": "城市",
+                                "category": "活动类别",
+                            }
+                            text = "请补充：" + "、".join(
+                                labels[k] for k in decision.missing_fields
+                            )
                     return {
                         "sessionId": session_id,
                         "modelMode": self.settings.model_mode,
-                        "message": "查询结果见数据卡片；库存以查询时刻为准。"
-                        if results
-                        else "本轮没有取得业务数据，无法给出业务结论。",
-                        "cards": results,
+                        "message": text,
+                        "cards": cards,
                     }
                 if not decision.calls:
                     raise AgentError("MODEL_INVALID_OUTPUT", 502, "模型未给出可执行查询")
@@ -100,7 +126,26 @@ class Service:
                         or not isinstance(call.arguments, dict)
                     ):
                         raise AgentError("MODEL_INVALID_OUTPUT", 502, "模型工具调用格式无效")
-                    get_tool(call.name).bind(call.arguments)
+                    path, params = get_tool(call.name).bind(call.arguments)
+                    if isinstance(self.model, GatewayModel) and any(
+                        r["tool"] == call.name
+                        and r["source"]["path"] == path
+                        and r["source"]["params"] == params
+                        for r in results
+                    ):
+                        raise AgentError(
+                            "MODEL_REPEATED_QUERY",
+                            502,
+                            "模型重复了已完成的查询，请重试或使用直接查询入口",
+                        )
+                    if (
+                        isinstance(self.model, GatewayModel)
+                        and not self.settings.allow_private_model_data
+                        and call.name in {"list_my_orders", "get_my_order"}
+                    ):
+                        raise AgentError(
+                            "PRIVATE_MODEL_DATA_DISABLED", 403, "尚未允许订单查询与模型网关联动"
+                        )
                 for call in decision.calls:
                     # Recheck account even before public tools after a model wait.
                     if await self.java.identity(token) != user_id:

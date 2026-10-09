@@ -1,0 +1,29 @@
+{
+  "python": "3.12.10",
+  "packages": {
+    "fastapi": "0.143.0",
+    "pydantic": "2.14.0",
+    "httpx": "0.28.1",
+    "uvicorn": "0.54.0",
+    "pytest": "9.1.1",
+    "ruff": "0.16.10",
+    "jsonschema": "4.26.0"
+  },
+  "javaJarSha256": "0919900afba403f90919d8022cc952c1951ad0f9495459c1235b25b8c6dab6fc",
+  "model": "DeepSeek-V4-Flash-0731-W8A8",
+  "endpoint": "http://aigw.dlut.edu.cn/v1/chat/completions",
+  "modelResultReturn": false,
+  "privateToolsEnabled": false,
+  "dailyRequests": 20,
+  "userDailyRequests": 10,
+  "requestsPerMinute": 10,
+  "dailyAccountingBudget": 200000,
+  "maxInputBytes": 8000,
+  "maxOutputTokens": 1024,
+  "httpTimeoutSeconds": 30.0,
+  "turnTimeoutSeconds": 45.0,
+  "sourceHashes": "Raw working-tree bytes; Git may normalize line endings",
+  "command": "./scripts/test-agent.ps1 -Live -Gateway",
+  "database": "ticketflow_test/tf_test",
+  "javaRegressionRerun": false
+}

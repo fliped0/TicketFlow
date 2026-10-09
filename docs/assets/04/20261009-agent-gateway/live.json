@@ -1,0 +1,60 @@
+{
+  "runId": "bff639570e20",
+  "startedAt": "2026-10-09T12:00:34.623856+00:00",
+  "database": "ticketflow_test",
+  "model": "DeepSeek-V4-Flash-0731-W8A8",
+  "checks": [
+    {
+      "name": "search_events",
+      "passed": true
+    },
+    {
+      "name": "get_event",
+      "passed": true
+    },
+    {
+      "name": "list_sessions",
+      "passed": true
+    },
+    {
+      "name": "list_tiers",
+      "passed": true
+    },
+    {
+      "name": "list_my_orders",
+      "passed": true
+    },
+    {
+      "name": "get_my_order",
+      "passed": true
+    },
+    {
+      "name": "other_user_order_denied",
+      "passed": true
+    },
+    {
+      "name": "real_model_query_java_sources",
+      "passed": true
+    },
+    {
+      "name": "real_model_clarification",
+      "passed": true
+    },
+    {
+      "name": "real_model_write_request_not_executed",
+      "passed": true
+    },
+    {
+      "name": "chat_session_isolation",
+      "passed": true
+    },
+    {
+      "name": "write_tool_and_invalid_jwt_denied",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "fixtureOrderCancelled": true,
+  "childrenStopped": true,
+  "finishedAt": "2026-10-09T12:01:20.764172+00:00"
+}

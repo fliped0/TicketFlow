@@ -1,0 +1,41 @@
+{
+  "runId": "dfdfc66b57bd",
+  "startedAt": "2026-10-09T11:56:35.118566+00:00",
+  "database": "ticketflow_test",
+  "model": "DeepSeek-V4-Flash-0731-W8A8",
+  "checks": [
+    {
+      "name": "search_events",
+      "passed": true
+    },
+    {
+      "name": "get_event",
+      "passed": true
+    },
+    {
+      "name": "list_sessions",
+      "passed": true
+    },
+    {
+      "name": "list_tiers",
+      "passed": true
+    },
+    {
+      "name": "list_my_orders",
+      "passed": true
+    },
+    {
+      "name": "get_my_order",
+      "passed": true
+    },
+    {
+      "name": "other_user_order_denied",
+      "passed": true
+    }
+  ],
+  "passed": false,
+  "fixtureOrderCancelled": true,
+  "childrenStopped": true,
+  "finishedAt": "2026-10-09T11:57:00.670723+00:00",
+  "failureCodeFromSanitizedRunLog": "MODEL_INVALID_OUTPUT"
+}

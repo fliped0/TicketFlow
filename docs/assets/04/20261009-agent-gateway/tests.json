@@ -1,0 +1,817 @@
+{
+  "count": 135,
+  "passed": 135,
+  "warning": "One unfiltered Starlette/HTTPX TestClient deprecation",
+  "cases": [
+    {
+      "class": "tests.test_chat",
+      "name": "test_demo_and_session_ownership",
+      "seconds": 0.063,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_demo_commands[\\u6d3b\\u52a8 1-get_event]",
+      "seconds": 0.014,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_demo_commands[\\u573a\\u6b21 1-list_sessions]",
+      "seconds": 0.012,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_demo_commands[\\u7968\\u6863 1-list_tiers]",
+      "seconds": 0.013,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_demo_commands[\\u8ba2\\u5355 1-get_my_order]",
+      "seconds": 0.014,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_demo_does_not_pretend_to_understand",
+      "seconds": 0.012,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_malicious_model_batch_rejected_before_query[call0]",
+      "seconds": 0.011,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_malicious_model_batch_rejected_before_query[call1]",
+      "seconds": 0.01,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_malicious_model_batch_rejected_before_query[call2]",
+      "seconds": 0.011,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_tool_budget_before_dispatch",
+      "seconds": 0.024,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_model_loop_bounded",
+      "seconds": 0.022,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_timeout_releases_capacity_and_session",
+      "seconds": 0.041,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_disabled_while_waiting_model",
+      "seconds": 0.014,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_sessions_ttl_capacity_and_busy",
+      "seconds": 0.007,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_model_cannot_mutate_cards",
+      "seconds": 0.083,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_no_credentials_or_query_in_application_logs",
+      "seconds": 0.02,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_invalid_model_output_fails_closed[None]",
+      "seconds": 0.034,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_invalid_model_output_fails_closed[decision1]",
+      "seconds": 0.028,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_invalid_model_output_fails_closed[decision2]",
+      "seconds": 0.013,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_invalid_model_output_fails_closed[decision3]",
+      "seconds": 0.029,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_invalid_model_output_fails_closed[decision4]",
+      "seconds": 0.029,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_model_failure_redaction_and_no_orphan_session",
+      "seconds": 0.013,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_concurrent_admission_limit",
+      "seconds": 0.011,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_context_limit_stops_next_model_call",
+      "seconds": 0.013,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_chat",
+      "name": "test_untrusted_catalog_cannot_enable_write_tool",
+      "seconds": 0.014,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_natural_query_wire_contract_sources_and_no_credentials",
+      "seconds": 0.169,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_status_redaction_no_retries[401-GATEWAY_AUTH_FAILED]",
+      "seconds": 0.1,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_status_redaction_no_retries[403-GATEWAY_AUTH_FAILED]",
+      "seconds": 0.124,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_status_redaction_no_retries[429-GATEWAY_RATE_LIMITED]",
+      "seconds": 0.133,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_status_redaction_no_retries[500-GATEWAY_UNAVAILABLE]",
+      "seconds": 0.109,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_status_redaction_no_retries[302-GATEWAY_UNAVAILABLE]",
+      "seconds": 0.138,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_connection_failure_keeps_unknown_reservation",
+      "seconds": 0.106,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_no_fabricated_source_or_business_prose[args0]",
+      "seconds": 0.112,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_no_fabricated_source_or_business_prose[args1]",
+      "seconds": 0.112,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_no_fabricated_source_or_business_prose[args2]",
+      "seconds": 0.11,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_no_fabricated_source_or_business_prose[args3]",
+      "seconds": 0.109,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_no_fabricated_source_or_business_prose[args4]",
+      "seconds": 0.104,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_no_fabricated_source_or_business_prose[args5]",
+      "seconds": 0.107,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_no_fabricated_source_or_business_prose[args6]",
+      "seconds": 0.132,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_no_fabricated_source_or_business_prose[args7]",
+      "seconds": 0.098,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_structured_clarification_is_rendered_by_server",
+      "seconds": 0.121,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_unsupported_is_not_a_successful_transaction",
+      "seconds": 0.101,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_tool_permission_checks[refund-args0]",
+      "seconds": 0.118,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_tool_permission_checks[get_event-args1]",
+      "seconds": 0.106,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_tool_permission_checks[list_my_orders-args2]",
+      "seconds": 0.101,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_tool_permission_checks[search_events-args3]",
+      "seconds": 0.091,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_private_data_can_only_be_shared_when_enabled",
+      "seconds": 0.094,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_malformed_output[body0]",
+      "seconds": 0.088,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_malformed_output[body1]",
+      "seconds": 0.113,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_malformed_output[body2]",
+      "seconds": 0.098,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_gateway_malformed_output[body3]",
+      "seconds": 0.087,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_json_routes_use_same_permission_and_fact_validation[route0-200]",
+      "seconds": 0.102,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_json_routes_use_same_permission_and_fact_validation[route1-200]",
+      "seconds": 0.121,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_json_routes_use_same_permission_and_fact_validation[route2-200]",
+      "seconds": 0.098,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_json_routes_use_same_permission_and_fact_validation[route3-422]",
+      "seconds": 0.115,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_json_routes_use_same_permission_and_fact_validation[route4-422]",
+      "seconds": 0.113,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_json_routes_use_same_permission_and_fact_validation[route5-502]",
+      "seconds": 0.114,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_json_routes_use_same_permission_and_fact_validation[route6-502]",
+      "seconds": 0.118,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_json_routes_use_same_permission_and_fact_validation[route7-502]",
+      "seconds": 0.134,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_duplicate_json_and_oversize_response",
+      "seconds": 0.137,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_cancelled_gateway_retains_usage",
+      "seconds": 0.144,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes0]",
+      "seconds": 0.004,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes1]",
+      "seconds": 0.003,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes2]",
+      "seconds": 0.003,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes3]",
+      "seconds": 0.002,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes4]",
+      "seconds": 0.003,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes5]",
+      "seconds": 0.003,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes6]",
+      "seconds": 0.002,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes7]",
+      "seconds": 0.003,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes8]",
+      "seconds": 0.002,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_live_configuration_fail_closed[changes9]",
+      "seconds": 0.002,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_key_not_in_settings_repr",
+      "seconds": 0.002,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_completed_query_not_repeated_in_java",
+      "seconds": 0.115,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_input_size_rejected_before_reserving_or_sending",
+      "seconds": 0.079,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_gateway",
+      "name": "test_quota_rejected_before_model_network",
+      "seconds": 0.166,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_six_tools_against_java_contract[search_events-args0-/api/v1/events]",
+      "seconds": 0.016,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_six_tools_against_java_contract[get_event-args1-/api/v1/events/1]",
+      "seconds": 0.011,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_six_tools_against_java_contract[list_sessions-args2-/api/v1/events/1/sessions]",
+      "seconds": 0.012,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_six_tools_against_java_contract[list_tiers-args3-/api/v1/sessions/1/tiers]",
+      "seconds": 0.027,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_six_tools_against_java_contract[list_my_orders-args4-/api/v1/orders]",
+      "seconds": 0.026,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_six_tools_against_java_contract[get_my_order-args5-/api/v1/orders/1]",
+      "seconds": 0.034,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_bad_ids_and_identity_injection[args0]",
+      "seconds": 0.01,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_bad_ids_and_identity_injection[args1]",
+      "seconds": 0.011,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_bad_ids_and_identity_injection[args2]",
+      "seconds": 0.011,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_bad_ids_and_identity_injection[args3]",
+      "seconds": 0.009,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_bad_ids_and_identity_injection[args4]",
+      "seconds": 0.014,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_bad_ids_and_identity_injection[args5]",
+      "seconds": 0.01,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_bad_ids_and_identity_injection[args6]",
+      "seconds": 0.01,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_bad_ids_and_identity_injection[args7]",
+      "seconds": 0.01,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_page_filter_limits[args0]",
+      "seconds": 0.029,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_page_filter_limits[args1]",
+      "seconds": 0.009,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_page_filter_limits[args2]",
+      "seconds": 0.067,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_page_filter_limits[args3]",
+      "seconds": 0.023,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_page_filter_limits[args4]",
+      "seconds": 0.03,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_page_filter_limits[args5]",
+      "seconds": 0.034,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_no_write_or_arbitrary_tools[cancel]",
+      "seconds": 0.012,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_no_write_or_arbitrary_tools[refund]",
+      "seconds": 0.026,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_no_write_or_arbitrary_tools[payments]",
+      "seconds": 0.029,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_no_write_or_arbitrary_tools[admin_orders]",
+      "seconds": 0.039,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_no_write_or_arbitrary_tools[http_get]",
+      "seconds": 0.026,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_private_order_is_not_disclosed",
+      "seconds": 0.026,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_missing_invalid_and_expired_auth[]",
+      "seconds": 0.028,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_missing_invalid_and_expired_auth[Basic alice]",
+      "seconds": 0.034,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_missing_invalid_and_expired_auth[Bearer expired]",
+      "seconds": 0.03,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_disabled_user",
+      "seconds": 0.013,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_dependency_status_and_no_redirect[301-502]",
+      "seconds": 0.026,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_dependency_status_and_no_redirect[302-502]",
+      "seconds": 0.012,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_dependency_status_and_no_redirect[401-401]",
+      "seconds": 0.034,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_dependency_status_and_no_redirect[403-403]",
+      "seconds": 0.028,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_dependency_status_and_no_redirect[404-404]",
+      "seconds": 0.013,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_dependency_status_and_no_redirect[429-429]",
+      "seconds": 0.018,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_dependency_status_and_no_redirect[500-502]",
+      "seconds": 0.034,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_network_failure_not_empty_orders",
+      "seconds": 0.025,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_malformed_upstream[body0]",
+      "seconds": 0.035,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_malformed_upstream[body1]",
+      "seconds": 0.013,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_malformed_upstream[body2]",
+      "seconds": 0.012,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_amount_precision_and_field_minimization",
+      "seconds": 0.012,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_response_bound",
+      "seconds": 0.011,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_request_bound_and_validation_redaction",
+      "seconds": 0.01,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_model_disabled_but_query_available",
+      "seconds": 0.036,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_contract_copy_matches_java_openapi",
+      "seconds": 0.005,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_unsafe_configuration[http://evil.test]",
+      "seconds": 0.004,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_unsafe_configuration[https://x.test/api]",
+      "seconds": 0.004,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_unsafe_configuration[https://u:p@x.test]",
+      "seconds": 0.003,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_unsafe_configuration[file:///etc/passwd]",
+      "seconds": 0.003,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_unsafe_configuration[https://x.test?token=abc]",
+      "seconds": 0.003,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_empty_result_is_not_dependency_failure",
+      "seconds": 0.011,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_mismatched_page_is_rejected",
+      "seconds": 0.013,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_queries",
+      "name": "test_unexpected_private_fields_fail_closed",
+      "seconds": 0.012,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_usage",
+      "name": "test_persistent_unknown_accounting_and_idempotent_settlement",
+      "seconds": 0.181,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_usage",
+      "name": "test_quota_atomic_across_concurrent_clients",
+      "seconds": 0.211,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_usage",
+      "name": "test_user_quota_does_not_block_other_user",
+      "seconds": 0.113,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_usage",
+      "name": "test_request_rate_persists_across_restart",
+      "seconds": 0.091,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_usage",
+      "name": "test_token_reservation_limit_and_next_day",
+      "seconds": 0.101,
+      "status": "passed"
+    },
+    {
+      "class": "tests.test_usage",
+      "name": "test_usage_ledger_refuses_corruption",
+      "seconds": 0.009,
+      "status": "passed"
+    }
+  ]
+}
