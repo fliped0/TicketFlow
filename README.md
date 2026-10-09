@@ -15,6 +15,7 @@
 - 当前完整 clean verify 159 项通过；58 项真实异步测试，含强杀、COMMIT 断连与恢复验证；历史本机性能另存。
 - Redis 目录缓存/限流与 RabbitMQ 可靠性实验已完成；批次 10 孤立封口、epoch 重建、死信重放、告警与恢复对账已验收。
 - 真实支付与生产高可用留后续批次。
+- V3 Agent 扩展设计草稿已完成，拟按查询、规则问答、受控取消/退款分批实现；当前尚未接入模型。
 
 仓库：[fliped0/TicketFlow](https://github.com/fliped0/TicketFlow)。
 
@@ -64,6 +65,7 @@ Pop-Location
 - [已实现接口](docs/api/README.md) / [OpenAPI](docs/api/openapi.json)
 - [测试报告](docs/04_测试计划与测试报告.md)
 - [开发进度](docs/开发进度.md)
+- [Agent 扩展设计（草稿）](docs/07_Agent扩展设计.md)
 - [部署与运维](docs/05_部署与运维.md) / [性能实测](docs/06_性能测试与优化.md)
 
 每批功能：实现 → 测试 → 更新接口文档和报告 → Git 提交 → 推送 GitHub。密码、私钥、构建缓存不提交。
