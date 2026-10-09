@@ -13,3 +13,10 @@ config/local/
 *.log
 __pycache__/
 *.pyc
+agent/.venv/
+agent/.pytest_cache/
+agent/.ruff_cache/
+agent/.coverage
+agent/htmlcov/
+agent/*.egg-info/
+agent/.runtime/

@@ -1,0 +1,19 @@
+{
+  "python": "3.12.10",
+  "baseCommit": "bc38fbfe604124c8d6b81f01b358ac97c37c07da",
+  "packages": {
+    "fastapi": "0.143.0",
+    "pydantic": "2.14.0",
+    "httpx": "0.28.1",
+    "uvicorn": "0.54.0",
+    "jsonschema": "4.26.0",
+    "pytest": "9.1.1",
+    "ruff": "0.16.10",
+    "starlette": "1.7.0"
+  },
+  "javaJarSha256": "0919900afba403f90919d8022cc952c1951ad0f9495459c1235b25b8c6dab6fc",
+  "javaOpenapiSha256": "cb3ce32dea893bdf0360d88e7171982dd9a8e73cc6a240a7ed1604afed6a13ee",
+  "sourceFiles": 18,
+  "liveModelCalls": 0,
+  "javaRegressionRerun": false
+}

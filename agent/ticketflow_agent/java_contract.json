@@ -1,0 +1,716 @@
+{
+  "components": {
+    "schemas": {
+      "UserResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "userId",
+              "username",
+              "role"
+            ],
+            "properties": {
+              "userId": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              },
+              "username": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "USER",
+                  "ADMIN"
+                ]
+              }
+            }
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "EventPageResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EventPage"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "EventPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "size",
+          "total"
+        ],
+        "properties": {
+          "total": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "type": "array"
+          },
+          "size": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      },
+      "Event": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "category",
+          "city",
+          "venue",
+          "status",
+          "version"
+        ],
+        "properties": {
+          "venue": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "ON_SALE",
+              "OFF_SALE"
+            ],
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "version": {
+            "format": "int64",
+            "type": "integer"
+          }
+        }
+      },
+      "EventResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Event"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "SessionPageResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SessionPage"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "SessionPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "size",
+          "total"
+        ],
+        "properties": {
+          "total": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Session"
+            },
+            "type": "array"
+          },
+          "size": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      },
+      "Session": {
+        "type": "object",
+        "required": [
+          "id",
+          "eventId",
+          "startsAt",
+          "saleStartAt",
+          "saleEndAt",
+          "saleStatus",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "saleStartAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          },
+          "saleEndAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          },
+          "version": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "eventId": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "saleStatus": {
+            "enum": [
+              "NOT_ON_SALE",
+              "SALE_NOT_STARTED",
+              "SALE_ENDED",
+              "SOLD_OUT",
+              "ON_SALE"
+            ],
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "description": "UTC ISO 8601",
+            "format": "date-time"
+          }
+        }
+      },
+      "TierPageResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TierPage"
+          },
+          "traceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "replayed": {
+            "const": false,
+            "type": "boolean"
+          },
+          "code": {
+            "const": "OK",
+            "type": "string"
+          }
+        }
+      },
+      "TierPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "size",
+          "total"
+        ],
+        "properties": {
+          "total": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Tier"
+            },
+            "type": "array"
+          },
+          "size": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      },
+      "Tier": {
+        "type": "object",
+        "required": [
+          "id",
+          "sessionId",
+          "name",
+          "priceFen",
+          "available",
+          "capacity",
+          "saleStatus",
+          "refundPolicy",
+          "version"
+        ],
+        "properties": {
+          "saleStatus": {
+            "enum": [
+              "NOT_ON_SALE",
+              "SALE_NOT_STARTED",
+              "SALE_ENDED",
+              "SOLD_OUT",
+              "ON_SALE"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sessionId": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "version": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "refundPolicy": {
+            "const": "FULL_BEFORE_START_V1",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[1-9][0-9]*$",
+            "type": "string"
+          },
+          "capacity": {
+            "type": "integer"
+          },
+          "available": {
+            "type": "integer"
+          },
+          "priceFen": {
+            "format": "int64",
+            "type": "integer"
+          }
+        }
+      },
+      "OrderPageResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "OK"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrderPage"
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrderPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "page",
+          "size",
+          "total"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderDetail"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "OrderDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "orderId",
+          "status",
+          "quantity",
+          "unitPriceFen",
+          "amountFen",
+          "snapshot",
+          "createdAt",
+          "expiresAt",
+          "payment",
+          "refund"
+        ],
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PAID",
+              "CANCELLED",
+              "CLOSED",
+              "REFUNDED"
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "const": 1
+          },
+          "unitPriceFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "amountFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/OrderSnapshot"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          },
+          "payment": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Payment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "refund": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Refund"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "OrderSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schemaVersion",
+          "eventId",
+          "eventName",
+          "city",
+          "venue",
+          "sessionId",
+          "startsAt",
+          "tierId",
+          "tierName",
+          "unitPriceFen",
+          "quantity",
+          "amountFen",
+          "refundPolicy"
+        ],
+        "properties": {
+          "schemaVersion": {
+            "type": "integer",
+            "const": 1
+          },
+          "eventId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "eventName": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "venue": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          },
+          "tierId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "tierName": {
+            "type": "string"
+          },
+          "unitPriceFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "quantity": {
+            "type": "integer",
+            "const": 1
+          },
+          "amountFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "refundPolicy": {
+            "type": "string",
+            "const": "FULL_BEFORE_START_V1"
+          }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paymentId",
+          "amountFen",
+          "paidAt"
+        ],
+        "properties": {
+          "paymentId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "amountFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          }
+        }
+      },
+      "Refund": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "refundId",
+          "amountFen",
+          "refundedAt"
+        ],
+        "properties": {
+          "refundId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "amountFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "refundedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          }
+        }
+      },
+      "OrderResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "OK"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrderDetail"
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

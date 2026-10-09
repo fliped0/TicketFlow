@@ -1,0 +1,340 @@
+{
+  "count": 67,
+  "cases": [
+    {
+      "name": "test_demo_and_session_ownership",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_demo_commands[\\u6d3b\\u52a8 1-get_event]",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_demo_commands[\\u573a\\u6b21 1-list_sessions]",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_demo_commands[\\u7968\\u6863 1-list_tiers]",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_demo_commands[\\u8ba2\\u5355 1-get_my_order]",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_demo_does_not_pretend_to_understand",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_malicious_model_batch_rejected_before_query[call0]",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_malicious_model_batch_rejected_before_query[call1]",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_malicious_model_batch_rejected_before_query[call2]",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_tool_budget_before_dispatch",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_model_loop_bounded",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_timeout_releases_capacity_and_session",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_disabled_while_waiting_model",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_sessions_ttl_capacity_and_busy",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_model_cannot_mutate_cards",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_credentials_or_query_in_application_logs",
+      "class": "tests.test_chat",
+      "status": "passed"
+    },
+    {
+      "name": "test_six_tools_real_http_contract[search_events-args0-/api/v1/events]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_six_tools_real_http_contract[get_event-args1-/api/v1/events/1]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_six_tools_real_http_contract[list_sessions-args2-/api/v1/events/1/sessions]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_six_tools_real_http_contract[list_tiers-args3-/api/v1/sessions/1/tiers]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_six_tools_real_http_contract[list_my_orders-args4-/api/v1/orders]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_six_tools_real_http_contract[get_my_order-args5-/api/v1/orders/1]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_bad_ids_and_identity_injection[args0]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_bad_ids_and_identity_injection[args1]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_bad_ids_and_identity_injection[args2]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_bad_ids_and_identity_injection[args3]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_bad_ids_and_identity_injection[args4]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_bad_ids_and_identity_injection[args5]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_bad_ids_and_identity_injection[args6]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_bad_ids_and_identity_injection[args7]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_page_filter_limits[args0]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_page_filter_limits[args1]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_page_filter_limits[args2]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_page_filter_limits[args3]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_page_filter_limits[args4]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_page_filter_limits[args5]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_write_or_arbitrary_tools[cancel]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_write_or_arbitrary_tools[refund]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_write_or_arbitrary_tools[payments]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_write_or_arbitrary_tools[admin_orders]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_no_write_or_arbitrary_tools[http_get]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_private_order_is_not_disclosed",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_missing_invalid_and_expired_auth[]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_missing_invalid_and_expired_auth[Basic alice]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_missing_invalid_and_expired_auth[Bearer expired]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_disabled_user",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_dependency_status_and_no_redirect[301-502]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_dependency_status_and_no_redirect[302-502]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_dependency_status_and_no_redirect[401-401]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_dependency_status_and_no_redirect[403-403]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_dependency_status_and_no_redirect[404-404]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_dependency_status_and_no_redirect[429-429]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_dependency_status_and_no_redirect[500-502]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_network_failure_not_empty_orders",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_malformed_upstream[body0]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_malformed_upstream[body1]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_malformed_upstream[body2]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_amount_precision_and_field_minimization",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_response_bound",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_request_bound_and_validation_redaction",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_model_disabled_but_query_available",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_contract_copy_matches_java_openapi",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_unsafe_configuration[http://evil.test]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_unsafe_configuration[https://x.test/api]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_unsafe_configuration[https://u:p@x.test]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_unsafe_configuration[file:///etc/passwd]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    },
+    {
+      "name": "test_unsafe_configuration[https://x.test?token=abc]",
+      "class": "tests.test_queries",
+      "status": "passed"
+    }
+  ]
+}
