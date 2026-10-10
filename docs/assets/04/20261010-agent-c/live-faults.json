@@ -1,0 +1,142 @@
+{
+  "runId": "313e19d45616",
+  "startedAt": "2026-10-10T15:11:55.575039+00:00",
+  "database": "ticketflow_test",
+  "model": "demo; no live model",
+  "checks": [
+    {
+      "name": "search_events",
+      "passed": true
+    },
+    {
+      "name": "get_event",
+      "passed": true
+    },
+    {
+      "name": "list_sessions",
+      "passed": true
+    },
+    {
+      "name": "list_tiers",
+      "passed": true
+    },
+    {
+      "name": "list_my_orders",
+      "passed": true
+    },
+    {
+      "name": "get_my_order",
+      "passed": true
+    },
+    {
+      "name": "other_user_order_denied",
+      "passed": true
+    },
+    {
+      "name": "local_rule_http_sources",
+      "passed": true
+    },
+    {
+      "name": "local_rule_unknown_no_promise",
+      "passed": true
+    },
+    {
+      "name": "chat_session_isolation",
+      "passed": true
+    },
+    {
+      "name": "write_tool_and_invalid_jwt_denied",
+      "passed": true
+    },
+    {
+      "name": "explicit_cancel_ownership_and_duplicate",
+      "passed": true
+    },
+    {
+      "name": "explicit_refund_ownership_and_duplicate",
+      "passed": true
+    },
+    {
+      "name": "refund_inventory_returned_once",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "faultMatrix": [
+    {
+      "name": "cancel_before_post",
+      "passed": true,
+      "sameKey": true,
+      "expiredRecovery": true,
+      "committedBeforeRecovery": false,
+      "duplicateExtraPosts": 0,
+      "inventoryRestored": true
+    },
+    {
+      "name": "cancel_after_commit_hold",
+      "passed": true,
+      "sameKey": true,
+      "expiredRecovery": true,
+      "committedBeforeRecovery": true,
+      "duplicateExtraPosts": 0,
+      "inventoryRestored": true
+    },
+    {
+      "name": "cancel_response_lost",
+      "passed": true,
+      "sameKey": true,
+      "expiredRecovery": true,
+      "committedBeforeRecovery": true,
+      "duplicateExtraPosts": 0,
+      "inventoryRestored": true
+    },
+    {
+      "name": "cancel_before_local_finish",
+      "passed": true,
+      "sameKey": true,
+      "expiredRecovery": true,
+      "committedBeforeRecovery": true,
+      "duplicateExtraPosts": 0,
+      "inventoryRestored": true
+    },
+    {
+      "name": "refund_before_post",
+      "passed": true,
+      "sameKey": true,
+      "expiredRecovery": true,
+      "committedBeforeRecovery": false,
+      "duplicateExtraPosts": 0,
+      "inventoryRestored": true
+    },
+    {
+      "name": "refund_after_commit_hold",
+      "passed": true,
+      "sameKey": true,
+      "expiredRecovery": true,
+      "committedBeforeRecovery": true,
+      "duplicateExtraPosts": 0,
+      "inventoryRestored": true
+    },
+    {
+      "name": "refund_response_lost",
+      "passed": true,
+      "sameKey": true,
+      "expiredRecovery": true,
+      "committedBeforeRecovery": true,
+      "duplicateExtraPosts": 0,
+      "inventoryRestored": true
+    },
+    {
+      "name": "refund_before_local_finish",
+      "passed": true,
+      "sameKey": true,
+      "expiredRecovery": true,
+      "committedBeforeRecovery": true,
+      "duplicateExtraPosts": 0,
+      "inventoryRestored": true
+    }
+  ],
+  "fixtureOrderCancelled": true,
+  "childrenStopped": true,
+  "finishedAt": "2026-10-10T15:13:14.907403+00:00"
+}

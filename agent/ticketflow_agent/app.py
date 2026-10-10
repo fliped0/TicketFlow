@@ -4,12 +4,12 @@ import re
 import time
 import uuid
 from contextlib import asynccontextmanager
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import FastAPI, Header, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from .config import Settings
 from .errors import AgentError
@@ -17,7 +17,7 @@ from .gateway import GatewayModel
 from .java import JavaClient
 from .model import DemoModel, DisabledModel
 from .service import Service
-from .tools import StrictInput, definitions
+from .tools import Id, StrictInput, definitions
 
 log = logging.getLogger("ticketflow.agent")
 
@@ -30,6 +30,27 @@ class Query(StrictInput):
 class Chat(StrictInput):
     message: str = Field(min_length=1, max_length=2000)
     sessionId: str | None = Field(default=None, pattern=r"^[0-9a-f-]{36}$")
+
+
+class Prepare(StrictInput):
+    operation: Literal["cancel", "refund"]
+    orderId: Id
+    sessionId: str | None = Field(default=None, pattern=r"^[0-9a-f-]{36}$")
+
+
+class Execute(StrictInput):
+    approved: bool
+
+    @field_validator("approved")
+    @classmethod
+    def explicit_approval(cls, value):
+        if value is not True:
+            raise ValueError("Explicit approval required")
+        return value
+
+
+class Empty(StrictInput):
+    pass
 
 
 def bearer(authorization: str | None):
@@ -70,7 +91,7 @@ def create_app(settings=None, *, transport=None, model=None, model_transport=Non
 
     app = FastAPI(
         title="TicketFlow Agent",
-        version="0.3.0",
+        version="0.4.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -186,6 +207,49 @@ def create_app(settings=None, *, transport=None, model=None, model_transport=Non
         async def action(svc, user_id, token):
             svc.delete_session(user_id, session_id)
             return {"deleted": True}
+
+        return await run(request, authorization, action)
+
+    @app.post("/agent/v1/confirmations")
+    async def prepare(body: Prepare, request: Request, authorization: Auth = None):
+        async def action(svc, user_id, token):
+            identifier, state = svc.session(user_id, body.sessionId)
+            try:
+                return await svc.prepare(user_id, token, body.operation, body.orderId, identifier)
+            finally:
+                state.busy = False
+
+        return await run(request, authorization, action)
+
+    @app.get("/agent/v1/confirmations/{identifier}")
+    async def confirmation(identifier: str, request: Request, authorization: Auth = None):
+        async def action(svc, user_id, token):
+            from .confirmations import card
+
+            return card(svc.confirmations.get(identifier, user_id))
+
+        return await run(request, authorization, action)
+
+    @app.post("/agent/v1/confirmations/{identifier}/execute")
+    async def execute(identifier: str, body: Execute, request: Request, authorization: Auth = None):
+        async def action(svc, user_id, token):
+            return await svc.execute(user_id, token, identifier)
+
+        return await run(request, authorization, action)
+
+    @app.post("/agent/v1/confirmations/{identifier}/recover")
+    async def recover(identifier: str, body: Empty, request: Request, authorization: Auth = None):
+        async def action(svc, user_id, token):
+            return await svc.execute(user_id, token, identifier, recover=True)
+
+        return await run(request, authorization, action)
+
+    @app.delete("/agent/v1/confirmations/{identifier}")
+    async def revoke(identifier: str, request: Request, authorization: Auth = None):
+        async def action(svc, user_id, token):
+            from .confirmations import card
+
+            return card(svc.confirmations.cancel(identifier, user_id))
 
         return await run(request, authorization, action)
 

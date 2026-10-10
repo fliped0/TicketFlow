@@ -1,0 +1,10 @@
+{
+  "checkedAtUtc": "2026-10-10T15:25:06.8640522Z",
+  "containers": [
+    "ticketflow-redis-1 Up 25 minutes (healthy)",
+    "ticketflow-rabbitmq-1 Up 25 minutes (healthy)"
+  ],
+  "scope": "read-only; no cloud Agent deployed",
+  "sshConnected": true,
+  "serverIp": "118.178.253.75"
+}

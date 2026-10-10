@@ -127,13 +127,27 @@ TOOLS = {
             "/knowledge/rules",
             "",
         ),
+        Tool(
+            "prepare_cancel",
+            "准备本人待支付订单的取消确认卡；不会执行取消",
+            OrderId,
+            "/agent/confirmations/cancel/{orderId}",
+            "",
+        ),
+        Tool(
+            "prepare_refund",
+            "准备本人已支付订单的模拟退款确认卡；不会执行退款",
+            OrderId,
+            "/agent/confirmations/refund/{orderId}",
+            "",
+        ),
     )
 }
 
 
 def get_tool(name: str) -> Tool:
     if name not in TOOLS:
-        raise AgentError("UNKNOWN_TOOL", 422, "不支持该工具；仅开放业务查询和本地规则检索")
+        raise AgentError("UNKNOWN_TOOL", 422, "不支持该工具；仅开放查询、规则检索和准备确认卡")
     return TOOLS[name]
 
 

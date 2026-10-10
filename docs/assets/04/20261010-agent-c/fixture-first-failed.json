@@ -1,0 +1,56 @@
+{
+  "runId": "1f0a9f7e0d67",
+  "startedAt": "2026-10-10T15:00:00.023862+00:00",
+  "database": "ticketflow_test",
+  "model": "demo; no live model",
+  "checks": [
+    {
+      "name": "search_events",
+      "passed": true
+    },
+    {
+      "name": "get_event",
+      "passed": true
+    },
+    {
+      "name": "list_sessions",
+      "passed": true
+    },
+    {
+      "name": "list_tiers",
+      "passed": true
+    },
+    {
+      "name": "list_my_orders",
+      "passed": true
+    },
+    {
+      "name": "get_my_order",
+      "passed": true
+    },
+    {
+      "name": "other_user_order_denied",
+      "passed": true
+    },
+    {
+      "name": "local_rule_http_sources",
+      "passed": true
+    },
+    {
+      "name": "local_rule_unknown_no_promise",
+      "passed": true
+    },
+    {
+      "name": "chat_session_isolation",
+      "passed": true
+    },
+    {
+      "name": "write_tool_and_invalid_jwt_denied",
+      "passed": true
+    }
+  ],
+  "passed": false,
+  "fixtureOrderCancelled": true,
+  "childrenStopped": true,
+  "finishedAt": "2026-10-10T15:00:14.731094+00:00"
+}

@@ -1,0 +1,20 @@
+{
+  "agentVersion": "0.4.0",
+  "baseCommit": "d4a7fdc0dc222f499e2ab138ddb0bf1446f821d2",
+  "python": "3.12.10",
+  "model": "qwen3.8-flash",
+  "apiBase": "https://maas.qianwenaiapi.com/compatible-mode/v1",
+  "temperature": 0.1,
+  "enableThinking": false,
+  "dailyRequests": 300,
+  "userDailyRequests": 100,
+  "rpm": 30,
+  "dailyAccountedUnits": 2000000,
+  "privateOrderQueryModelTool": false,
+  "javaResultsSentToModel": false,
+  "deployment": "local single instance; isolated ticketflow_test/tf_test; no cloud Agent deployment",
+  "jarSha256": "0919900afba403f90919d8022cc952c1951ad0f9495459c1235b25b8c6dab6fc",
+  "javaSourceChanged": false,
+  "openapiChanged": false,
+  "flywayChanged": false
+}

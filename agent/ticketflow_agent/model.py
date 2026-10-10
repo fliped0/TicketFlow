@@ -39,6 +39,16 @@ class DemoModel:
             return Decision((Call("list_my_orders"),))
         if message.startswith("规则 "):
             return Decision((Call("search_rules", {"query": message[3:]}),))
+        match = re.fullmatch(r"(取消|退款) ([1-9][0-9]{0,18})", message)
+        if match:
+            return Decision(
+                (
+                    Call(
+                        "prepare_cancel" if match[1] == "取消" else "prepare_refund",
+                        {"orderId": match[2]},
+                    ),
+                )
+            )
         match = re.fullmatch(r"(活动|场次|票档|订单) ([1-9][0-9]{0,18})", message)
         if match:
             name, key = {

@@ -284,7 +284,11 @@ def test_cancelled_gateway_retains_usage(backend, gateway_settings):
         {"gateway_url": "https://gateway.test/v1/v1"},
         {"allow_private_model_data": "false"},
         {"daily_requests": True},
-        {"requests_per_minute": 21},
+        {
+            "requests_per_minute": 21,
+            "gateway_url": "http://aigw.dlut.edu.cn/v1",
+            "allow_http_gateway": True,
+        },
         {"usage_path": ":memory:"},
         {"model_timeout": float("nan")},
     ],

@@ -49,7 +49,7 @@ def wait_for(url, process, timeout=60):
     raise TimeoutError("Owned child readiness timeout")
 
 
-def main(gateway=False):
+def main(gateway=False, confirmations=False, evaluation=False, faults=False):
     sys.path.insert(0, str(ROOT / "agent"))
     from ticketflow_agent.config import Settings
 
@@ -72,6 +72,7 @@ def main(gateway=False):
         TF_ADMIN_PASSWORD=password,
         TF_REDIS_ENABLED="false",
         TF_ASYNC_ENABLED="false",
+        TF_AGENT_CONFIRMATION_DB=str(ROOT / f".tools/confirm-{run_id}/confirmations.sqlite3"),
     )
     java = (
         str(Path(env["JAVA_HOME"]) / "bin/java.exe")
@@ -196,7 +197,9 @@ def main(gateway=False):
             if key.startswith(("TF_DB_", "TF_JWT_", "TF_ADMIN_")):
                 del agent_env[key]
         agent_env.update(
-            TF_AGENT_JAVA_URL=base, TF_AGENT_MODEL_MODE="gateway" if gateway else "demo"
+            TF_AGENT_JAVA_URL=base,
+            TF_AGENT_MODEL_MODE="gateway" if gateway else "demo",
+            TF_AGENT_CONFIRMATION_DB=env["TF_AGENT_CONFIRMATION_DB"],
         )
         with agent_log_path.open("wb") as log:
             agent_process = subprocess.Popen(
@@ -403,17 +406,42 @@ def main(gateway=False):
                 == 401
             )
             report["checks"].append({"name": "write_tool_and_invalid_jwt_denied", "passed": True})
+            if confirmations or evaluation or faults:
+                from live_confirmations import run_confirmations
+
+                extra = run_confirmations(
+                    api,
+                    assistant,
+                    business,
+                    run_id,
+                    event,
+                    fixture_order,
+                    tokens,
+                    admin_token,
+                    evaluation=evaluation,
+                    faults=faults,
+                )
+                report["checks"].extend(extra["checks"])
+                if "modelEvaluation" in extra:
+                    report["modelEvaluation"] = extra["modelEvaluation"]
+                    assert extra["modelEvaluation"]["failed"] == 0, (
+                        "Frozen model expectations failed"
+                    )
+                if "faultMatrix" in extra:
+                    report["faultMatrix"] = extra["faultMatrix"]
         report["passed"] = True
     finally:
         try:
             if fixture_order and api:
-                business(
-                    api,
-                    "POST",
-                    f"/api/v1/orders/{fixture_order}/cancel",
-                    json={},
-                    headers={"Idempotency-Key": "agent_cleanup_" + run_id},
-                )
+                current = business(api, "GET", f"/api/v1/orders/{fixture_order}")
+                if current["status"] == "PENDING":
+                    business(
+                        api,
+                        "POST",
+                        f"/api/v1/orders/{fixture_order}/cancel",
+                        json={},
+                        headers={"Idempotency-Key": "agent_cleanup_" + run_id},
+                    )
                 report["fixtureOrderCancelled"] = True
         except Exception:
             report["passed"] = False
@@ -443,4 +471,15 @@ def main(gateway=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gateway", action="store_true")
-    main(gateway=parser.parse_args().gateway)
+    parser.add_argument("--confirmations", action="store_true")
+    parser.add_argument("--evaluation", action="store_true")
+    parser.add_argument("--faults", action="store_true")
+    args = parser.parse_args()
+    if args.evaluation and not args.gateway:
+        parser.error("--evaluation requires --gateway")
+    main(
+        gateway=args.gateway,
+        confirmations=args.confirmations,
+        evaluation=args.evaluation,
+        faults=args.faults,
+    )

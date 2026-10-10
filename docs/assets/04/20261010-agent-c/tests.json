@@ -1,0 +1,12 @@
+{
+  "tests": 245,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": 245,
+  "scope": "deterministic Agent; includes 40 local rules; no provider calls",
+  "warning": "Starlette TestClient HTTPX deprecation",
+  "lint": "passed",
+  "lock": "locked offline check passed",
+  "powershellSyntax": "passed"
+}

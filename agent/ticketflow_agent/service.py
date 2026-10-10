@@ -4,8 +4,10 @@ import time
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from .config import Settings
+from .confirmations import ConfirmationStore, card, fingerprint
 from .errors import AgentError
 from .gateway import GatewayDecision, GatewayModel
 from .model import Decision
@@ -26,12 +28,100 @@ class Service:
         self.sessions: dict[str, Session] = {}
         self.active = 0
         self.rules = RuleStore()
+        self._confirmations = None
 
-    async def query(self, tool_name, arguments, token):
+    @property
+    def confirmations(self):
+        if self._confirmations is None:
+            try:
+                self._confirmations = ConfirmationStore(self.settings)
+            except AgentError:
+                raise
+            except (OSError, TypeError, ValueError):
+                raise AgentError(
+                    "CONFIRMATIONS_UNAVAILABLE", 503, "确认仓储不可用，停止交易"
+                ) from None
+        return self._confirmations
+
+    @staticmethod
+    def check_operation(operation, snapshot):
+        expected = "PENDING" if operation == "cancel" else "PAID"
+        if snapshot["status"] != expected:
+            raise AgentError("CONFIRMATION_ORDER_STATE", 409, "当前订单状态不允许准备此操作")
+        if operation == "refund":
+            try:
+                starts = datetime.fromisoformat(
+                    snapshot["snapshot"]["startsAt"].replace("Z", "+00:00")
+                )
+                if starts.tzinfo is None:
+                    raise ValueError("Missing timezone")
+            except (ValueError, TypeError, AttributeError):
+                raise AgentError(
+                    "JAVA_INVALID_RESPONSE", 502, "订单开场时间不符合接口契约"
+                ) from None
+            if datetime.now(UTC) >= starts:
+                raise AgentError("CONFIRMATION_REFUND_CLOSED", 409, "已经到开场时间，不能准备退款")
+
+    async def prepare(self, user, token, operation, order_id, session_id):
+        order = await self.java.query(get_tool("get_my_order"), {"orderId": order_id}, token)
+        self.check_operation(operation, order["data"])
+        row = self.confirmations.prepare(user, session_id, operation, order["data"])
+        return card(row)
+
+    async def execute(self, user, token, identifier, *, recover=False):
+        row, claimed = self.confirmations.claim(identifier, user, recover=recover)
+        if not claimed:
+            return card(row)
+        sent = False
+        try:
+            if await self.java.identity(token) != user:
+                raise AgentError("UNAUTHENTICATED", 401, "认证身份发生变化，请重新登录")
+            if not recover:
+                order = await self.java.query(
+                    get_tool("get_my_order"), {"orderId": row["order_id"]}, token
+                )
+                if fingerprint(order["data"]) != row["digest"]:
+                    self.confirmations.finish(
+                        row, "REJECTED", {"code": "CONFIRMATION_SNAPSHOT_CHANGED"}
+                    )
+                    return card(self.confirmations.get(identifier, user))
+                try:
+                    self.check_operation(row["operation"], order["data"])
+                except AgentError as error:
+                    self.confirmations.finish(row, "REJECTED", {"code": error.code})
+                    return card(self.confirmations.get(identifier, user))
+            sent = True
+            state, result = await self.java.trade(row, token)
+            self.confirmations.finish(row, state, result)
+            return card(self.confirmations.get(identifier, user))
+        except BaseException:
+            # Cancellation/crash after approval never creates a new key or claims failure.
+            self.confirmations.finish(row, "UNKNOWN" if sent or recover else "PENDING")
+            raise
+
+    async def query(self, tool_name, arguments, token, session_id=None):
         tool = get_tool(tool_name)
         tool.bind(arguments)
         if tool.name == "search_rules":
             return self.rules.search(arguments)
+        if tool.name in {"prepare_cancel", "prepare_refund"}:
+            user = await self.java.identity(token)
+            prepared = await self.prepare(
+                user,
+                token,
+                tool.name.removeprefix("prepare_"),
+                arguments["orderId"],
+                session_id or str(uuid.uuid4()),
+            )
+            return {
+                "tool": tool.name,
+                "data": prepared,
+                "source": {
+                    "method": "LOCAL",
+                    "path": "/agent/v1/confirmations",
+                    "params": {"orderId": arguments["orderId"]},
+                },
+            }
         return await self.java.query(tool, arguments, token)
 
     @contextmanager
@@ -131,6 +221,12 @@ class Service:
                     }
                     if any(c["tool"] == "search_rules" for c in cards):
                         response["citations"] = citations
+                    confirmations = [c["data"] for c in cards if c["tool"].startswith("prepare_")]
+                    if confirmations:
+                        response["confirmations"] = confirmations
+                        response["message"] += (
+                            "\n操作尚未执行，请核对确认卡并通过独立确认入口执行。"
+                        )
                     return response
                 if not decision.calls:
                     raise AgentError("MODEL_INVALID_OUTPUT", 502, "模型未给出可执行查询")
@@ -173,7 +269,7 @@ class Service:
                     if call.name == "search_rules":
                         # A model cannot erase the unknown/private part of the user's question.
                         arguments = {**arguments, "query": message}
-                    results.append(await self.query(call.name, arguments, token))
+                    results.append(await self.query(call.name, arguments, token, session_id))
             raise AgentError("MODEL_BUDGET_EXCEEDED", 429, "本轮模型调用次数已达上限")
         except BaseException:
             if created:

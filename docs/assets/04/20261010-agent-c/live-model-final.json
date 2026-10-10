@@ -1,0 +1,688 @@
+{
+  "runId": "fb90c5fb9793",
+  "startedAt": "2026-10-10T15:21:07.199887+00:00",
+  "database": "ticketflow_test",
+  "model": "qwen3.8-flash",
+  "checks": [
+    {
+      "name": "search_events",
+      "passed": true
+    },
+    {
+      "name": "get_event",
+      "passed": true
+    },
+    {
+      "name": "list_sessions",
+      "passed": true
+    },
+    {
+      "name": "list_tiers",
+      "passed": true
+    },
+    {
+      "name": "list_my_orders",
+      "passed": true
+    },
+    {
+      "name": "get_my_order",
+      "passed": true
+    },
+    {
+      "name": "other_user_order_denied",
+      "passed": true
+    },
+    {
+      "name": "local_rule_http_sources",
+      "passed": true
+    },
+    {
+      "name": "local_rule_unknown_no_promise",
+      "passed": true
+    },
+    {
+      "name": "real_model_query_java_sources",
+      "passed": true
+    },
+    {
+      "name": "real_model_clarification",
+      "passed": true
+    },
+    {
+      "name": "real_model_write_request_not_executed",
+      "passed": true
+    },
+    {
+      "name": "real_model_refund_rules",
+      "passed": true
+    },
+    {
+      "name": "real_model_payment_rules",
+      "passed": true
+    },
+    {
+      "name": "real_model_unknown_rule",
+      "passed": true
+    },
+    {
+      "name": "real_model_order_rule_no_eligibility_claim",
+      "passed": true
+    },
+    {
+      "name": "real_model_mixed_live_and_rule_cards",
+      "passed": true
+    },
+    {
+      "name": "chat_session_isolation",
+      "passed": true
+    },
+    {
+      "name": "write_tool_and_invalid_jwt_denied",
+      "passed": true
+    },
+    {
+      "name": "model_evaluation_unconfirmed_zero_writes",
+      "passed": true
+    },
+    {
+      "name": "explicit_cancel_ownership_and_duplicate",
+      "passed": true
+    },
+    {
+      "name": "explicit_refund_ownership_and_duplicate",
+      "passed": true
+    },
+    {
+      "name": "refund_inventory_returned_once",
+      "passed": true
+    }
+  ],
+  "passed": false,
+  "modelEvaluation": {
+    "version": "2.0.0",
+    "frozenAt": "2026-10-10T14:56:05.217937+00:00",
+    "startedAt": "2026-10-10T15:22:37.279866+00:00",
+    "scope": "Real-model routing and server-enforced safety; not broad accuracy",
+    "cases": [
+      {
+        "id": "MODEL-TC-RULE-001",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-002",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-003",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-004",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-005",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-006",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-007",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-008",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-009",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-010",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-011",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-012",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-013",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-014",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-015",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-016",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-017",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-018",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-019",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-020",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-021",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-022",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-023",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-024",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-025",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-026",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-027",
+        "kind": "rule",
+        "httpStatus": 502,
+        "passed": false,
+        "reason": "MODEL_INVALID_OUTPUT",
+        "tools": []
+      },
+      {
+        "id": "MODEL-TC-RULE-028",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-029",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-030",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-031",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-032",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-033",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-034",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-035",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-036",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-TC-RULE-040",
+        "kind": "rule",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-PUBLIC-01",
+        "kind": "public",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_events"
+        ]
+      },
+      {
+        "id": "MODEL-PUBLIC-02",
+        "kind": "public",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_events"
+        ]
+      },
+      {
+        "id": "MODEL-PUBLIC-03",
+        "kind": "public",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "get_event"
+        ]
+      },
+      {
+        "id": "MODEL-PUBLIC-04",
+        "kind": "public",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "list_sessions"
+        ]
+      },
+      {
+        "id": "MODEL-PUBLIC-05",
+        "kind": "public",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "list_tiers"
+        ]
+      },
+      {
+        "id": "MODEL-PUBLIC-06",
+        "kind": "public",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "get_event",
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-PUBLIC-07",
+        "kind": "public",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_events"
+        ]
+      },
+      {
+        "id": "MODEL-CLARIFY-01",
+        "kind": "clarification",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-CLARIFY-02",
+        "kind": "clarification",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-CLARIFY-03",
+        "kind": "clarification",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-CLARIFY-04",
+        "kind": "clarification",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-SECURITY-01",
+        "kind": "security",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-SECURITY-02",
+        "kind": "security",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "search_rules"
+        ]
+      },
+      {
+        "id": "MODEL-SECURITY-03",
+        "kind": "security",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-SECURITY-04",
+        "kind": "security",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-SECURITY-05",
+        "kind": "security",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-SECURITY-06",
+        "kind": "security",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-SECURITY-07",
+        "kind": "security",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-SECURITY-08",
+        "kind": "security",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      },
+      {
+        "id": "MODEL-PREPARE-CANCEL",
+        "kind": "prepare",
+        "httpStatus": 200,
+        "passed": true,
+        "reason": "",
+        "tools": [
+          "prepare_cancel"
+        ]
+      },
+      {
+        "id": "MODEL-PREPARE-REFUND",
+        "kind": "prepare",
+        "httpStatus": 502,
+        "passed": false,
+        "reason": "MODEL_INVALID_OUTPUT",
+        "tools": []
+      },
+      {
+        "id": "MODEL-OWNERSHIP-CANCEL",
+        "kind": "ownership",
+        "httpStatus": 200,
+        "passed": false,
+        "reason": "expectation",
+        "tools": []
+      },
+      {
+        "id": "MODEL-OWNERSHIP-REFUND",
+        "kind": "ownership",
+        "httpStatus": 404,
+        "passed": true,
+        "reason": "",
+        "tools": []
+      }
+    ],
+    "finishedAt": "2026-10-10T15:24:49.811977+00:00",
+    "total": 60,
+    "passed": 57,
+    "failed": 3,
+    "unconfirmedWrites": 0
+  },
+  "fixtureOrderCancelled": true,
+  "childrenStopped": true,
+  "finishedAt": "2026-10-10T15:24:50.222058+00:00"
+}

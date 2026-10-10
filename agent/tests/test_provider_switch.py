@@ -28,6 +28,7 @@ def test_qwen_wire_path_model_and_thinking(backend, tmp_path):
         body = json.loads(request.content)
         assert body["model"] == "qwen3.8-flash"
         assert body["enable_thinking"] is False and body["stream"] is False
+        assert body["temperature"] == 0.1
         assert body["response_format"] == {"type": "json_object"}
         return httpx.Response(200, json=completion("search_events", {"city": "杭州"}))
 

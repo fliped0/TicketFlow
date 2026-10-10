@@ -1,0 +1,54 @@
+[
+  {
+    "file": "model-first-failed.json",
+    "frozenTotal": 60,
+    "passed": 59,
+    "failed": 1,
+    "baselineModelCases": 8,
+    "requests": 68,
+    "reportedTokens": 125909,
+    "unknown": 0,
+    "unconfirmedWrites": 0,
+    "startedAt": "2026-10-10T15:04:27.788817+00:00",
+    "finishedAt": "2026-10-10T15:08:04.663191+00:00"
+  },
+  {
+    "file": "model-second-failed.json",
+    "frozenTotal": 60,
+    "passed": 58,
+    "failed": 2,
+    "baselineModelCases": 8,
+    "requests": 68,
+    "reportedTokens": 130827,
+    "unknown": 0,
+    "unconfirmedWrites": 0,
+    "startedAt": "2026-10-10T15:09:26.670489+00:00",
+    "finishedAt": "2026-10-10T15:13:16.955752+00:00"
+  },
+  {
+    "file": "model-third-failed.json",
+    "frozenTotal": 60,
+    "passed": 58,
+    "failed": 2,
+    "baselineModelCases": 8,
+    "requests": 68,
+    "reportedTokens": 134600,
+    "unknown": 0,
+    "unconfirmedWrites": 0,
+    "startedAt": "2026-10-10T15:15:17.571957+00:00",
+    "finishedAt": "2026-10-10T15:19:10.779354+00:00"
+  },
+  {
+    "file": "live-model-final.json",
+    "frozenTotal": 60,
+    "passed": 57,
+    "failed": 3,
+    "baselineModelCases": 8,
+    "requests": 68,
+    "reportedTokens": 138196,
+    "unknown": 0,
+    "unconfirmedWrites": 0,
+    "startedAt": "2026-10-10T15:21:07.199887+00:00",
+    "finishedAt": "2026-10-10T15:24:50.222058+00:00"
+  }
+]

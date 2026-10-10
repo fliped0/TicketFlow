@@ -12,7 +12,9 @@ from ticketflow_agent.java import CONTRACT
 @pytest.fixture(autouse=True)
 def isolated_configuration(monkeypatch, tmp_path):
     monkeypatch.setenv("TF_AGENT_CONFIG", str(tmp_path / "absent-config.json"))
-    for name in ("TF_AGENT_MODEL_MODE", "TF_AGENT_API_KEY", "TF_AGENT_JAVA_URL"):
+    for name in (
+        "TF_AGENT_MODEL_MODE", "TF_AGENT_API_KEY", "TF_AGENT_JAVA_URL", "TF_AGENT_CONFIRMATION_DB"
+    ):
         monkeypatch.delenv(name, raising=False)
 
 

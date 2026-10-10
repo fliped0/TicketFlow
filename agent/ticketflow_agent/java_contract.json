@@ -710,6 +710,110 @@
             "type": "boolean"
           }
         }
+      },
+      "TradeResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId",
+          "replayed"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "OK"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TradeResult"
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TradeResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "orderId",
+          "operationStatus",
+          "currentOrderStatus",
+          "amountFen",
+          "expiresAt",
+          "paymentId",
+          "refundId"
+        ],
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+          },
+          "operationStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PAID",
+              "CANCELLED",
+              "CLOSED",
+              "REFUNDED"
+            ]
+          },
+          "currentOrderStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PAID",
+              "CANCELLED",
+              "CLOSED",
+              "REFUNDED"
+            ]
+          },
+          "amountFen": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO 8601"
+          },
+          "paymentId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$",
+                "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "refundId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$",
+                "description": "正数 BIGINT 十进制字符串，最大 9223372036854775807"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
       }
     }
   }

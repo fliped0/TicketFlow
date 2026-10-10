@@ -27,11 +27,14 @@ class Settings:
     model_timeout: float = 30.0
     max_input_bytes: int = 8000
     max_output_tokens: int = 1024
-    daily_requests: int = 20
-    user_daily_requests: int = 10
-    requests_per_minute: int = 10
-    daily_token_budget: int = 200000
+    daily_requests: int = 300
+    user_daily_requests: int = 100
+    requests_per_minute: int = 30
+    daily_token_budget: int = 2000000
     usage_path: str = field(default=".runtime/model-usage.sqlite3", repr=False)
+    confirmation_path: str = field(default=".runtime/confirmations.sqlite3", repr=False)
+    confirmation_ttl: float = 300.0
+    confirmation_lease: float = 60.0
 
     def __post_init__(self):
         for flag in (self.allow_http_gateway, self.allow_private_model_data):
@@ -107,17 +110,29 @@ class Settings:
             "user_daily_requests",
             "requests_per_minute",
             "daily_token_budget",
+            "confirmation_ttl",
+            "confirmation_lease",
         ):
             value = getattr(self, name)
-            is_timeout = name in {"java_timeout", "turn_timeout", "session_ttl", "model_timeout"}
+            is_timeout = name in {
+                "java_timeout",
+                "turn_timeout",
+                "session_ttl",
+                "model_timeout",
+                "confirmation_ttl",
+                "confirmation_lease",
+            }
             if (
                 (type(value) not in {int, float} if is_timeout else type(value) is not int)
                 or not math.isfinite(value)
                 or value <= 0
             ):
                 raise ValueError(f"{name} must be positive")
-        if self.requests_per_minute > 20:
-            raise ValueError("Local gateway request limit must not exceed 20 RPM")
+        if "aigw.dlut.edu.cn" == urlsplit(self.gateway_url).hostname:
+            if self.requests_per_minute > 20:
+                raise ValueError("Legacy school gateway request limit must not exceed 20 RPM")
+        if not self.confirmation_path or self.confirmation_path == ":memory:":
+            raise ValueError("Confirmations require persistent local storage")
 
     @classmethod
     def from_env(cls):
@@ -143,7 +158,12 @@ class Settings:
             if values.get("gateway_key") and not values.get("gateway_key_url"):
                 # Legacy credentials belonged to the previously explicit endpoint.
                 values["gateway_key_url"] = values.get("gateway_url", "http://aigw.dlut.edu.cn/v1")
+            if urlsplit(values.get("gateway_url", "")).hostname == "aigw.dlut.edu.cn":
+                values.setdefault("requests_per_minute", 10)
         values["usage_path"] = str(root / "agent/.runtime/model-usage.sqlite3")
+        values["confirmation_path"] = os.getenv(
+            "TF_AGENT_CONFIRMATION_DB", str(root / "agent/.runtime/confirmations.sqlite3")
+        )
         values["java_url"] = os.getenv("TF_AGENT_JAVA_URL", "http://127.0.0.1:8080")
         values["model_mode"] = os.getenv("TF_AGENT_MODEL_MODE", "disabled")
         if os.getenv("TF_AGENT_API_KEY"):

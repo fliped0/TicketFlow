@@ -83,10 +83,10 @@ def main():
         "gateway_key_url": args.url,
         "allow_http_gateway": args.allow_http,
         "allow_private_model_data": args.share_order_data,
-        "daily_requests": previous.get("daily_requests", 20),
-        "user_daily_requests": previous.get("user_daily_requests", 10),
-        "requests_per_minute": previous.get("requests_per_minute", 10),
-        "daily_token_budget": previous.get("daily_token_budget", 200000),
+        "daily_requests": previous.get("daily_requests", Settings.daily_requests),
+        "user_daily_requests": previous.get("user_daily_requests", Settings.user_daily_requests),
+        "requests_per_minute": previous.get("requests_per_minute", Settings.requests_per_minute),
+        "daily_token_budget": previous.get("daily_token_budget", Settings.daily_token_budget),
     }
     try:
         target = save_local(values, replace=args.replace)
@@ -96,7 +96,7 @@ def main():
         ) from None
     print(f"本地配置已保存：{target}")
     print("本地请求/用量限制与历史账本保留；实际计费和平台额度以新接口控制台为准。")
-    print("订单结果外发：" + ("已开启" if args.share_order_data else "关闭；直接查询工具仍可使用"))
+    print("模型本人订单查询：" + ("已开启；结果仅在本地显示" if args.share_order_data else "关闭"))
 
 
 if __name__ == "__main__":
