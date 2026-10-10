@@ -1,0 +1,509 @@
+{
+  "capturedAt": "2026-10-10T14:08:48.016401+00:00",
+  "frozenAt": "2026-10-10T13:48:05.937731+00:00",
+  "scope": "Local reviewed retrieval and deterministic rendering; not real-model accuracy",
+  "total": 40,
+  "passed": 40,
+  "statuses": {
+    "MATCHED": 29,
+    "INSUFFICIENT": 6,
+    "NEEDS_ORDER_QUERY": 2,
+    "ACTION_REQUIRED": 2,
+    "NEEDS_LIVE_DATA": 1
+  },
+  "withRuleCitations": 31,
+  "withoutRuleCitations": 9,
+  "cases": [
+    {
+      "id": "TC-RULE-001",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-001"
+      ],
+      "actualRuleIds": [
+        "BR-001"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-002",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-001"
+      ],
+      "actualRuleIds": [
+        "BR-001"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-003",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-002"
+      ],
+      "actualRuleIds": [
+        "BR-002"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-004",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-002"
+      ],
+      "actualRuleIds": [
+        "BR-002"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-005",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-005",
+        "BR-002"
+      ],
+      "actualRuleIds": [
+        "BR-002",
+        "BR-004",
+        "BR-005"
+      ],
+      "citationCount": 6,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-006",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-002"
+      ],
+      "actualRuleIds": [
+        "BR-002"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-007",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-003"
+      ],
+      "actualRuleIds": [
+        "BR-003"
+      ],
+      "citationCount": 2,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-008",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-003"
+      ],
+      "actualRuleIds": [
+        "BR-003"
+      ],
+      "citationCount": 2,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-009",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-003"
+      ],
+      "actualRuleIds": [
+        "BR-003"
+      ],
+      "citationCount": 2,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-010",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-003"
+      ],
+      "actualRuleIds": [
+        "BR-003"
+      ],
+      "citationCount": 2,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-011",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-003"
+      ],
+      "actualRuleIds": [
+        "BR-003"
+      ],
+      "citationCount": 2,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-012",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-004"
+      ],
+      "actualRuleIds": [
+        "BR-004"
+      ],
+      "citationCount": 3,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-013",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-004"
+      ],
+      "actualRuleIds": [
+        "BR-004"
+      ],
+      "citationCount": 3,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-014",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-004"
+      ],
+      "actualRuleIds": [
+        "BR-004"
+      ],
+      "citationCount": 3,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-015",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-004"
+      ],
+      "actualRuleIds": [
+        "BR-004"
+      ],
+      "citationCount": 3,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-016",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-004"
+      ],
+      "actualRuleIds": [
+        "BR-004"
+      ],
+      "citationCount": 3,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-017",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-CANCEL"
+      ],
+      "actualRuleIds": [
+        "TF-RULE-CANCEL"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-018",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-CANCEL"
+      ],
+      "actualRuleIds": [
+        "TF-RULE-CANCEL"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-019",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-CANCEL"
+      ],
+      "actualRuleIds": [
+        "TF-RULE-CANCEL"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-020",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-DELIST"
+      ],
+      "actualRuleIds": [
+        "TF-RULE-DELIST"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-021",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-DELIST"
+      ],
+      "actualRuleIds": [
+        "BR-004",
+        "TF-RULE-DELIST"
+      ],
+      "citationCount": 4,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-022",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-005"
+      ],
+      "actualRuleIds": [
+        "BR-004",
+        "BR-005"
+      ],
+      "citationCount": 5,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-023",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-006"
+      ],
+      "actualRuleIds": [
+        "BR-006"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-024",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-007"
+      ],
+      "actualRuleIds": [
+        "BR-007",
+        "TF-RULE-SALE"
+      ],
+      "citationCount": 2,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-025",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-SALE"
+      ],
+      "actualRuleIds": [
+        "TF-RULE-SALE"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-026",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-SIMULATION"
+      ],
+      "actualRuleIds": [
+        "TF-RULE-SIMULATION"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-027",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-SIMULATION"
+      ],
+      "actualRuleIds": [
+        "BR-004",
+        "TF-RULE-SIMULATION"
+      ],
+      "citationCount": 4,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-028",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "TF-RULE-SIMULATION"
+      ],
+      "actualRuleIds": [
+        "TF-RULE-SIMULATION"
+      ],
+      "citationCount": 1,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-029",
+      "expectedStatus": "INSUFFICIENT",
+      "actualStatus": "INSUFFICIENT",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-030",
+      "expectedStatus": "INSUFFICIENT",
+      "actualStatus": "INSUFFICIENT",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-031",
+      "expectedStatus": "INSUFFICIENT",
+      "actualStatus": "INSUFFICIENT",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-032",
+      "expectedStatus": "INSUFFICIENT",
+      "actualStatus": "INSUFFICIENT",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-033",
+      "expectedStatus": "INSUFFICIENT",
+      "actualStatus": "INSUFFICIENT",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-034",
+      "expectedStatus": "INSUFFICIENT",
+      "actualStatus": "INSUFFICIENT",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-035",
+      "expectedStatus": "NEEDS_ORDER_QUERY",
+      "actualStatus": "NEEDS_ORDER_QUERY",
+      "requiredRuleIds": [
+        "BR-004"
+      ],
+      "actualRuleIds": [
+        "BR-004"
+      ],
+      "citationCount": 3,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-036",
+      "expectedStatus": "NEEDS_ORDER_QUERY",
+      "actualStatus": "NEEDS_ORDER_QUERY",
+      "requiredRuleIds": [
+        "BR-003"
+      ],
+      "actualRuleIds": [
+        "BR-003"
+      ],
+      "citationCount": 2,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-037",
+      "expectedStatus": "ACTION_REQUIRED",
+      "actualStatus": "ACTION_REQUIRED",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-038",
+      "expectedStatus": "ACTION_REQUIRED",
+      "actualStatus": "ACTION_REQUIRED",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-039",
+      "expectedStatus": "NEEDS_LIVE_DATA",
+      "actualStatus": "NEEDS_LIVE_DATA",
+      "requiredRuleIds": [],
+      "actualRuleIds": [],
+      "citationCount": 0,
+      "passed": true
+    },
+    {
+      "id": "TC-RULE-040",
+      "expectedStatus": "MATCHED",
+      "actualStatus": "MATCHED",
+      "requiredRuleIds": [
+        "BR-004"
+      ],
+      "actualRuleIds": [
+        "BR-004"
+      ],
+      "citationCount": 3,
+      "passed": true
+    }
+  ]
+}

@@ -95,5 +95,5 @@ class UsageLedger:
             "requests": requests,
             "accountedTokens": accounted,
             "unknownUsageRequests": unknown,
-            "billing": "school quota; no currency estimate",
+            "billing": "local usage accounting; provider billing applies; no currency estimate",
         }

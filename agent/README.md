@@ -1,6 +1,6 @@
 # TicketFlow Agent 查询服务
 
-V3 批次 A 提供独立 Python 服务、六项认证查询工具、受限编排与本机客户端。学校网关适配器使用 `DeepSeek-V4-Flash-0731-W8A8`，调用 `POST http://aigw.dlut.edu.cn/v1/chat/completions`。查询事实来自真实 Java API 的来源卡片。规则检索、写确认和多轮记忆留后续批次；Java 接口与 Flyway 不变。
+独立 Python 服务提供六项 Java 查询与本地 `search_rules`，回答和出处由服务器生成。默认模型已改为 `qwen3.8-flash`，接口为 `POST https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions`。新接口真实调用待本机配置对应密钥，历史学校网关验收另存。写确认和多轮记忆留后续；Java 接口与 Flyway 不变。
 
 ## 1. 配置与启动
 
@@ -13,10 +13,10 @@ uv sync --project agent --locked --python D:\develop\Python-3.12\python.exe --ca
 下面的命令可直接在 **CMD** 中逐条执行。先配置新密钥，输入不回显；本机已配置的跳过：
 
 ```bat
-"D:\develop\TicketFlow\agent\.venv\Scripts\python.exe" "D:\develop\TicketFlow\agent\setup_gateway.py" --allow-http
+"D:\develop\TicketFlow\agent\.venv\Scripts\python.exe" "D:\develop\TicketFlow\agent\setup_gateway.py" --replace
 ```
 
-密钥只保存于忽略的 `config/local/agent.json`，Windows 权限限定当前用户与 SYSTEM。轮换加 `--replace`，不会重置用量；不要把密钥发到聊天里。学校地址当前为 HTTP，`--allow-http` 明确启用该地址，应在可信网络使用；其他 HTTP 网关不允许。学校密钥和 Java 登录令牌是不同凭据。
+密钥只保存于忽略的 `config/local/agent.json`，Windows 权限限定当前用户与 SYSTEM。配置记录密钥所属接口，切换接口但未换密钥时阻止模型启动；不会把旧学校密钥自动发给千问。轮换加 `--replace`，保留原有配额和历史用量；不要把密钥发到聊天里。可用 `--url` 和 `--model` 指定接口与模型；新接口为 HTTPS，无需 `--allow-http`。兼容旧学校 HTTP 地址仍须明确启用，其他 HTTP 网关不允许。模型密钥和 Java 登录令牌是不同凭据。
 
 在三个终端分别启动 Java、Agent 和聊天客户端；Java 已在 8080 运行则跳过第一条：
 
@@ -45,12 +45,26 @@ Agent 监听 `127.0.0.1:8090`。除健康检查外，每次请求携带当前用
 | 方法与路径 | 行为 |
 | --- | --- |
 | `GET /health` | 存活和模式，不代表依赖已就绪 |
-| `GET /agent/v1/tools` | 六项直接查询工具与参数 schema |
+| `GET /agent/v1/tools` | 七项直接查询工具与参数 schema |
 | `POST /agent/v1/query` | `{"tool":"search_events","arguments":{"city":"杭州"}}` |
 | `POST /agent/v1/chat` | `{"message":"查询杭州活动","sessionId":null}` |
 | `DELETE /agent/v1/sessions/{id}` | 删除本人空闲会话，不撤销 JWT |
 
 六项工具为 `search_events`、`get_event`、`list_sessions`、`list_tiers`、`list_my_orders`、`get_my_order`，只绑定固定 GET 路径，不接受 userId、URL、HTTP 方法或请求头。列表最多 20 条，ID 为正 BIGINT。本人的订单仍由 Java 检查归属，404 不区分不存在与无权访问。
+
+第七项 `search_rules` 只检索固定审核资料，参数为 `query`（1～2,000 字符）和 `limit`（默认 3、最多 5）。11 条 v1.0.0 规则覆盖一单一票、同场资格、支付期限、退款边界、回补、凭证、字段冻结、开售、下架、取消及模拟交易。来源限定需求/API 文档，校验版本、回答、原文、章节锚点及文档哈希；资料变化或损坏只停用规则工具，返回 `RULES_UNAVAILABLE`。详见 [资料审核说明](knowledge/README.md)。
+
+聊天可问“解释本项目开场前退款规则并提供出处”；直接查询使用 `search_rules` 和 `{"query":"退款规则"}`，无需真实模型；demo 固定指令为“规则 退款规则”。聊天 `citations` 由服务器生成，含规则编号/版本、路径、真实章节/行号、摘录与哈希。混合查询分别显示 LOCAL 规则与 GET 实时卡片。
+
+| 规则状态 | 行为 |
+| --- | --- |
+| `MATCHED` | 通用规则及出处 |
+| `INSUFFICIENT` | 无资料，不承诺到账时间等未知政策 |
+| `NEEDS_ORDER_QUERY` | 说明通用规则，不能认定指定订单可操作 |
+| `NEEDS_LIVE_DATA` | 价格、库存与具体开售时间须实时查询 |
+| `ACTION_REQUIRED` | 本阶段无法执行交易或修改规则 |
+
+检索使用显式词组，不能保证任意自然语言覆盖；聊天使用原问题，防止模型删去未知政策或订单条件。规则结果与摘录不回传模型。
 
 工具响应经过 Java schema 校验和字段投影，裁去支付/退款明细及内部版本。卡片 `source` 含路径、参数、UTC 查询时间和 Java traceId。模型只接收系统约束、用户问题和工具定义，不接收 Java 查询结果、JWT 或用户身份。
 
@@ -58,7 +72,9 @@ Agent 监听 `127.0.0.1:8090`。除健康检查外，每次请求携带当前用
 
 ## 3. 隐私、会话和额度
 
-**默认只向模型开放目录查询。** 模型只见四项公开目录工具与 `finish`；六项直接查询仍开放给认证用户。只有配置时显式加 `--share-order-data`（已有配置同时加 `--replace`）才开启模型的本人订单查询。该兼容选项在当前一次解析模式只开放工具，订单结果仍在本地展示，不回传模型；用户问题本身可能含用户提供的订单编号。本批真实模型仅验证公开查询；订单开关仅在模拟网关测试中验证。
+**默认向模型开放四项目录查询、`search_rules` 与 `finish`。** 七项直接查询仍开放给认证用户。只有配置时显式加 `--share-order-data`（已有配置同时加 `--replace`）才开启模型的本人订单查询。该兼容选项在当前一次解析模式只开放工具，订单结果仍在本地展示，不回传模型；用户问题本身可能含用户提供的订单编号。订单开关仅在模拟网关测试中验证，真实订单自然语言质量未验收。
+
+Qwen3.8-Flash 请求显式关闭思考（`enable_thinking:false`），继续非流式一次解析。接口、JSON 与扩展参数参考 [千问官方兼容文档](https://platform.qianwenai.com/docs/api-reference/toolkitframework/openai-compatible/overview)，2026-10-10 核对；实际账户权限和响应兼容性待真实联调。
 
 会话不保存历史聊天或工具结果，“刚才那个订单”没有多轮记忆。最多 256 个会话，闲置 30 分钟失效，重启清空；同会话串行，全局最多 8 个活动请求。
 
@@ -71,9 +87,9 @@ Agent 监听 `127.0.0.1:8090`。除健康检查外，每次请求携带当前用
 | 本地模型请求配额 | 每 UTC 日共 20 次、每用户 10 次、每分钟 10 次 |
 | 本地用量预算 | 每 UTC 日 200,000 计量单位 |
 
-用量保存在忽略的 `agent/.runtime/model-usage.sqlite3`，发送前原子预留，重启不重置。按网关报告的 prompt/completion tokens 结算；失败、超时或缺 usage 保留 9,024 单位预留。**字节不是精确 tokenizer 计数**，9,024 是保守本地记账值，不是精确 token 或货币成本。不显示猜测费用；实际用量以学校控制台为准。损坏账本不自动删除重建。
+用量保存在忽略的 `agent/.runtime/model-usage.sqlite3`，发送前原子预留，重启和接口切换均不重置。按网关报告的 prompt/completion tokens 结算；失败、超时或缺 usage 保留 9,024 单位预留。**字节不是精确 tokenizer 计数**，9,024 是保守本地记账值，不是精确 token 或货币成本。不显示猜测费用；实际计费、套餐、余额和平台额度以新接口控制台为准，当前未实现持久货币费用上限。损坏账本不自动删除重建。
 
-学校指南公布每月 1 亿 token、每月 1 日重置不结转、20 RPM，供个人学习科研使用。本地更小的额度不包含同账号其他客户端的消耗。来源：[学校说明](https://its.dlut.edu.cn/info/2453/337368.htm)，2026-10-09 核对；工具协议参考 [New API 文档](https://doc.newapi.pro/en/api/openai-chat/)，具体模型兼容性以真实测试为依据。
+旧学校月度免费额度只属于 [历史学校联调](../docs/assets/04/20261009-agent-gateway/summary.md)，不适用于当前千问接口。本地额度不包含同账号其他客户端的消耗。
 
 ## 4. 错误、验证与范围
 
@@ -84,12 +100,12 @@ Agent 监听 `127.0.0.1:8090`。除健康检查外，每次请求携带当前用
 ./scripts/test-agent.ps1
 # 实际 Java/Agent/MySQL，固定 demo
 ./scripts/test-agent.ps1 -Live
-# 另调用已配置学校模型，消耗本地和学校额度
+# 另调用已配置模型，消耗本地额度并可能产生平台费用
 ./scripts/test-agent.ps1 -Live -Gateway
 ```
 
 真实联调严格用 `ticketflow_test/tf_test`、已有 jar、JWT 和本机 MySQL。创建随机管理员、两名用户、活动/场次/票档及本人订单；取消自己的夹具订单，保留历史，关闭测试自己的进程，不清空库。该 Java 进程关闭 Redis/MQ 与定时任务。
 
-135 项确定性测试覆盖工具、身份/会话、网关协议、私有开关、并发用量/重启/未知结果和错误脱敏。真实结果与失败记录分别见 [网关报告](../docs/assets/04/20261009-agent-gateway/summary.md)，历史见 [基础报告](../docs/assets/04/20261009-agent-a/summary.md)。模拟测试不能算真实模型评估；小规模烟测不代表广泛问答准确率。锁定 Starlette TestClient 的一条 HTTPX 弃用提示未屏蔽。
+203 项确定性测试通过，包含首轮前冻结的 40 问本地检索/引用评估，以及工具、身份、协议、配额、来源漂移和接口凭据隔离。最新结果见 [批次 B 与接口切换报告](../docs/assets/04/20261010-agent-b/summary.md)，历史见 [学校网关报告](../docs/assets/04/20261009-agent-gateway/summary.md) 和 [基础报告](../docs/assets/04/20261009-agent-a/summary.md)。本地 40 问不是模型问答准确率，小规模烟测不代表广泛问答质量。锁定 Starlette TestClient 的一条 HTTPX 弃用提示未屏蔽。
 
-当前为本机单实例查询入口；规则引用、写确认/恢复、生产部署、货币计费和多轮记忆尚未交付。下一步为经过审核的规则资料与来源引用。
+当前为本机单实例查询与规则入口；新千问密钥与真实模型联调待完成。写确认/恢复、生产部署、货币预算、多轮记忆和复杂查询链仍待后续。

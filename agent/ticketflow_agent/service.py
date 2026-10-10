@@ -9,6 +9,7 @@ from .config import Settings
 from .errors import AgentError
 from .gateway import GatewayDecision, GatewayModel
 from .model import Decision
+from .rules import RuleStore, render_rules
 from .tools import definitions, get_tool
 
 
@@ -24,6 +25,14 @@ class Service:
         self.settings, self.java, self.model = settings, java, model
         self.sessions: dict[str, Session] = {}
         self.active = 0
+        self.rules = RuleStore()
+
+    async def query(self, tool_name, arguments, token):
+        tool = get_tool(tool_name)
+        tool.bind(arguments)
+        if tool.name == "search_rules":
+            return self.rules.search(arguments)
+        return await self.java.query(tool, arguments, token)
 
     @contextmanager
     def capacity(self):
@@ -94,7 +103,7 @@ class Service:
                     if isinstance(decision, GatewayDecision):
                         cards = [results[i] for i in decision.indices]
                         if decision.note == "unsupported":
-                            text = "当前仅支持活动和订单查询，无法完成这项请求。"
+                            text = "当前仅支持业务查询和项目规则说明，无法完成这项请求。"
                         elif decision.note == "clarification":
                             labels = {
                                 "eventId": "活动编号",
@@ -107,12 +116,22 @@ class Service:
                             text = "请补充：" + "、".join(
                                 labels[k] for k in decision.missing_fields
                             )
-                    return {
+                    rule_text, citations = render_rules(cards)
+                    if rule_text:
+                        text = rule_text + (
+                            "\n实时业务信息见查询卡片，规则说明不代替该时刻的查询。"
+                            if any(c["tool"] != "search_rules" for c in cards)
+                            else ""
+                        )
+                    response = {
                         "sessionId": session_id,
                         "modelMode": self.settings.model_mode,
                         "message": text,
                         "cards": cards,
                     }
+                    if any(c["tool"] == "search_rules" for c in cards):
+                        response["citations"] = citations
+                    return response
                 if not decision.calls:
                     raise AgentError("MODEL_INVALID_OUTPUT", 502, "模型未给出可执行查询")
                 if len(results) + len(decision.calls) > self.settings.max_tool_calls:
@@ -150,9 +169,11 @@ class Service:
                     # Recheck account even before public tools after a model wait.
                     if await self.java.identity(token) != user_id:
                         raise AgentError("UNAUTHENTICATED", 401, "认证身份发生变化，请重新登录")
-                    results.append(
-                        await self.java.query(get_tool(call.name), call.arguments, token)
-                    )
+                    arguments = call.arguments
+                    if call.name == "search_rules":
+                        # A model cannot erase the unknown/private part of the user's question.
+                        arguments = {**arguments, "query": message}
+                    results.append(await self.query(call.name, arguments, token))
             raise AgentError("MODEL_BUDGET_EXCEEDED", 429, "本轮模型调用次数已达上限")
         except BaseException:
             if created:

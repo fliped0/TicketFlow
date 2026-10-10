@@ -65,7 +65,8 @@ def test_natural_query_wire_contract_sources_and_no_credentials(backend, gateway
         assert request.headers["authorization"] == "Bearer unit-test-secret"
         body = json.loads(request.content)
         captured.append(body)
-        assert body["model"] == "DeepSeek-V4-Flash-0731-W8A8"
+        assert body["model"] == gateway_settings.gateway_model
+        assert "enable_thinking" not in body
         assert body["stream"] is False and body["max_tokens"] == 1024
         assert "alice" not in request.content.decode()
         names = [x["function"]["name"] for x in body["tools"]]

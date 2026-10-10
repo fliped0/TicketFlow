@@ -17,7 +17,7 @@ from .gateway import GatewayModel
 from .java import JavaClient
 from .model import DemoModel, DisabledModel
 from .service import Service
-from .tools import StrictInput, definitions, get_tool
+from .tools import StrictInput, definitions
 
 log = logging.getLogger("ticketflow.agent")
 
@@ -70,7 +70,7 @@ def create_app(settings=None, *, transport=None, model=None, model_transport=Non
 
     app = FastAPI(
         title="TicketFlow Agent",
-        version="0.2.0",
+        version="0.3.0",
         lifespan=lifespan,
         docs_url=None,
         redoc_url=None,
@@ -170,7 +170,7 @@ def create_app(settings=None, *, transport=None, model=None, model_transport=Non
     @app.post("/agent/v1/query")
     async def query(body: Query, request: Request, authorization: Auth = None):
         async def action(svc, user_id, token):
-            return await svc.java.query(get_tool(body.tool), body.arguments, token)
+            return await svc.query(body.tool, body.arguments, token)
 
         return await run(request, authorization, action)
 

@@ -1,0 +1,11 @@
+{
+  "observedDate": "2026-10-10",
+  "host": "118.178.253.75",
+  "operation": "read-only docker ps through SSH",
+  "strictHostKeyChecking": true,
+  "containers": [
+    {"name": "ticketflow-redis-1", "status": "Up 31 minutes (healthy)"},
+    {"name": "ticketflow-rabbitmq-1", "status": "Up 31 minutes (healthy)"}
+  ],
+  "remoteChanges": false
+}

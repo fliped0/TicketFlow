@@ -37,6 +37,8 @@ class DemoModel:
             return Decision((Call("search_events"),))
         if message == "我的订单":
             return Decision((Call("list_my_orders"),))
+        if message.startswith("规则 "):
+            return Decision((Call("search_rules", {"query": message[3:]}),))
         match = re.fullmatch(r"(活动|场次|票档|订单) ([1-9][0-9]{0,18})", message)
         if match:
             name, key = {
@@ -49,5 +51,6 @@ class DemoModel:
         raise AgentError(
             "DEMO_COMMAND_REQUIRED",
             422,
-            "演示模式仅支持：查活动、我的订单、活动 ID、场次 活动ID、票档 场次ID、订单 ID",
+            "演示模式仅支持：查活动、我的订单、活动 ID、场次 活动ID、"
+            "票档 场次ID、订单 ID、规则 问题",
         )

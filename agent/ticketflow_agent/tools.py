@@ -50,6 +50,11 @@ class OrderId(StrictInput):
     orderId: Id
 
 
+class RuleSearch(StrictInput):
+    query: str = Field(min_length=1, max_length=2000)
+    limit: int = Field(default=3, ge=1, le=5)
+
+
 @dataclass(frozen=True)
 class Tool:
     name: str
@@ -115,13 +120,20 @@ TOOLS = {
             "/api/v1/orders/{orderId}",
             "OrderResponse",
         ),
+        Tool(
+            "search_rules",
+            "检索本项目模拟票务规则及出处；不判断某笔订单，不执行交易，未知政策明确拒答",
+            RuleSearch,
+            "/knowledge/rules",
+            "",
+        ),
     )
 }
 
 
 def get_tool(name: str) -> Tool:
     if name not in TOOLS:
-        raise AgentError("UNKNOWN_TOOL", 422, "不支持该工具；当前仅开放六项查询")
+        raise AgentError("UNKNOWN_TOOL", 422, "不支持该工具；仅开放业务查询和本地规则检索")
     return TOOLS[name]
 
 

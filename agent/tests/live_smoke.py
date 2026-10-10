@@ -50,6 +50,9 @@ def wait_for(url, process, timeout=60):
 
 
 def main(gateway=False):
+    sys.path.insert(0, str(ROOT / "agent"))
+    from ticketflow_agent.config import Settings
+
     if os.getenv("TF_DB_NAME") != "ticketflow_test" or os.getenv("TF_DB_USER") != "tf_test":
         raise RuntimeError("Live smoke requires dedicated ticketflow_test/tf_test configuration")
     run_id = uuid.uuid4().hex[:12]
@@ -57,7 +60,7 @@ def main(gateway=False):
         "runId": run_id,
         "startedAt": datetime.now(UTC).isoformat(),
         "database": "ticketflow_test",
-        "model": "DeepSeek-V4-Flash-0731-W8A8" if gateway else "demo; no live model",
+        "model": Settings.from_env().gateway_model if gateway else "demo; no live model",
         "checks": [],
         "passed": False,
     }
@@ -261,6 +264,27 @@ def main(gateway=False):
             )
             assert response.status_code == 404
             report["checks"].append({"name": "other_user_order_denied", "passed": True})
+            known_rules = business(
+                assistant,
+                "POST",
+                "/agent/v1/query",
+                json={"tool": "search_rules", "arguments": {"query": "本项目开场前退款规则"}},
+            )
+            assert known_rules["data"]["status"] == "MATCHED"
+            refund_rule = next(i for i in known_rules["data"]["items"] if i["ruleId"] == "BR-004")
+            assert refund_rule["version"] == "1.0.0" and refund_rule["sources"]
+            for source in refund_rule["sources"]:
+                assert source["excerpt"] in (ROOT / source["path"]).read_text("utf-8")
+            report["checks"].append({"name": "local_rule_http_sources", "passed": True})
+            unknown_rules = business(
+                assistant,
+                "POST",
+                "/agent/v1/query",
+                json={"tool": "search_rules", "arguments": {"query": "退款多久会到账"}},
+            )
+            assert unknown_rules["data"]["status"] == "INSUFFICIENT"
+            assert not unknown_rules["data"]["items"]
+            report["checks"].append({"name": "local_rule_unknown_no_promise", "passed": True})
             if gateway:
                 chat = business(
                     assistant,
@@ -298,6 +322,61 @@ def main(gateway=False):
                 assert "无法完成" in unsupported["message"] and not unsupported["cards"]
                 report["checks"].append(
                     {"name": "real_model_write_request_not_executed", "passed": True}
+                )
+                rule_cases = [
+                    (
+                        "real_model_refund_rules",
+                        "请检索本项目开场前的退款规则并提供出处，不要执行交易",
+                        "MATCHED",
+                        "BR-004",
+                    ),
+                    (
+                        "real_model_payment_rules",
+                        "请检索本项目支付期限规则，开场早于15分钟时怎么计算？",
+                        "MATCHED",
+                        "BR-003",
+                    ),
+                    (
+                        "real_model_unknown_rule",
+                        "请检索本项目规则，退款多久会到账？",
+                        "INSUFFICIENT",
+                        None,
+                    ),
+                    (
+                        "real_model_order_rule_no_eligibility_claim",
+                        "请只解释通用政策：订单123能否退款？不要查真实订单，不要执行交易",
+                        "NEEDS_ORDER_QUERY",
+                        "BR-004",
+                    ),
+                ]
+                for name, question, status, rule_id in rule_cases:
+                    answer = business(
+                        assistant, "POST", "/agent/v1/chat", json={"message": question}
+                    )
+                    rule_card = next(c for c in answer["cards"] if c["tool"] == "search_rules")
+                    assert rule_card["data"]["status"] == status
+                    if rule_id:
+                        assert rule_id in {c["ruleId"] for c in answer["citations"]}
+                    else:
+                        assert not answer["citations"] and not rule_card["data"]["items"]
+                    report["checks"].append({"name": name, "passed": True})
+                mixed = business(
+                    assistant,
+                    "POST",
+                    "/agent/v1/chat",
+                    json={
+                        "message": f"请同时查询活动{event['id']}的公开详情，"
+                        "并检索本项目退款规则及出处，不执行交易"
+                    },
+                )
+                assert {c["tool"] for c in mixed["cards"]} >= {"get_event", "search_rules"}
+                assert (
+                    next(c for c in mixed["cards"] if c["tool"] == "get_event")["data"]["id"]
+                    == event["id"]
+                )
+                assert "BR-004" in {c["ruleId"] for c in mixed["citations"]}
+                report["checks"].append(
+                    {"name": "real_model_mixed_live_and_rule_cards", "passed": True}
                 )
             else:
                 chat = business(
