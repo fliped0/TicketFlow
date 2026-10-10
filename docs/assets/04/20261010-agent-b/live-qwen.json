@@ -1,0 +1,88 @@
+{
+  "runId": "6bd35ff88c94",
+  "startedAt": "2026-10-10T14:36:10.721440+00:00",
+  "database": "ticketflow_test",
+  "model": "qwen3.8-flash",
+  "checks": [
+    {
+      "name": "search_events",
+      "passed": true
+    },
+    {
+      "name": "get_event",
+      "passed": true
+    },
+    {
+      "name": "list_sessions",
+      "passed": true
+    },
+    {
+      "name": "list_tiers",
+      "passed": true
+    },
+    {
+      "name": "list_my_orders",
+      "passed": true
+    },
+    {
+      "name": "get_my_order",
+      "passed": true
+    },
+    {
+      "name": "other_user_order_denied",
+      "passed": true
+    },
+    {
+      "name": "local_rule_http_sources",
+      "passed": true
+    },
+    {
+      "name": "local_rule_unknown_no_promise",
+      "passed": true
+    },
+    {
+      "name": "real_model_query_java_sources",
+      "passed": true
+    },
+    {
+      "name": "real_model_clarification",
+      "passed": true
+    },
+    {
+      "name": "real_model_write_request_not_executed",
+      "passed": true
+    },
+    {
+      "name": "real_model_refund_rules",
+      "passed": true
+    },
+    {
+      "name": "real_model_payment_rules",
+      "passed": true
+    },
+    {
+      "name": "real_model_unknown_rule",
+      "passed": true
+    },
+    {
+      "name": "real_model_order_rule_no_eligibility_claim",
+      "passed": true
+    },
+    {
+      "name": "real_model_mixed_live_and_rule_cards",
+      "passed": true
+    },
+    {
+      "name": "chat_session_isolation",
+      "passed": true
+    },
+    {
+      "name": "write_tool_and_invalid_jwt_denied",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "fixtureOrderCancelled": true,
+  "childrenStopped": true,
+  "finishedAt": "2026-10-10T14:36:32.139915+00:00"
+}

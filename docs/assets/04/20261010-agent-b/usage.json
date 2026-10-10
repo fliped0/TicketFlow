@@ -1,9 +1,9 @@
 {
-  "capturedAt": "2026-10-10T14:08:48.016401+00:00",
+  "capturedAt": "2026-10-10T14:37:09.440255+00:00",
   "dayUtc": "2026-10-10",
-  "requests": 5,
-  "accountedTokens": 22682,
+  "requests": 13,
+  "accountedTokens": 35546,
   "unknownUsageRequests": 2,
   "billing": "local usage accounting; provider billing applies; no currency estimate",
-  "note": "Preserved UTC-day aggregate; provider switching does not reset ledger"
+  "note": "Preserved UTC-day aggregate; includes prior school attempts"
 }

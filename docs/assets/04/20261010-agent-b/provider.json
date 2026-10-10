@@ -1,10 +1,11 @@
 {
-  "capturedAt": "2026-10-10T14:08:48.016401+00:00",
+  "capturedAt": "2026-10-10T14:37:09.440255+00:00",
   "baseUrl": "https://maas.qianwenaiapi.com/compatible-mode/v1",
   "model": "qwen3.8-flash",
-  "credentialBoundToTarget": false,
-  "liveModelVerified": false,
-  "status": "WAITING_FOR_LOCAL_PROVIDER_KEY",
+  "credentialBoundToTarget": true,
+  "liveModelVerified": true,
+  "status": "VERIFIED",
   "enableThinking": false,
-  "automaticCredentialReuse": false
+  "automaticCredentialReuse": false,
+  "runId": "6bd35ff88c94"
 }

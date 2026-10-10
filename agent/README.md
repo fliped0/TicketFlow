@@ -1,6 +1,6 @@
 # TicketFlow Agent 查询服务
 
-独立 Python 服务提供六项 Java 查询与本地 `search_rules`，回答和出处由服务器生成。默认模型已改为 `qwen3.8-flash`，接口为 `POST https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions`。新接口真实调用待本机配置对应密钥，历史学校网关验收另存。写确认和多轮记忆留后续；Java 接口与 Flyway 不变。
+独立 Python 服务提供六项 Java 查询与本地 `search_rules`，回答和出处由服务器生成。默认模型为 `qwen3.8-flash`，接口为 `POST https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions`。本机对应密钥已配置，19 组真实联调通过（含 8 个模型场景），历史学校网关验收另存。写确认和多轮记忆留后续；Java 接口与 Flyway 不变。
 
 ## 1. 配置与启动
 
@@ -74,7 +74,7 @@ Agent 监听 `127.0.0.1:8090`。除健康检查外，每次请求携带当前用
 
 **默认向模型开放四项目录查询、`search_rules` 与 `finish`。** 七项直接查询仍开放给认证用户。只有配置时显式加 `--share-order-data`（已有配置同时加 `--replace`）才开启模型的本人订单查询。该兼容选项在当前一次解析模式只开放工具，订单结果仍在本地展示，不回传模型；用户问题本身可能含用户提供的订单编号。订单开关仅在模拟网关测试中验证，真实订单自然语言质量未验收。
 
-Qwen3.8-Flash 请求显式关闭思考（`enable_thinking:false`），继续非流式一次解析。接口、JSON 与扩展参数参考 [千问官方兼容文档](https://platform.qianwenai.com/docs/api-reference/toolkitframework/openai-compatible/overview)，2026-10-10 核对；实际账户权限和响应兼容性待真实联调。
+Qwen3.8-Flash 请求显式关闭思考（`enable_thinking:false`），继续非流式一次解析。接口、JSON 与扩展参数参考 [千问官方兼容文档](https://platform.qianwenai.com/docs/api-reference/toolkitframework/openai-compatible/overview)，2026-10-10 核对；当前本机配置的账户访问权限与本批响应已通过真实联调。
 
 会话不保存历史聊天或工具结果，“刚才那个订单”没有多轮记忆。最多 256 个会话，闲置 30 分钟失效，重启清空；同会话串行，全局最多 8 个活动请求。
 
@@ -106,6 +106,6 @@ Qwen3.8-Flash 请求显式关闭思考（`enable_thinking:false`），继续非�
 
 真实联调严格用 `ticketflow_test/tf_test`、已有 jar、JWT 和本机 MySQL。创建随机管理员、两名用户、活动/场次/票档及本人订单；取消自己的夹具订单，保留历史，关闭测试自己的进程，不清空库。该 Java 进程关闭 Redis/MQ 与定时任务。
 
-203 项确定性测试通过，包含首轮前冻结的 40 问本地检索/引用评估，以及工具、身份、协议、配额、来源漂移和接口凭据隔离。最新结果见 [批次 B 与接口切换报告](../docs/assets/04/20261010-agent-b/summary.md)，历史见 [学校网关报告](../docs/assets/04/20261009-agent-gateway/summary.md) 和 [基础报告](../docs/assets/04/20261009-agent-a/summary.md)。本地 40 问不是模型问答准确率，小规模烟测不代表广泛问答质量。锁定 Starlette TestClient 的一条 HTTPX 弃用提示未屏蔽。
+203 项确定性测试通过，包含首轮前冻结的 40 问本地检索/引用评估，以及工具、身份、协议、配额、来源漂移和接口凭据隔离。另有 19 组真实联调通过，含 8 个千问模型场景：目录查询、缺编号追问、写请求拒绝、退款规则、支付期限、未知政策、具体订单只解释通用政策及混合规则/实时卡片。最新结果见 [批次 B 与接口切换报告](../docs/assets/04/20261010-agent-b/summary.md)，历史见 [学校网关报告](../docs/assets/04/20261009-agent-gateway/summary.md) 和 [基础报告](../docs/assets/04/20261009-agent-a/summary.md)。本地 40 问不是模型问答准确率，小规模烟测不代表广泛问答质量。锁定 Starlette TestClient 的一条 HTTPX 弃用提示未屏蔽。
 
-当前为本机单实例查询与规则入口；新千问密钥与真实模型联调待完成。写确认/恢复、生产部署、货币预算、多轮记忆和复杂查询链仍待后续。
+当前为本机单实例查询与规则入口，批次 B 的规则及受限真实模型联调完成。下一批 C 为独立写确认与取消/模拟退款恢复；生产部署、货币预算、多轮记忆和复杂查询链仍待后续。
