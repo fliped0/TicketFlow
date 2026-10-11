@@ -12,7 +12,8 @@ QWEN_URL = "https://maas.qianwenaiapi.com/compatible-mode/v1"
 SCHOOL_URL = "http://aigw.dlut.edu.cn/v1"
 
 
-def test_qwen_wire_path_model_and_thinking(backend, tmp_path):
+@pytest.mark.parametrize("finish_reason", ["tool_calls", "stop"])
+def test_qwen_wire_path_model_and_thinking(backend, tmp_path, finish_reason):
     settings = Settings(
         model_mode="gateway",
         gateway_key="qwen-test-key",
@@ -29,8 +30,19 @@ def test_qwen_wire_path_model_and_thinking(backend, tmp_path):
         assert body["model"] == "qwen3.8-flash"
         assert body["enable_thinking"] is False and body["stream"] is False
         assert body["temperature"] == 0.1
-        assert body["response_format"] == {"type": "json_object"}
-        return httpx.Response(200, json=completion("search_events", {"city": "杭州"}))
+        assert "response_format" not in body
+        assert body["tool_choice"] == {"type": "function", "function": {"name": "route_request"}}
+        assert len(body["tools"]) == 1
+        response = completion(
+            "route_request",
+            {
+                "queries": [{"name": "search_events", "arguments": {"city": "杭州"}}],
+                "note": "queries",
+                "missing_fields": [],
+            },
+        )
+        response["choices"][0]["finish_reason"] = finish_reason
+        return httpx.Response(200, json=response)
 
     response = send(backend, settings, handler)
     assert response.status_code == 200 and len(requests) == 1

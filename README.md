@@ -15,7 +15,7 @@
 - 当前完整 clean verify 159 项通过；58 项真实异步测试，含强杀、COMMIT 断连与恢复验证；历史本机性能另存。
 - Redis 目录缓存/限流与 RabbitMQ 可靠性实验已完成；批次 10 孤立封口、epoch 重建、死信重放、告警与恢复对账已验收。
 - 真实支付与生产高可用留后续批次。
-- V3 Agent 已接入千问 `qwen3.8-flash`，提供查询、审核规则、独立取消/模拟退款确认和持久原键恢复。245 项确定性测试、60 问真实模型逐轮评估及 8 个真实故障窗口，详情见 [批次 C 报告](docs/assets/04/20261010-agent-c/summary.md)。
+- V3 Agent 已接入千问 `qwen3.8-flash`，提供查询、审核规则、独立取消/模拟退款确认和持久原键恢复。最新 266 项确定性测试、23 组真实联调、冻结模型集 60/60 通过，见 [路由修复报告](docs/assets/04/20261011-agent-route/summary.md)；此前失败与 8 个真实故障窗口保留在 [批次 C 报告](docs/assets/04/20261010-agent-c/summary.md)。
 
 仓库：[fliped0/TicketFlow](https://github.com/fliped0/TicketFlow)。
 

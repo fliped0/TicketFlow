@@ -1,0 +1,36 @@
+{
+  "initialForcedRouteProbe": {
+    "requests": 3,
+    "failed": 3,
+    "error": "MODEL_INVALID_OUTPUT"
+  },
+  "syntheticInspection": {
+    "requests": 1,
+    "observed": "Valid route_request native tool call returned with finish_reason=stop"
+  },
+  "afterStopCompatibility": [
+    {
+      "id": "MODEL-TC-RULE-027",
+      "tools": [
+        "search_rules"
+      ],
+      "finished": false
+    },
+    {
+      "id": "MODEL-PREPARE-REFUND",
+      "tools": [
+        "prepare_refund"
+      ],
+      "finished": false
+    },
+    {
+      "id": "MODEL-OWNERSHIP-CANCEL",
+      "tools": [
+        "prepare_cancel"
+      ],
+      "finished": false
+    }
+  ],
+  "scope": "Three historical failure questions, synthetic order IDs, routing only; not independent held-out quality evaluation",
+  "rawResponsesCommitted": false
+}

@@ -19,6 +19,12 @@ def run_evaluation(assistant, context, other_token):
         "frozenAt": FROZEN["frozenAt"],
         "startedAt": datetime.now(UTC).isoformat(),
         "scope": FROZEN["scope"],
+        "datasetSha256": hashlib.sha256(
+            Path(__file__).with_name("model-evaluation.v2.json").read_bytes()
+        ).hexdigest(),
+        "gatewaySha256": hashlib.sha256(
+            (ROOT / "agent/ticketflow_agent/gateway.py").read_bytes()
+        ).hexdigest(),
         "cases": [],
     }
     last = 0.0
@@ -128,6 +134,12 @@ def run_evaluation(assistant, context, other_token):
                 "tools": [c["tool"] for c in cards],
             }
         )
+        if len(report["cases"]) % 10 == 0:
+            failures = sum(not c["passed"] for c in report["cases"])
+            print(
+                f"Frozen model evaluation: {len(report['cases'])}/60; failures={failures}",
+                flush=True,
+            )
     report.update(
         finishedAt=datetime.now(UTC).isoformat(),
         total=len(report["cases"]),

@@ -1,6 +1,6 @@
 # TicketFlow Agent 查询与确认服务
 
-独立 Python 服务提供六项 Java 查询、本地审核规则与取消/模拟退款的待确认卡。模型为 `qwen3.8-flash`，接口为 `POST https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions`；交易只能通过独立确认入口执行，Java 决定最终业务结果。当前为本机单实例，Java 接口与 Flyway 不变。最新结果见 [批次 C 报告](../docs/assets/04/20261010-agent-c/summary.md)。
+独立 Python 服务提供六项 Java 查询、本地审核规则与取消/模拟退款的待确认卡。模型为 `qwen3.8-flash`，接口为 `POST https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions`；交易只能通过独立确认入口执行，Java 决定最终业务结果。当前为本机单实例，Java 接口与 Flyway 不变。最新结果见 [路由修复报告](../docs/assets/04/20261011-agent-route/summary.md)，确认与故障恢复历史见 [批次 C 报告](../docs/assets/04/20261010-agent-c/summary.md)。
 
 ## 1. 配置与启动
 
@@ -73,13 +73,13 @@ Agent 监听 `127.0.0.1:8090`。除健康检查外，每次请求携带当前用
 
 工具响应经过 Java schema 校验和字段投影，裁去支付/退款明细及内部版本。卡片 `source` 含路径、参数、UTC 查询时间和 Java traceId。模型只接收系统约束、用户问题和工具定义，不接收 Java 查询结果、JWT 或用户身份。
 
-网关只进行一次结构化解析，使用工具调用或严格 JSON 选择一批独立查询；Java 返回后服务器直接展示卡片。跨查询结果继续规划的复杂任务尚不支持。缺少条件通过固定字段枚举追问。两种输出格式共用工具白名单与参数校验；普通模型文本、截断输出、未知工具和虚构引用不作为业务结论。Java 活动文案不发给模型。
+网关只进行一次结构化解析。当前千问接口强制调用单个 `route_request`，按工具 schema 提交查询、准备卡、追问或拒绝意图；其他兼容网关沿用工具调用或严格 JSON。Java 返回后服务器直接展示卡片。跨查询结果继续规划的复杂任务尚不支持。缺少条件通过固定字段枚举追问。各协议共用工具白名单与参数校验；普通模型文本、截断输出、未知工具和虚构引用不作为业务结论。Java 活动文案不发给模型。
 
 ## 3. 隐私、会话和额度
 
-**默认向模型开放四项目录查询、`search_rules`、`prepare_cancel`、`prepare_refund` 与 `finish`。** 七项直接查询和两项确认卡准备均开放给认证用户。只有配置时显式加 `--share-order-data`（已有配置同时加 `--replace`）才开启模型的本人订单查询。该兼容选项在当前一次解析模式只开放工具，订单结果仍在本地展示，不回传模型；用户问题本身可能含用户提供的订单编号。订单开关仅在模拟网关测试中验证，真实订单自然语言质量未验收。
+**默认向模型开放四项目录查询、`search_rules`、`prepare_cancel`、`prepare_refund` 以及追问/拒绝意图。千问将这些意图封装在 `route_request` 中，其他兼容网关保留 `finish`。** 七项直接查询和两项确认卡准备均开放给认证用户。只有配置时显式加 `--share-order-data`（已有配置同时加 `--replace`）才开启模型的本人订单查询。该兼容选项在当前一次解析模式只开放工具，订单结果仍在本地展示，不回传模型；用户问题本身可能含用户提供的订单编号。订单开关仅在模拟网关测试中验证，真实订单自然语言质量未验收。
 
-Qwen3.8-Flash 请求显式关闭思考（`enable_thinking:false`），继续非流式一次解析。C 扩展评估后设置 `temperature:0.1` 降低路由输出随机性，依据 [千问参数说明](https://www.qianwenai.com/hub/skills/qianwen-text)；不保证完全确定性。接口、JSON 与扩展参数参考 [千问官方兼容文档](https://platform.qianwenai.com/docs/api-reference/toolkitframework/openai-compatible/overview)，2026-10-10 核对；当前本机配置的账户访问权限与本批响应已通过真实联调。
+Qwen3.8-Flash 请求显式关闭思考（`enable_thinking:false`），继续非流式一次解析。当前使用[强制命名函数](https://platform.qianwenai.com/docs/developer-guides/tool-calling/function-calling)，不再同时设置 `response_format`。完整有效调用的结束标记可为 `tool_calls` 或实测出现的 `stop`，其余校验不放宽。C 扩展评估后设置 `temperature:0.1` 降低路由输出随机性，依据 [千问参数说明](https://www.qianwenai.com/hub/skills/qianwen-text)；不保证完全确定性。接口、JSON 与扩展参数参考 [千问官方兼容文档](https://platform.qianwenai.com/docs/api-reference/toolkitframework/openai-compatible/overview)，2026-10-10 核对；当前本机配置的账户访问权限与本批响应已通过真实联调。
 
 会话不保存历史聊天或工具结果，“刚才那个订单”没有多轮记忆。最多 256 个会话，闲置 30 分钟失效，重启清空；同会话串行，全局最多 8 个活动请求。
 

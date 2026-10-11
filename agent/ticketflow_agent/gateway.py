@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 import httpx
+from jsonschema import Draft202012Validator
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .config import Settings
@@ -55,6 +56,46 @@ class GatewayDecision(Decision):
     indices: tuple[int, ...] = ()
     note: str = "results"
     missing_fields: tuple[str, ...] = ()
+
+
+def route_schema(tools, limit):
+    """One forced provider function; each nested intent retains its real input schema."""
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["queries", "note", "missing_fields"],
+        "properties": {
+            "queries": {
+                "type": "array",
+                "maxItems": limit,
+                "items": {
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": ["name", "arguments"],
+                            "description": tool["description"],
+                            "properties": {
+                                "name": {"type": "string", "enum": [tool["name"]]},
+                                "arguments": tool["parameters"],
+                            },
+                        }
+                        for tool in tools
+                    ]
+                },
+            },
+            "note": {"type": "string", "enum": ["queries", "clarification", "unsupported"]},
+            "missing_fields": {
+                "type": "array",
+                "maxItems": 6,
+                "uniqueItems": True,
+                "items": {
+                    "type": "string",
+                    "enum": ["eventId", "sessionId", "orderId", "keyword", "city", "category"],
+                },
+            },
+        },
+    }
 
 
 def strict_json(raw: str):
@@ -127,11 +168,35 @@ class GatewayModel:
             "stream": False,
             "max_tokens": self.settings.max_output_tokens,
         }
+        schema = None
         if (
             self.settings.gateway_url.rstrip("/")
             == "https://maas.qianwenaiapi.com/compatible-mode/v1"
             and self.settings.gateway_model == "qwen3.8-flash"
         ):
+            schema = route_schema(tools, self.settings.max_tool_calls)
+            routing_prompt = PROMPT.split("必须返回工具调用")[0]
+            routing_prompt = routing_prompt.replace("finish 的 clarification", "clarification")
+            routing_prompt = routing_prompt.replace("finish 拒答", "unsupported 拒答")
+            messages[0]["content"] = routing_prompt + (
+                "只调用一次 route_request，用其参数提交本轮意图。\n"
+                "查询或准备确认卡：note=queries，queries填写工具及参数，missing_fields=[]。\n"
+                "缺少编号：note=clarification，queries=[]，missing_fields填写缺失字段。\n"
+                "不支持的操作：note=unsupported，queries=[]，missing_fields=[]。\n"
+                "准备本人订单卡只提供orderId，不判断用户自称身份，访问权限交给服务器核查。\n"
+            )
+            payload["tools"] = [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "route_request",
+                        "description": "提交查询、准备确认卡、追问或拒绝的意图",
+                        "parameters": schema,
+                    },
+                }
+            ]
+            payload["tool_choice"] = {"type": "function", "function": {"name": "route_request"}}
+            del payload["response_format"]
             payload["enable_thinking"] = False
             payload["temperature"] = 0.1
         raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -175,6 +240,8 @@ class GatewayModel:
                 and usage["prompt_tokens"] + usage["completion_tokens"] < 2**63
             ):
                 reported = usage["prompt_tokens"] + usage["completion_tokens"]
+            if schema is not None:
+                body = self.unwrap_route(body, schema)
             decision = self.parse(body, results, {t["name"] for t in tools})
             log.info(
                 "model decision tools=%s finished=%s",
@@ -212,6 +279,40 @@ class GatewayModel:
                 reservation,
                 reported if reported is not None else "unknown",
             )
+
+    @staticmethod
+    def unwrap_route(body, schema):
+        choices = body["choices"]
+        if not isinstance(choices, list) or len(choices) != 1:
+            raise ValueError("one choice required")
+        choice = choices[0]
+        # This provider can label a complete native tool call as 'stop'. The
+        # call envelope and every argument still require the same validation.
+        if choice["finish_reason"] not in {"tool_calls", "stop"}:
+            raise ValueError("tool calls required; text is not rendered")
+        calls = choice["message"]["tool_calls"]
+        if not isinstance(calls, list) or len(calls) != 1:
+            raise ValueError("invalid call count")
+        call = calls[0]
+        if (
+            call["type"] != "function"
+            or not isinstance(call["id"], str)
+            or not call["id"]
+            or call["function"]["name"] != "route_request"
+        ):
+            raise ValueError("invalid tool id")
+        route = strict_json(call["function"]["arguments"])
+        if not Draft202012Validator(schema).is_valid(route):
+            raise ValueError("invalid route schema")
+        if route["note"] == "queries":
+            if not route["queries"] or route["missing_fields"]:
+                raise ValueError("invalid finish")
+            content = {"queries": route["queries"]}
+        else:
+            if route["queries"]:
+                raise ValueError("invalid finish")
+            content = {"note": route["note"], "missing_fields": route["missing_fields"]}
+        return {"choices": [{"finish_reason": "stop", "message": {"content": json.dumps(content)}}]}
 
     def parse(self, body, results, allowed):
         choices = body["choices"]

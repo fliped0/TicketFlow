@@ -1,0 +1,19 @@
+{
+  "dayUtc": "2026-10-11",
+  "dayTotal": {
+    "requests": 75,
+    "accountedTokens": 165329,
+    "unknownUsageRequests": 0
+  },
+  "liveRun": {
+    "requests": 68,
+    "accountedTokens": 149913,
+    "unknownUsageRequests": 0
+  },
+  "diagnosticBeforeRun": {
+    "requests": 7,
+    "accountedTokens": 15416,
+    "unknownUsageRequests": 0
+  },
+  "billing": "Provider-reported tokens/local reservation accounting; no currency estimate; ledger not reset"
+}

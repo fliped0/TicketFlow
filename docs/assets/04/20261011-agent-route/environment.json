@@ -1,0 +1,13 @@
+{
+  "provider": "https://maas.qianwenaiapi.com/compatible-mode/v1",
+  "model": "qwen3.8-flash",
+  "protocol": "One named forced route_request function; locally validated schema; stop/tool_calls accepted only with complete valid call; no response_format",
+  "temperature": 0.1,
+  "enable_thinking": false,
+  "actualModelRequestsPerTurn": 1,
+  "database": "ticketflow_test",
+  "javaChanged": false,
+  "historicalJavaTestsNotRerun": 159,
+  "historicalFaultWindowsNotRerun": 8,
+  "cloudAgentDeployed": false
+}

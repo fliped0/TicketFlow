@@ -1,0 +1,14 @@
+{
+  "tests": 266,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": 266,
+  "scope": "Deterministic Agent tests, including 40 local rule cases; no provider calls",
+  "warning": "Starlette TestClient HTTPX deprecation",
+  "lint": "passed",
+  "startedAt": "2026-10-11T10:22:56.052449+08:00",
+  "seconds": 23.34,
+  "formatChangedFiles": "passed",
+  "formatWholeAgent": "Two pre-existing formatting issues: tests/conftest.py and tests/live_faults.py; unchanged in this batch"
+}
