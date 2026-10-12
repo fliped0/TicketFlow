@@ -1,0 +1,18 @@
+{
+  "runId": "9786acf22da1",
+  "database": "ticketflow_test",
+  "passed": false,
+  "startedAt": "2026-10-12T12:35:25.142Z",
+  "cleanup": true,
+  "seedReuse": true,
+  "browser": {
+    "startTime": "2026-10-12T12:35:37.552Z",
+    "duration": 31705.16,
+    "expected": 13,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "error": "Real browser tests failed; inspect ignored browser report",
+  "finishedAt": "2026-10-12T12:36:09.472Z"
+}

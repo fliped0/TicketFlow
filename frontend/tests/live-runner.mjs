@@ -87,6 +87,7 @@ try {
     fixture = result
   }
   report.seedReuse = true
+  fixture.runId = runId
   const previewPort = await availablePort()
   const previewEnv = { ...process.env, TF_FRONTEND_API_TARGET: base }
   for (const key of Object.keys(previewEnv)) if (/^TF_(DB_|JWT_|ADMIN_)/.test(key)) delete previewEnv[key]
@@ -95,7 +96,9 @@ try {
   await ready(url, preview)
   const output = path.join(directory, 'browser-results.json')
   const tests = start(process.execPath, [path.join(frontend, 'node_modules/@playwright/test/cli.js'), 'test', '--config=playwright.live.config.ts'], {
-    ...previewEnv, TF_FRONTEND_LIVE_URL: url, TF_FRONTEND_LIVE_FIXTURE: JSON.stringify(fixture), PLAYWRIGHT_JSON_OUTPUT_NAME: output,
+    ...previewEnv, TF_FRONTEND_LIVE_URL: url, TF_FRONTEND_LIVE_FIXTURE: JSON.stringify(fixture), TF_FRONTEND_LIVE_ADMIN_TOKEN: adminToken, PLAYWRIGHT_JSON_OUTPUT_NAME: output,
+    // This pinned Playwright version otherwise serializes password inputs into failure aria snapshots.
+    PLAYWRIGHT_NO_COPY_PROMPT: '1',
   }, 'browser.log')
   const code = await exited(tests)
   await tests.logDone
@@ -109,12 +112,13 @@ try {
 } finally {
   if (fixture && adminToken) {
     try {
-      for (const event of fixture.events) {
+      const extra = await call('GET', '/admin/events?keyword=' + encodeURIComponent(runId) + '&size=100')
+      for (const event of [...fixture.events, ...extra.items]) {
         const actual = await call('GET', '/admin/events/' + event.id)
         await call('PUT', '/admin/events/' + event.id + '/status', { status: 'OFF_SALE', expectedVersion: actual.version })
       }
       report.cleanup = true
-    } catch { report.cleanup = false; process.exitCode = 1 }
+    } catch { report.cleanup = false; report.passed = false; process.exitCode = 1 }
   }
   for (const child of children.reverse()) {
     if (child.exitCode === null) {

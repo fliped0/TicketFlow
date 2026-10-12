@@ -49,7 +49,8 @@ h1 { font-size: clamp(36px, 4.8vw, 66px); line-height: 1.3; letter-spacing: -2px
 .not-found { max-width: 800px; margin: 80px auto; padding: 24px; }
 .not-found p { color: #68796e; }
 .home-link { display: inline-block; margin-top: 20px; color: #156b59; }
-.header-nav { display: flex; align-items: center; gap: 22px; font-size: 13px; }
+.header-nav { display: flex; align-items: center; gap: 22px; font-size: 13px; min-width: 0; }
+.header-nav a, .header-nav .text-button { flex-shrink: 0; }
 .header-nav a { text-decoration: none; }
 .nav-signup { border: 1px solid #156b59; padding: 8px 17px; border-radius: 6px; color: #156b59; }
 .account-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
@@ -132,6 +133,40 @@ h3 { font-size: 18px; line-height: 1.5; }
 .selection-amount strong { color: #156b59; font-size: 25px; }
 .primary-link { display: block; text-align: center; padding: 13px; border-radius: 6px; background: #156b59; color: white; text-decoration: none; font-size: 14px; }
 .summary-note { margin-bottom: 0; }
+.trade-recovery { max-width: 1115px; margin: 22px auto 0; padding: 22px 28px; background: #fff6e5; border: 1px solid #e4d1a9; border-radius: 10px; font-size: 13px; line-height: 1.8; }
+.trade-recovery h2 { font-size: 19px; margin: 0 0 12px; }
+.recovery-order-link { color: #156b59; margin-right: 20px; }
+.confirmation-event { font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
+.confirmation-summary { display: grid; grid-template-columns: 135px minmax(0, 1fr); gap: 16px; }
+.confirmation-summary dt { color: #68796e; }
+.confirmation-summary dd { margin: 0; overflow-wrap: anywhere; }
+.confirmation-summary .amount { font-weight: 700; color: #156b59; font-size: 22px; }
+.approval-checkbox { display: flex; gap: 12px; align-items: flex-start; line-height: 1.7; padding: 15px 0; }
+.approval-checkbox input { accent-color: #156b59; margin: 5px 0 0; }
+.orders-container { max-width: 1280px; margin: auto; padding: 35px 6vw 64px; }
+.orders-container h1 { font-size: 34px; letter-spacing: -1px; }
+.orders-filter { display: flex; align-items: center; gap: 20px; padding: 18px 0 28px; font-size: 13px; }
+.orders-filter select { padding: 10px 14px; border: 1px solid #cdd8ce; border-radius: 6px; background: white; color: #23362f; }
+.order-list { display: grid; gap: 20px; }
+.order-card, .order-detail-card { background: white; border: 1px solid #dce4db; border-radius: 10px; padding: 26px; }
+.order-card h2, .order-detail-card h2 { font-size: 23px; margin-top: 24px; overflow-wrap: anywhere; }
+.order-card p { color: #68796e; font-size: 13px; line-height: 1.8; }
+.order-card-top { display: flex; align-items: center; justify-content: space-between; gap: 20px; font-size: 12px; color: #68796e; }
+.order-status { padding: 6px 12px; border-radius: 5px; white-space: nowrap; background: #f1f2ed; }
+.status-pending { color: #86591c; background: #fff0d3; }
+.status-paid { color: #156b59; background: #e8f4e7; }
+.order-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid #e0e7df; padding-top: 20px; margin-top: 20px; }
+.order-card-footer strong { font-size: 24px; color: #156b59; }
+.order-card-footer a { font-size: 13px; color: #156b59; }
+.order-detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 25px; align-items: start; }
+.order-fields { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 22px; font-size: 14px; padding: 15px 0; }
+.order-fields dt { color: #68796e; }
+.order-fields dd { margin: 0; overflow-wrap: anywhere; }
+.payment-record { border-top: 1px solid #dce4db; margin-top: 24px; padding-top: 14px; font-size: 13px; }
+.payment-panel { padding: 25px; background: #f0f4e8; border: 1px solid #dce4db; border-radius: 10px; }
+.payment-panel > p { font-size: 13px; }
+.payment-panel .countdown { font-size: 34px; color: #156b59; letter-spacing: 2px; font-variant-numeric: tabular-nums; margin: 18px 0; }
+.payment-amount { display: block; padding: 18px 0 24px; color: #156b59; font-size: 24px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 @media (max-width: 700px) {
   .site-header { padding: 20px; }
@@ -172,4 +207,15 @@ h3 { font-size: 18px; line-height: 1.5; }
   .booking-layout { grid-template-columns: 1fr; }
   .booking-options { padding: 20px; }
   .session-grid, .tier-grid { grid-template-columns: 1fr; }
+  .trade-recovery { margin: 20px 24px 0; padding: 20px; }
+  .orders-container { padding: 25px 24px; }
+  .order-detail-layout { grid-template-columns: 1fr; }
+  .order-card, .order-detail-card { padding: 20px; }
+  .orders-filter { gap: 12px; flex-wrap: wrap; }
+  .order-fields { grid-template-columns: 75px minmax(0, 1fr); gap: 18px; font-size: 13px; }
+  .confirmation-summary { grid-template-columns: 110px minmax(0, 1fr); gap: 12px; }
+  .header-nav { gap: 9px; }
+  .header-nav .nav-signup { padding: 7px 10px; }
+  .brand-mark { width: 28px; height: 28px; }
+  .brand { gap: 6px; font-size: 16px; }
 }

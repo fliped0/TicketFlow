@@ -60,7 +60,7 @@ Pop-Location
 
 ## 文档与交付
 
-- [前端运行说明](frontend/README.md)：Vue 独立工程已接入注册登录、活动查询与场次/票档选择；交易页面待实现；[开发计划](docs/11_最小前端闭环开发计划.md)。
+- [前端运行说明](frontend/README.md)：Vue 已实现注册登录、选票下单、订单与模拟支付及原键恢复；取消/退款按钮待后续；[开发计划](docs/11_最小前端闭环开发计划.md)。
 - [工程文档索引](docs/README.md)
 - [架构与编码规范](docs/架构与编码规范.md)
 - [已实现接口](docs/api/README.md) / [OpenAPI](docs/api/openapi.json)

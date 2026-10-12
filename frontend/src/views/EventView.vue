@@ -9,8 +9,30 @@ import { api, errorText } from '../api/client'
 import type { Event, Page, Session, Tier } from '../api/types'
 import { dateTime, money, saleLabel } from '../utils/display'
 import { useAuthStore } from '../stores/auth'
+import { useTradeStore } from '../stores/trade'
+import TradeConfirm from '../components/TradeConfirm.vue'
+import type { TradeCommand } from '../trade/journal'
 
 const route = useRoute(); const router = useRouter(); const auth = useAuthStore()
+const trade = useTradeStore()
+const confirmation = ref<TradeCommand | null>(null); const confirmationOwner = ref(''); const submitError = ref('')
+function prepareOrder() {
+  if (!event.value || !selectedTier.value || !selectedSession.value || !saleable.value || trade.blocked || !auth.user) return
+  confirmationOwner.value = auth.user.userId; submitError.value = ''
+  confirmation.value = { operation: 'CREATE', targetId: selectedTier.value.id, preview: {
+    eventName: event.value.name, tierName: selectedTier.value.name, startsAt: selectedSession.value.startsAt, amountFen: selectedTier.value.priceFen,
+  } }
+}
+async function submitOrder() {
+  if (!confirmation.value || !auth.user || auth.user.userId !== confirmationOwner.value || trade.blocked) return
+  const owner = auth.user.userId
+  submitError.value = ''
+  try {
+    const result = await trade.execute(confirmation.value)
+    if (auth.user?.userId === owner) { confirmation.value = null; await router.push('/orders/' + result.orderId) }
+  } catch (failure) { if (auth.user?.userId === owner) submitError.value = errorText(failure) }
+}
+watch(() => auth.user?.userId, () => { confirmation.value = null; submitError.value = '' }, { flush: 'sync' })
 const event = ref<Event | null>(null); const sessions = ref<Session[]>([]); const tiers = ref<Tier[]>([])
 const selectedSession = ref<Session | null>(null); const selectedTier = ref<Tier | null>(null)
 const sessionPage = ref(1); const sessionTotal = ref(0); const tierPage = ref(1); const tierTotal = ref(0)
@@ -98,10 +120,11 @@ onUnmounted(() => { eventRequest?.abort(); tierRequest?.abort() })
         </section>
         <aside class="selection-summary" aria-label="选票摘要"><p class="eyebrow">YOUR TICKET</p><h2>选票摘要</h2><p>{{ event.name }}</p><dl><dt>场次</dt><dd>{{ selectedSession ? dateTime(selectedSession.startsAt) : '尚未选择' }}</dd><dt>票档</dt><dd>{{ selectedTier?.name ?? '尚未选择' }}</dd><dt>数量</dt><dd>1 张</dd></dl><div class="selection-amount"><span>票价</span><strong>{{ selectedTier ? money(selectedTier.priceFen) : '—' }}</strong></div>
           <RouterLink v-if="saleable && !auth.authenticated" class="primary-link" :to="{ path: '/login', query: { redirect: route.fullPath } }">登录并保留选择</RouterLink>
-          <ElButton v-else class="auth-submit" type="primary" disabled>{{ saleable ? '下单即将开放' : '请选择可售票档' }}</ElButton>
-          <p class="muted summary-note">当前可以浏览和选票，暂未开放网页下单。</p>
+          <ElButton v-else class="auth-submit" type="primary" :disabled="!saleable || trade.blocked" @click="prepareOrder">{{ saleable ? '确认选票并下单' : '请选择可售票档' }}</ElButton>
+          <p class="muted summary-note">下单后请在订单支付期限内完成模拟支付。库存及限购以提交时的服务端判定为准。</p>
         </aside>
       </div>
     </template>
   </div>
+  <TradeConfirm :open="!!confirmation" operation="CREATE" :preview="confirmation?.preview ?? null" :busy="trade.busy" :blocked="trade.blocked" :error="submitError" @close="confirmation = null" @approve="submitOrder" />
 </template>

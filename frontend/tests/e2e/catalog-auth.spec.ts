@@ -28,6 +28,7 @@ test('registration, validation, bad password, selection return, persistence and 
   await expect(page.getByRole('complementary')).toContainText('¥99.00')
   await page.getByRole('link', { name: '登录并保留选择' }).click()
   await page.getByRole('link', { name: '立即注册' }).click()
+  await expect(page.getByRole('heading', { name: '创建账号' })).toBeVisible()
   await page.getByLabel('账号', { exact: true }).fill('demo_user')
   await page.getByLabel('密码', { exact: true }).fill('short')
   await page.getByRole('button', { name: '注册账号' }).click()

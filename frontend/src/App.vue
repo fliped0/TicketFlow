@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import TradeRecovery from './components/TradeRecovery.vue'
 import { useAuthStore } from './stores/auth'
 import { authNotice } from './stores/session'
 import { errorText } from './api/client'
 const auth = useAuthStore()
+const route = useRoute(); const router = useRouter()
 const restoreError = ref('')
 async function restore() {
   restoreError.value = ''
@@ -12,6 +14,9 @@ async function restore() {
 }
 onMounted(restore)
 watch(() => auth.authenticated, value => { if (value) restoreError.value = '' })
+watch(() => auth.user?.userId, (value, previous) => {
+  if (!value && previous && route.meta.requiresAuth) void router.replace({ path: '/login', query: { redirect: route.fullPath } })
+}, { flush: 'sync' })
 </script>
 
 <template>
@@ -23,6 +28,7 @@ watch(() => auth.authenticated, value => { if (value) restoreError.value = '' })
     </RouterLink>
     <nav class="header-nav" aria-label="主导航">
       <RouterLink to="/">发现活动</RouterLink>
+      <RouterLink to="/orders">我的订单</RouterLink>
       <template v-if="auth.authenticated">
         <span class="account-name">{{ auth.user?.username }}</span>
         <button class="text-button" @click="auth.logout()">退出登录</button>
@@ -32,6 +38,7 @@ watch(() => auth.authenticated, value => { if (value) restoreError.value = '' })
   </header>
   <main id="main" tabindex="-1">
     <div v-if="authNotice || restoreError" class="auth-notice" role="status" aria-label="登录状态">{{ authNotice || restoreError }} <button v-if="restoreError" class="text-button" @click="restore">重试验证</button></div>
+    <TradeRecovery v-if="auth.authenticated" />
     <RouterView />
   </main>
   <footer class="site-footer">
