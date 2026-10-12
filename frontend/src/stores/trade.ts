@@ -44,7 +44,8 @@ export const useTradeStore = defineStore('trade', () => {
           if (Date.now() < current.retryAt) throw new ApiError('RETRY_WAIT', '请等待限流窗口结束后再恢复。')
         }
         refresh()
-        const path = current.operation === 'CREATE' ? '/orders' : `/orders/${current.targetId}/payments`
+        const actions = { PAY: 'payments', CANCEL: 'cancel', REFUND: 'refunds' } as const
+        const path = current.operation === 'CREATE' ? '/orders' : `/orders/${current.targetId}/${actions[current.operation]}`
         try {
           const reply = await apiReply<unknown>(path, { method: 'POST', authenticated: true, idempotencyKey: current.key,
             body: current.operation === 'CREATE' ? { tierId: current.targetId, quantity: 1 } : {} })

@@ -6,7 +6,7 @@ import type { Order, TradeResult } from '../../src/api/types'
 
 const fixture = JSON.parse(process.env.TF_FRONTEND_LIVE_FIXTURE!) as { runId: string; events: { id: string; name: string }[] }
 const test = base.extend<{ remember: (token: string) => void }>({
-  remember: async ({ request }, use) => {
+  remember: async ({ request }, use, info) => {
     const tokens: string[] = []
     await use(token => tokens.push(token))
     for (const token of tokens) {
@@ -17,7 +17,11 @@ const test = base.extend<{ remember: (token: string) => void }>({
         if (!['PENDING', 'PAID'].includes(order.status)) continue
         const action = order.status === 'PAID' ? 'refunds' : 'cancel'
         const cleanup = await request.post(`/api/v1/orders/${order.orderId}/${action}`, { data: {}, headers: { Authorization: 'Bearer ' + token, 'Idempotency-Key': randomUUID() } })
-        expect(cleanup.status()).toBe(200)
+        if (cleanup.status() === 409 && action === 'refunds' && info.title === 'real refund deadline disables a previously checked confirmation and server refuses a late refund' && Date.now() >= Date.parse(order.snapshot.startsAt)) {
+          expect((await cleanup.json()).code).toBe('REFUND_CLOSED')
+          // The deadline scenario intentionally retains its paid historical order; never bypass policy to clean it.
+          info.annotations.push({ type: 'retained-paid-order', description: order.orderId + ': REFUND_CLOSED boundary fixture' })
+        } else expect(cleanup.status()).toBe(200)
       }
     }
   },
@@ -52,9 +56,11 @@ async function confirmPay(page: Page) {
   return dialog
 }
 async function screenshot(page: Page, name: string, project: string) {
-  const folder = path.resolve('../docs/assets/04/20261012-frontend-b')
+  const folder = path.resolve('../docs/assets/04/20261012-frontend-c')
   await mkdir(folder, { recursive: true })
-  const modal = await page.getByRole('dialog', { name: '确认下单' }).isVisible()
+  const modal = name.endsWith('-confirm')
+  if (modal) await expect(page.getByRole('dialog')).toBeVisible()
+  else await expect(page.getByRole('dialog')).not.toBeVisible()
   if (!modal) {
     await page.evaluate(() => window.scrollTo(0, 0))
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
@@ -127,7 +133,7 @@ test('real committed create and payment response loss replay their original key 
   const list = await request.get('/api/v1/orders', { headers: { Authorization: 'Bearer ' + account.token } })
   expect((await list.json()).data.total).toBe(1)
 })
-test('real same-session limit, other-user order privacy and recovery journal ownership', async ({ page, remember }) => {
+test('real same-session limit, other-user order privacy and recovery journal ownership', async ({ page, request, remember }) => {
   const first = await user(page, remember)
   const dialog = await confirmCreate(page)
   await dialog.getByRole('button', { name: '确认提交订单' }).click()
@@ -138,7 +144,11 @@ test('real same-session limit, other-user order privacy and recovery journal own
   await expect(repeated.getByRole('alert')).toContainText('同一场次已有有效订单')
   await repeated.getByRole('button', { name: '关闭', exact: true }).click()
   await page.getByRole('button', { name: '退出登录' }).click()
-  await user(page, remember)
+  const other = await user(page, remember)
+  for (const action of ['cancel', 'refunds']) {
+    const response = await request.post('/api/v1' + orderUrl + '/' + action, { data: {}, headers: { Authorization: 'Bearer ' + other.token, 'Idempotency-Key': randomUUID() } })
+    expect(response.status()).toBe(404); expect((await response.json()).code).toBe('NOT_FOUND')
+  }
   await expect(page.getByRole('region', { name: '交易结果与恢复' })).toHaveCount(0)
   await page.goto(orderUrl)
   await expect(page.locator('.orders-container').getByRole('alert')).toContainText('不存在')
@@ -148,24 +158,24 @@ test('real same-session limit, other-user order privacy and recovery journal own
   await page.getByRole('button', { name: '登录', exact: true }).click()
   await expect(page.locator('.order-detail-card .order-status')).toHaveText('待支付')
 })
-async function shortSale(request: APIRequestContext) {
+async function isolatedSale(request: APIRequestContext, duration = 7 * 86400_000) {
   const headers = { Authorization: 'Bearer ' + process.env.TF_FRONTEND_LIVE_ADMIN_TOKEN! }
   async function post(url: string, data: unknown) {
     const result = await request.post('/api/v1' + url, { data, headers }); expect(result.status()).toBe(201)
     return (await result.json()).data
   }
-  const event = await post('/admin/events', { name: 'Deadline_' + fixture.runId + '_' + randomUUID().slice(0, 8), description: '隔离支付期限测试', category: 'TEST', city: '上海', venue: '测试场地' })
+  const event = await post('/admin/events', { name: 'Lifecycle_' + fixture.runId + '_' + randomUUID().slice(0, 8), description: '隔离订单生命周期测试', category: 'TEST', city: '上海', venue: '测试场地' })
   const now = Date.now()
-  const session = await post(`/admin/events/${event.id}/sessions`, { startsAt: new Date(now + 16_000).toISOString(), saleStartAt: new Date(now + 4000).toISOString(), saleEndAt: new Date(now + 15_000).toISOString() })
-  await post(`/admin/sessions/${session.id}/tiers`, { name: '标准票', priceFen: 9900, capacity: 2 })
+  const session = await post(`/admin/events/${event.id}/sessions`, { startsAt: new Date(now + duration).toISOString(), saleStartAt: new Date(now + 4000).toISOString(), saleEndAt: new Date(now + duration - 1000).toISOString() })
+  const tier = await post(`/admin/sessions/${session.id}/tiers`, { name: '标准票', priceFen: 9900, capacity: 2 })
   const publish = await request.put(`/api/v1/admin/events/${event.id}/status`, { headers, data: { status: 'ON_SALE', expectedVersion: event.version } }); expect(publish.status()).toBe(200)
   while (Date.now() < now + 4500) await new Promise(resolve => setTimeout(resolve, 100))
-  return event.id as string
+  return { eventId: event.id as string, sessionId: session.id as string, tierId: tier.id as string, startsAt: session.startsAt as string }
 }
 test('real payment deadline disables the UI and server rejects a late payment', async ({ page, request, remember }) => {
   const account = await user(page, remember)
-  const id = await shortSale(request)
-  const dialog = await confirmCreate(page, id); await dialog.getByRole('button', { name: '确认提交订单' }).click()
+  const sale = await isolatedSale(request, 16_000)
+  const dialog = await confirmCreate(page, sale.eventId); await dialog.getByRole('button', { name: '确认提交订单' }).click()
   await expect(page).toHaveURL(/orders\/\d+$/)
   const orderId = new URL(page.url()).pathname.split('/').at(-1)!
   await expect(page.getByRole('button', { name: '模拟支付', exact: true })).toBeDisabled({ timeout: 20_000 })
@@ -173,6 +183,131 @@ test('real payment deadline disables the UI and server rejects a late payment', 
   await page.waitForTimeout(1500)
   const response = await request.post(`/api/v1/orders/${orderId}/payments`, { data: {}, headers: { Authorization: 'Bearer ' + account.token, 'Idempotency-Key': randomUUID() } })
   expect(response.status()).toBe(409); expect((await response.json()).code).toBe('ORDER_EXPIRED')
+  await page.getByRole('button', { name: '取消订单', exact: true }).click()
+  const cancel = page.getByRole('dialog', { name: '确认取消订单' })
+  await cancel.getByRole('checkbox').check(); await cancel.getByRole('button', { name: '确认取消订单' }).click()
+  await expect(page.locator('.order-detail-card .order-status')).toHaveText('已关闭')
+})
+
+async function createOrder(page: Page, eventId: string) {
+  const dialog = await confirmCreate(page, eventId)
+  await dialog.getByRole('button', { name: '确认提交订单' }).click()
+  await expect(page).toHaveURL(/orders\/\d+$/)
+  return new URL(page.url()).pathname.split('/').at(-1)!
+}
+async function paidOrder(page: Page) {
+  const dialog = await confirmPay(page)
+  await dialog.getByRole('button', { name: '确认模拟支付' }).click()
+  await expect(page.locator('.order-detail-card .order-status')).toHaveText('已支付')
+}
+async function inventory(request: APIRequestContext, sessionId: string, tierId: string) {
+  const response = await request.get(`/api/v1/sessions/${sessionId}/tiers`)
+  expect(response.status()).toBe(200)
+  return (await response.json()).data.items.find((item: { id: string }) => item.id === tierId).available as number
+}
+async function replay(request: APIRequestContext, orderId: string, action: string, token: string, key: string) {
+  const response = await request.post(`/api/v1/orders/${orderId}/${action}`, { data: {}, headers: { Authorization: 'Bearer ' + token, 'Idempotency-Key': key } })
+  expect(response.status()).toBe(200)
+  return await response.json() as { replayed: boolean; data: TradeResult }
+}
+
+test('real cancellation and full refund return stock once, retain identities and release same-session eligibility', async ({ page, request, remember }, info) => {
+  const account = await user(page, remember)
+  const sale = await isolatedSale(request)
+  expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(2)
+  const cancelledId = await createOrder(page, sale.eventId)
+  expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(1)
+  await page.getByRole('button', { name: '取消订单', exact: true }).click()
+  const cancel = page.getByRole('dialog', { name: '确认取消订单' })
+  await expect(cancel.getByRole('button', { name: '确认取消订单' })).toBeDisabled()
+  await expect(cancel).toContainText('退款金额 ¥0.00')
+  await cancel.getByRole('checkbox').check(); await screenshot(page, 'cancel-confirm', info.project.name)
+  const response = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/cancel'))
+  await cancel.getByRole('button', { name: '确认取消订单' }).evaluate(el => { (el as HTMLButtonElement).click(); (el as HTMLButtonElement).click() })
+  const receipt = await response; const cancelKey = receipt.request().headers()['idempotency-key']!
+  expect((await receipt.json()).data.amountFen).toBe(9900)
+  await expect(page.locator('.order-detail-card .order-status')).toHaveText('已取消')
+  await screenshot(page, 'order-cancelled', info.project.name)
+  expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(2)
+  expect((await replay(request, cancelledId, 'cancel', account.token, cancelKey)).replayed).toBe(true)
+  await replay(request, cancelledId, 'cancel', account.token, randomUUID())
+  expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(2)
+  const refundedId = await createOrder(page, sale.eventId); expect(refundedId).not.toBe(cancelledId)
+  await paidOrder(page); expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(1)
+  await page.getByRole('button', { name: '申请模拟退款' }).click()
+  const refund = page.getByRole('dialog', { name: '确认模拟退款' })
+  await expect(refund.getByRole('button', { name: '确认模拟退款' })).toBeDisabled()
+  await refund.getByRole('checkbox').check(); await screenshot(page, 'refund-confirm', info.project.name)
+  const refundResponse = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/refunds'))
+  await refund.getByRole('button', { name: '确认模拟退款' }).evaluate(el => { (el as HTMLButtonElement).click(); (el as HTMLButtonElement).click() })
+  const refunded = await refundResponse; const refundKey = refunded.request().headers()['idempotency-key']!
+  const data = (await refunded.json()).data as TradeResult
+  await expect(page.locator('.order-detail-card .order-status')).toHaveText('已退款')
+  await expect(page.getByRole('region', { name: '模拟退款记录' })).toContainText(data.refundId!)
+  await screenshot(page, 'order-refunded', info.project.name)
+  expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(2)
+  const same = await replay(request, refundedId, 'refunds', account.token, refundKey)
+  expect(same.replayed).toBe(true); expect(same.data).toEqual(data)
+  expect((await replay(request, refundedId, 'refunds', account.token, randomUUID())).data).toEqual(data)
+  expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(2)
+  await page.getByRole('link', { name: '返回我的订单' }).click(); await page.getByLabel('订单状态').selectOption('REFUNDED')
+  await expect(page.locator('.order-card')).toHaveCount(1)
+  await createOrder(page, sale.eventId)
+  expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(1)
+})
+
+test('real committed cancellation and refund response loss recover the original key without another stock release', async ({ page, request, remember }) => {
+  test.setTimeout(45_000)
+  await user(page, remember); const sale = await isolatedSale(request, 30_000)
+  for (const operation of ['CANCEL', 'REFUND'] as const) {
+    const orderId = await createOrder(page, sale.eventId)
+    if (operation === 'REFUND') await paidOrder(page)
+    const action = operation === 'CANCEL' ? 'cancel' : 'refunds'
+    let committed: { key: string; result: TradeResult } | undefined
+    await page.route(`**/api/v1/orders/${orderId}/${action}`, async route => {
+      if (committed) return route.continue()
+      const response = await route.fetch(); expect(response.status()).toBe(200)
+      committed = { key: route.request().headers()['idempotency-key']!, result: (await response.json()).data }
+      await route.abort('connectionreset')
+    })
+    await page.getByRole('button', { name: operation === 'CANCEL' ? '取消订单' : '申请模拟退款', exact: true }).click()
+    const name = operation === 'CANCEL' ? '确认取消订单' : '确认模拟退款'
+    const dialog = page.getByRole('dialog', { name })
+    await dialog.getByRole('checkbox').check(); await dialog.getByRole('button', { name }).click()
+    await expect(page.getByRole('region', { name: '交易结果与恢复' })).toContainText('有一笔操作结果待确认')
+    expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(2)
+    await dialog.getByRole('button', { name: '关闭', exact: true }).click(); await page.reload()
+    if (operation === 'REFUND') {
+      while (Date.now() < Date.parse(sale.startsAt) + 1500) await new Promise(resolve => setTimeout(resolve, 100))
+      // A committed refund stays recoverable after its first-execution deadline.
+    }
+    const response = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/' + action))
+    await page.getByRole('button', { name: '恢复原操作结果' }).click()
+    const recovered = await response
+    expect(recovered.request().headers()['idempotency-key']).toBe(committed!.key)
+    const result = await recovered.json(); expect(result.replayed).toBe(true); expect(result.data).toEqual(committed!.result)
+    await expect(page.locator('.order-detail-card .order-status')).toHaveText(operation === 'CANCEL' ? '已取消' : '已退款')
+    expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(2)
+    if (operation === 'REFUND') await expect(page.getByRole('region', { name: '模拟退款记录' })).toContainText(committed!.result.refundId!)
+  }
+})
+
+test('real refund deadline disables a previously checked confirmation and server refuses a late refund', async ({ page, request, remember }) => {
+  const account = await user(page, remember); const sale = await isolatedSale(request, 20_000)
+  const orderId = await createOrder(page, sale.eventId); await paidOrder(page)
+  await page.getByRole('button', { name: '申请模拟退款' }).click()
+  const dialog = page.getByRole('dialog', { name: '确认模拟退款' }); await dialog.getByRole('checkbox').check()
+  await expect(dialog.getByRole('button', { name: '确认模拟退款' })).toBeDisabled({ timeout: 25_000 })
+  await dialog.getByRole('button', { name: '返回', exact: true }).click()
+  await expect(page.getByRole('button', { name: '申请模拟退款' })).toBeDisabled()
+  await expect(page.locator('.payment-panel')).toContainText('场次已开场')
+  while (Date.now() < Date.parse(sale.startsAt) + 1500) await new Promise(resolve => setTimeout(resolve, 100))
+  const response = await request.post(`/api/v1/orders/${orderId}/refunds`, { data: {}, headers: { Authorization: 'Bearer ' + account.token, 'Idempotency-Key': randomUUID() } })
+  expect(response.status()).toBe(409); expect((await response.json()).code).toBe('REFUND_CLOSED')
+  await page.getByRole('button', { name: '刷新订单状态' }).click()
+  await expect(page.locator('.order-detail-card .order-status')).toHaveText('已支付')
+  await expect(page.getByRole('region', { name: '模拟退款记录' })).toHaveCount(0)
+  expect(await inventory(request, sale.sessionId, sale.tierId)).toBe(1)
 })
 test('real last-ticket competition rejects a stale selection without creating a second order', async ({ page, context, request, remember }) => {
   const first = await user(page, remember)

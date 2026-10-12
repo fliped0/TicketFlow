@@ -219,3 +219,5 @@ h3 { font-size: 18px; line-height: 1.5; }
   .brand-mark { width: 28px; height: 28px; }
   .brand { gap: 6px; font-size: 16px; }
 }
+.order-actions { display: grid; gap: 12px; }
+.order-actions .el-button + .el-button { margin-left: 0; }

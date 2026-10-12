@@ -1,0 +1,27 @@
+{
+  "runId": "f88be12c17ac",
+  "database": "ticketflow_test",
+  "passed": true,
+  "startedAt": "2026-10-12T13:08:11.350Z",
+  "cleanup": true,
+  "seedReuse": true,
+  "browser": {
+    "startTime": "2026-10-12T13:08:23.959Z",
+    "duration": 63179.432,
+    "expected": 20,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "retainedPaidOrders": [
+    {
+      "project": "live-desktop",
+      "reason": "160227: REFUND_CLOSED boundary fixture"
+    },
+    {
+      "project": "live-mobile",
+      "reason": "160241: REFUND_CLOSED boundary fixture"
+    }
+  ],
+  "finishedAt": "2026-10-12T13:09:27.436Z"
+}

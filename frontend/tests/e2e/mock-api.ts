@@ -12,6 +12,7 @@ export async function mockApi(page: Page) {
   const attempts: { operation: string; key: string; body: unknown }[] = []
   const replies = new Map<string, { data?: TradeResult; code?: string; status: number }>()
   let loseCreate = false; let losePay = false; let creationError = ''; let paymentError = ''
+  let loseCancel = false; let loseRefund = false; let refundError = ''
   await page.route('**/api/v1/**', async route => {
     const request = route.request(); const url = new URL(request.url()); const path = url.pathname.replace('/api/v1', '')
     const ok = (data: unknown, status = 200, replayed = false) => route.fulfill({ status, headers: { Date: new Date().toUTCString() }, json: { code: 'OK', message: '成功', data, traceId: 'mock', replayed } })
@@ -38,14 +39,14 @@ export async function mockApi(page: Page) {
         const order = orders.find(item => path === '/orders/' + item.orderId)
         return order ? ok(order) : route.fulfill({ status: 404, json: { code: 'NOT_FOUND' } })
       }
-      const operation = path === '/orders' ? 'CREATE' : 'PAY'
+      const operation = path === '/orders' ? 'CREATE' : path.endsWith('/cancel') ? 'CANCEL' : path.endsWith('/refunds') ? 'REFUND' : 'PAY'
       const key = request.headers()['idempotency-key'] ?? ''
       attempts.push({ operation, key, body: request.postDataJSON() })
       const old = replies.get(operation + key)
       if (old) return old.data ? ok({ ...old.data, currentOrderStatus: orders.find(item => item.orderId === old.data!.orderId)!.status }, old.status, true) : route.fulfill({ status: old.status, json: { code: old.code, replayed: true } })
-      const code = operation === 'CREATE' ? creationError : paymentError
+      const code = operation === 'CREATE' ? creationError : operation === 'PAY' ? paymentError : operation === 'REFUND' ? refundError : ''
       if (code) {
-        const status = code === 'PAYMENT_SIMULATED_FAILURE' ? 422 : 409
+        const status = code.endsWith('SIMULATED_FAILURE') ? 422 : 409
         replies.set(operation + key, { status, code })
         return route.fulfill({ status, json: { code, replayed: false } })
       }
@@ -53,21 +54,29 @@ export async function mockApi(page: Page) {
         if (orders.some(item => ['PENDING', 'PAID'].includes(item.status))) return route.fulfill({ status: 409, json: { code: 'PURCHASE_LIMIT', replayed: false } })
         const tierId = request.postDataJSON().tierId
         const amount = tierId === '31' ? 19900 : 9900
-        const order: Order = { orderId: '500', status: 'PENDING', quantity: 1, amountFen: amount, unitPriceFen: amount,
+        const order: Order = { orderId: String(500 + orders.length), status: 'PENDING', quantity: 1, amountFen: amount, unitPriceFen: amount,
           createdAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900_000).toISOString(), payment: null, refund: null,
           snapshot: { schemaVersion: 1, eventId: '101', eventName: example.name, city: '上海', venue: example.venue, sessionId: tierId === '31' ? '12' : '11', startsAt: '2026-11-01T11:00:00Z', tierId, tierName: tierId === '31' ? '第二场票' : '标准票', quantity: 1, amountFen: amount, unitPriceFen: amount, refundPolicy: 'FULL_BEFORE_START' } }
         orders.push(order)
-        const data: TradeResult = { orderId: '500', operationStatus: 'PENDING', currentOrderStatus: 'PENDING', amountFen: amount, expiresAt: order.expiresAt, paymentId: null, refundId: null }
+        const data: TradeResult = { orderId: order.orderId, operationStatus: 'PENDING', currentOrderStatus: 'PENDING', amountFen: amount, expiresAt: order.expiresAt, paymentId: null, refundId: null }
         replies.set(operation + key, { status: 201, data })
         if (loseCreate) { loseCreate = false; return route.abort('connectionreset') }
         return ok(data, 201)
       }
-      const order = orders.find(item => path === '/orders/' + item.orderId + '/payments')
+      const order = orders.find(item => path.split('/')[2] === item.orderId)
       if (!order) return route.fulfill({ status: 404, json: { code: 'NOT_FOUND' } })
-      order.status = 'PAID'; order.payment = { paymentId: '700', amountFen: order.amountFen, paidAt: new Date().toISOString() }
-      const data: TradeResult = { orderId: order.orderId, operationStatus: 'PAID', currentOrderStatus: 'PAID', amountFen: order.amountFen, expiresAt: order.expiresAt, paymentId: '700', refundId: null }
+      if (operation === 'PAY') {
+        order.status = 'PAID'; order.payment = { paymentId: '700', amountFen: order.amountFen, paidAt: new Date().toISOString() }
+      } else if (operation === 'CANCEL') {
+        order.status = Date.now() >= Date.parse(order.expiresAt) ? 'CLOSED' : 'CANCELLED'
+      } else {
+        order.status = 'REFUNDED'; order.refund = { refundId: '800', amountFen: order.amountFen, refundedAt: new Date().toISOString() }
+      }
+      const data: TradeResult = { orderId: order.orderId, operationStatus: order.status, currentOrderStatus: order.status, amountFen: order.amountFen, expiresAt: order.expiresAt, paymentId: operation === 'CANCEL' ? null : order.payment!.paymentId, refundId: operation === 'REFUND' ? order.refund!.refundId : null }
       replies.set(operation + key, { status: 200, data })
-      if (losePay) { losePay = false; return route.abort('connectionreset') }
+      if (operation === 'PAY' && losePay) { losePay = false; return route.abort('connectionreset') }
+      if (operation === 'CANCEL' && loseCancel) { loseCancel = false; return route.abort('connectionreset') }
+      if (operation === 'REFUND' && loseRefund) { loseRefund = false; return route.abort('connectionreset') }
       return ok(data)
     }
     if (path === '/events') {
@@ -90,6 +99,7 @@ export async function mockApi(page: Page) {
   })
   return { fail: () => { failNext = true }, empty: () => { empty = true }, delay: () => { delayed = true },
     loseCreate: () => { loseCreate = true }, losePay: () => { losePay = true },
+    loseCancel: () => { loseCancel = true }, loseRefund: () => { loseRefund = true }, rejectRefund: (code: string) => { refundError = code },
     rejectCreate: (code: string) => { creationError = code }, rejectPay: (code: string) => { paymentError = code },
     expire: () => { for (const order of orders) order.expiresAt = new Date(Date.now() - 1000).toISOString() }, attempts, orders }
 }

@@ -116,3 +116,46 @@ test('a lock held by another tab rejects before persisting a new key or sending 
   await expect(trade.execute(command)).rejects.toMatchObject({ code: 'TRADE_BUSY' })
   expect(readRecord('1')).toBeNull(); expect(fetcher).not.toHaveBeenCalled()
 })
+
+test('cancel and refund response loss keep their own original route, empty body and durable key', async () => {
+  for (const [operation, action, status, paymentId, refundId] of [
+    ['CANCEL', 'cancel', 'CANCELLED', null, null], ['REFUND', 'refunds', 'REFUNDED', '456', '789'],
+  ] as const) {
+    localStorage.clear()
+    const intent: TradeCommand = { ...command, operation, targetId: '123' }
+    const result = { ...receipt, operationStatus: status, currentOrderStatus: status, paymentId, refundId }
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('lost')).mockResolvedValueOnce(response(result))
+    vi.stubGlobal('fetch', fetcher)
+    await expect(trade.execute(intent)).rejects.toMatchObject({ code: 'NETWORK_ERROR' })
+    const original = readRecord('1')!
+    await trade.execute()
+    expect(fetcher.mock.calls.map(call => call[0])).toEqual([`/api/v1/orders/123/${action}`, `/api/v1/orders/123/${action}`])
+    expect(fetcher.mock.calls[1]![1].body).toBe('{}')
+    expect(fetcher.mock.calls[1]![1].headers['Idempotency-Key']).toBe(original.key)
+    expect(readRecord('1')?.result).toEqual(result)
+  }
+})
+
+test('cancel distinguishes terminal closure and refund requires both identities and matching order amount', () => {
+  const cancel: TradeCommand = { ...command, operation: 'CANCEL', targetId: '123' }
+  const cancelled = { ...receipt, operationStatus: 'CANCELLED', currentOrderStatus: 'CANCELLED' }
+  expect(validReceipt(cancelled, cancel)).toBe(true)
+  expect(validReceipt({ ...cancelled, operationStatus: 'CLOSED', currentOrderStatus: 'CLOSED' }, cancel)).toBe(true)
+  for (const bad of [{ ...cancelled, paymentId: '456' }, { ...cancelled, amountFen: 0 }, { ...cancelled, currentOrderStatus: 'PAID' }]) expect(validReceipt(bad, cancel)).toBe(false)
+  const refund: TradeCommand = { ...cancel, operation: 'REFUND' }
+  const refunded = { ...receipt, operationStatus: 'REFUNDED', currentOrderStatus: 'REFUNDED', paymentId: '456', refundId: '789' }
+  expect(validReceipt(refunded, refund)).toBe(true)
+  for (const bad of [{ ...refunded, paymentId: null }, { ...refunded, refundId: null }, { ...refunded, orderId: '124' }, { ...refunded, amountFen: 0 }, { ...refunded, currentOrderStatus: 'PAID' }]) expect(validReceipt(bad, refund)).toBe(false)
+  // Earlier CREATE/PAY v1 receipts remain readable after the new operations are added.
+  expect(validReceipt({ ...receipt, currentOrderStatus: 'REFUNDED' }, command)).toBe(true)
+  expect(validReceipt({ ...refunded, operationStatus: 'PAID', refundId: null }, { ...refund, operation: 'PAY' })).toBe(true)
+})
+
+test('only the exact refund business status closes a rejected attempt', async () => {
+  for (const [code, status, state] of [['REFUND_CLOSED', 409, 'REJECTED'], ['REFUND_SIMULATED_FAILURE', 422, 'REJECTED'], ['REFUND_SIMULATED_FAILURE', 503, 'UNKNOWN']] as const) {
+    localStorage.clear()
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ code }), { status })))
+    await expect(trade.execute({ ...command, operation: 'REFUND', targetId: '123' })).rejects.toMatchObject({ code })
+    expect(readRecord('1')?.state).toBe(state)
+  }
+})

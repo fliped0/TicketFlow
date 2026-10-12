@@ -104,6 +104,15 @@ try {
   await tests.logDone
   const results = JSON.parse(await readFile(output, 'utf8'))
   report.browser = results.stats
+  const retained = []
+  function collectRetained(suite) {
+    for (const spec of suite.specs ?? []) for (const test of spec.tests ?? []) {
+      for (const annotation of test.annotations ?? []) if (annotation.type === 'retained-paid-order') retained.push({ project: test.projectName, reason: annotation.description })
+    }
+    for (const child of suite.suites ?? []) collectRetained(child)
+  }
+  for (const suite of results.suites ?? []) collectRetained(suite)
+  report.retainedPaidOrders = retained
   report.passed = code === 0 && results.stats.unexpected === 0 && results.stats.skipped === 0
   if (!report.passed) throw new Error('Real browser tests failed; inspect ignored browser report')
 } catch (error) {

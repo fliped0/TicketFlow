@@ -126,5 +126,5 @@ onUnmounted(() => { eventRequest?.abort(); tierRequest?.abort() })
       </div>
     </template>
   </div>
-  <TradeConfirm :open="!!confirmation" operation="CREATE" :preview="confirmation?.preview ?? null" :busy="trade.busy" :blocked="trade.blocked" :error="submitError" @close="confirmation = null" @approve="submitOrder" />
+  <TradeConfirm :open="!!confirmation" operation="CREATE" :preview="confirmation?.preview ?? null" :busy="trade.busy" :blocked="trade.blocked" :unresolved="trade.unresolved" :error="submitError" @close="confirmation = null" @approve="submitOrder" />
 </template>

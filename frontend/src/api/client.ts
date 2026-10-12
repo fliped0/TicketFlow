@@ -18,6 +18,8 @@ const messages: Record<string, string> = {
   ORDER_EXPIRED: '订单已超过支付截止时间，请刷新订单状态。',
   ORDER_STATE_CONFLICT: '订单当前状态不允许此操作，请刷新后查看。',
   PAYMENT_SIMULATED_FAILURE: '本次模拟支付失败，你可以在支付期限内重新确认支付。',
+  REFUND_CLOSED: '场次已经开场，无法申请模拟退款。',
+  REFUND_SIMULATED_FAILURE: '本次模拟退款失败，订单仍为已支付，可在开场前重新确认退款。',
   IDEMPOTENCY_CONFLICT: '原操作记录与服务端不一致，请保留记录并核查订单。',
 }
 export class ApiError extends Error {

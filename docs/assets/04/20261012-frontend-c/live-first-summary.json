@@ -1,0 +1,17 @@
+{
+  "runId": "13738eb53de1",
+  "database": "ticketflow_test",
+  "passed": true,
+  "startedAt": "2026-10-12T13:06:04.322Z",
+  "cleanup": true,
+  "seedReuse": true,
+  "browser": {
+    "startTime": "2026-10-12T13:06:17.257Z",
+    "duration": 63126.377,
+    "expected": 20,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "finishedAt": "2026-10-12T13:07:20.739Z"
+}
