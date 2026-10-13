@@ -14,7 +14,7 @@ export function saleLabel(status: string) {
 }
 export function safeReturn(value: unknown) {
   if (typeof value !== 'string' || value.includes('\\') || /[\u0000-\u001f]/.test(value)) return '/'
-  return /^\/(?:\?|$)/.test(value) || /^\/events\/[1-9]\d*(?:\?|$)/.test(value) || /^\/orders(?:\/[1-9]\d*)?(?:\?|$)/.test(value) ? value : '/'
+  return /^\/(?:\?|$)/.test(value) || /^\/events\/[1-9]\d*(?:\?|$)/.test(value) || /^\/orders(?:\/[1-9]\d*)?(?:\?|$)/.test(value) || /^\/assistant(?:\?|$)/.test(value) ? value : '/'
 }
 export function orderLabel(status: string) {
   return ({ PENDING: '待支付', PAID: '已支付', CANCELLED: '已取消', CLOSED: '已关闭', REFUNDED: '已退款' } as Record<string, string>)[status] ?? '状态待确认'

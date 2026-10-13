@@ -1,5 +1,7 @@
 # TicketFlow Agent 查询与确认服务
 
+网页入口已接入 Vue 前端 `/assistant`，支持查询卡、规则出处、独立确认与按原确认恢复。启动方式见[前端说明](../frontend/README.md)，本批 demo 模式真实业务联调见[网页报告](../docs/assets/04/20261013-frontend-agent/summary.md)。
+
 独立 Python 服务提供六项 Java 查询、本地审核规则与取消/模拟退款的待确认卡。模型为 `qwen3.8-flash`，接口为 `POST https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions`；交易只能通过独立确认入口执行，Java 决定最终业务结果。当前为本机单实例，Java 接口与 Flyway 不变。最新结果见 [路由修复报告](../docs/assets/04/20261011-agent-route/summary.md)，确认与故障恢复历史见 [批次 C 报告](../docs/assets/04/20261010-agent-c/summary.md)。
 
 ## 1. 配置与启动

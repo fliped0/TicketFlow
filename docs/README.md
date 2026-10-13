@@ -117,6 +117,7 @@ TicketFlow 采用“软件工程开发流程 + 迭代式开发”。每个阶段
 - [已实现接口与示例](api/README.md)
 - [OpenAPI 3.1](api/openapi.json)
 - [开发进度](开发进度.md)
+- [Agent 网页接入范围](12_Agent网页接入计划.md) 与 [桌面/手机联调报告](assets/04/20261013-frontend-agent/summary.md)。
 - [架构与编码规范](架构与编码规范.md)：统一分层目录、调用规则和开源参考。
 
 - [V2异步详细协议与实现修订](03_V2异步抢票协议.md)

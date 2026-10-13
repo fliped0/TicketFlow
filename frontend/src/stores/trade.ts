@@ -5,12 +5,18 @@ import type { TradeResult } from '../api/types'
 import { accessToken } from './session'
 import { useAuthStore } from './auth'
 import { definiteRejections, dismissRecord, readRecord, storageKey, validReceipt, writeRecord, type TradeCommand, type TradeRecord } from '../trade/journal'
+import { agentRevision, agentStorageKey, agentUnresolved, readAgentRecord } from '../trade/agent-journal'
 
 export const useTradeStore = defineStore('trade', () => {
   const auth = useAuthStore()
   const record = ref<TradeRecord | null>(null); const storageError = ref(''); const busy = ref(false)
   const unresolved = computed(() => record.value?.state === 'UNKNOWN')
-  const blocked = computed(() => busy.value || unresolved.value || !!storageError.value)
+  const agentBlocked = computed(() => {
+    void agentRevision.value
+    if (!auth.user) return false
+    try { return agentUnresolved(readAgentRecord(auth.user.userId)) } catch { return true }
+  })
+  const blocked = computed(() => busy.value || unresolved.value || !!storageError.value || agentBlocked.value)
   function refresh() {
     record.value = null; storageError.value = ''
     if (!auth.authenticated || !auth.user) return
@@ -18,7 +24,10 @@ export const useTradeStore = defineStore('trade', () => {
     catch (error) { storageError.value = (error as Error).message }
   }
   watch(() => auth.user?.userId, refresh, { immediate: true, flush: 'sync' })
-  const storageChanged = (event: StorageEvent) => { if (!event.key || event.key === storageKey(auth.user?.userId ?? '')) refresh() }
+  const storageChanged = (event: StorageEvent) => {
+    if (!event.key || event.key === agentStorageKey(auth.user?.userId ?? '')) agentRevision.value++
+    if (!event.key || event.key === storageKey(auth.user?.userId ?? '')) refresh()
+  }
   window.addEventListener('storage', storageChanged)
   onScopeDispose(() => window.removeEventListener('storage', storageChanged))
 
@@ -35,6 +44,7 @@ export const useTradeStore = defineStore('trade', () => {
         const previous = readRecord(owner)
         let current: TradeRecord
         if (command) {
+          if (agentUnresolved(readAgentRecord(owner))) throw new ApiError('TRADE_UNRESOLVED', '请先处理智能助手中已确认的原操作。')
           if (previous?.state === 'UNKNOWN') throw new ApiError('TRADE_UNRESOLVED', '已有结果待确认，请先恢复原操作。')
           current = { ...command, schemaVersion: 1, owner, origin: location.origin, key: crypto.randomUUID(), createdAt: Date.now(), retryAt: 0, state: 'UNKNOWN', result: null, errorCode: '' }
           writeRecord(current) // Explicit approval has happened; persist BEFORE HTTP.

@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import TradeRecovery from './components/TradeRecovery.vue'
+import AgentRecovery from './components/AgentRecovery.vue'
 import { useAuthStore } from './stores/auth'
 import { authNotice } from './stores/session'
 import { errorText } from './api/client'
@@ -29,6 +30,7 @@ watch(() => auth.user?.userId, (value, previous) => {
     <nav class="header-nav" aria-label="主导航">
       <RouterLink to="/">发现活动</RouterLink>
       <RouterLink to="/orders">我的订单</RouterLink>
+      <RouterLink to="/assistant">智能助手</RouterLink>
       <template v-if="auth.authenticated">
         <span class="account-name">{{ auth.user?.username }}</span>
         <button class="text-button" @click="auth.logout()">退出登录</button>
@@ -39,6 +41,7 @@ watch(() => auth.user?.userId, (value, previous) => {
   <main id="main" tabindex="-1">
     <div v-if="authNotice || restoreError" class="auth-notice" role="status" aria-label="登录状态">{{ authNotice || restoreError }} <button v-if="restoreError" class="text-button" @click="restore">重试验证</button></div>
     <TradeRecovery v-if="auth.authenticated" />
+    <AgentRecovery v-if="auth.authenticated" />
     <RouterView />
   </main>
   <footer class="site-footer">

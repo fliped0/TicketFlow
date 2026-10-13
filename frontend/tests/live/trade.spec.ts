@@ -3,6 +3,14 @@ import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { expect, test as base, type Page, type APIRequestContext } from '@playwright/test'
 import type { Order, TradeResult } from '../../src/api/types'
+import type { Confirmation } from '../../src/api/agent'
+
+async function prepareAssistant(page: Page, command: string) {
+  await page.goto('/assistant')
+  await page.getByLabel('你的问题').fill(command)
+  await page.getByRole('button', { name: '发送问题' }).click()
+  await expect(page.locator('.agent-state')).toHaveText('等待独立确认')
+}
 
 const fixture = JSON.parse(process.env.TF_FRONTEND_LIVE_FIXTURE!) as { runId: string; events: { id: string; name: string }[] }
 const test = base.extend<{ remember: (token: string) => void }>({
@@ -56,7 +64,7 @@ async function confirmPay(page: Page) {
   return dialog
 }
 async function screenshot(page: Page, name: string, project: string) {
-  const folder = path.resolve('../docs/assets/04/20261012-frontend-c')
+  const folder = path.resolve('../docs/assets/04/20261013-frontend-agent')
   await mkdir(folder, { recursive: true })
   const modal = name.endsWith('-confirm')
   if (modal) await expect(page.getByRole('dialog')).toBeVisible()
@@ -334,4 +342,67 @@ test('real last-ticket competition rejects a stale selection without creating a 
     expect((await firstOrders.json()).data.total).toBe(0)
     expect((await secondOrders.json()).data.total).toBe(1)
   } finally { await other.close() }
+})
+
+test('real assistant queries rules and independently confirms cancellation', async ({ page, request, remember }, info) => {
+  const account = await user(page, remember)
+  const orderId = await createOrder(page, fixture.events[0]!.id)
+  await page.goto('/assistant')
+  await page.getByRole('button', { name: '查询退款规则', exact: true }).click()
+  await expect(page.locator('.agent-data-card')).toContainText('规则出处')
+  await page.locator('.agent-data-card summary').filter({ hasText: '规则出处' }).first().click()
+  await screenshot(page, 'assistant-rules', info.project.name)
+  await prepareAssistant(page, '取消 ' + orderId)
+  let executions = 0
+  page.on('request', r => { if (new URL(r.url()).pathname.endsWith('/execute')) executions++ })
+  await page.getByLabel('你的问题').fill('确认'); await page.getByRole('button', { name: '发送问题' }).click()
+  await expect(page.locator('.agent-composer').getByRole('alert')).toBeVisible()
+  expect(executions).toBe(0)
+  const before = await request.get('/api/v1/orders/' + orderId, { headers: { Authorization: 'Bearer ' + account.token } })
+  expect((await before.json()).data.status).toBe('PENDING')
+  await page.getByRole('button', { name: '核对并确认操作' }).click()
+  const dialog = page.getByRole('dialog', { name: '确认取消订单' })
+  await expect(dialog.getByRole('button', { name: '确认取消订单' })).toBeDisabled()
+  await screenshot(page, 'assistant-cancel-confirm', info.project.name)
+  await dialog.getByRole('checkbox').check(); await dialog.getByRole('button', { name: '确认取消订单' }).click()
+  await expect(page.locator('.agent-state')).toHaveText('操作已完成')
+  expect(executions).toBe(1)
+  const after = await request.get('/api/v1/orders/' + orderId, { headers: { Authorization: 'Bearer ' + account.token } })
+  expect((await after.json()).data.status).toBe('CANCELLED')
+  await screenshot(page, 'assistant-cancel-done', info.project.name)
+})
+
+test('real assistant refund lost receipt persists across accounts and resolves without executing twice', async ({ page, request, remember }, info) => {
+  const first = await user(page, remember)
+  const orderId = await createOrder(page, fixture.events[0]!.id); await paidOrder(page)
+  await prepareAssistant(page, '退款 ' + orderId)
+  let committed: Confirmation | undefined; let executions = 0
+  await page.route('**/agent/v1/confirmations/*/execute', async route => {
+    executions++
+    const response = await route.fetch(); expect(response.status()).toBe(200)
+    committed = (await response.json()).data
+    expect(committed!.state).toBe('SUCCEEDED')
+    await route.abort('connectionreset')
+  })
+  await page.getByRole('button', { name: '核对并确认操作' }).click()
+  const dialog = page.getByRole('dialog', { name: '确认模拟退款' })
+  await dialog.getByRole('checkbox').check(); await dialog.getByRole('button', { name: '确认模拟退款' }).click()
+  await expect(dialog.getByRole('alert')).toContainText('无法取得助手响应')
+  await dialog.getByRole('button', { name: '关闭', exact: true }).click()
+  await page.getByRole('button', { name: '退出登录' }).click()
+  const second = await user(page, remember)
+  await page.goto('/assistant'); await expect(page.locator('.agent-state')).toHaveCount(0)
+  const denied = await request.get('/agent/v1/confirmations/' + committed!.confirmationId, { headers: { Authorization: 'Bearer ' + second.token } })
+  expect(denied.status()).toBe(404)
+  await page.getByRole('button', { name: '退出登录' }).click()
+  await page.goto('/login'); await page.getByLabel('账号', { exact: true }).fill(first.username); await page.getByLabel('密码', { exact: true }).fill(first.password)
+  await page.getByRole('button', { name: '登录', exact: true }).click(); await expect(page.locator('.account-name')).toHaveText(first.username)
+  await page.goto('/assistant'); await page.reload()
+  await expect(page.getByRole('complementary')).toContainText('此前的确认可能已经执行')
+  await page.getByRole('button', { name: '查询确认结果' }).click()
+  await expect(page.locator('.agent-state')).toHaveText('操作已完成'); expect(executions).toBe(1)
+  const after = await request.get('/api/v1/orders/' + orderId, { headers: { Authorization: 'Bearer ' + first.token } })
+  const order = (await after.json()).data
+  expect(order.status).toBe('REFUNDED'); expect(order.refund.refundId).toBe((committed!.result!.data as TradeResult).refundId)
+  await screenshot(page, 'assistant-refund-recovered', info.project.name)
 })

@@ -4,6 +4,8 @@
 
 ## 当前进度
 
+- Vue 前端已具备购票生命周期和网页智能助手：活动/订单/规则查询、独立取消与模拟退款确认、刷新及重新登录后的原确认恢复。见 [前端说明](frontend/README.md) 和 [网页助手报告](docs/assets/04/20261013-frontend-agent/summary.md)。
+
 - Java 17、Spring Boot 4.1.1、MyBatis-Plus 3.5.17。
 - MySQL 8.0.45，Flyway V1～V4 共 20 张 tf_ 表（含目录、异步及恢复运维增量）。
 - 注册、登录、当前用户、RS256 JWT、角色权限与健康检查。

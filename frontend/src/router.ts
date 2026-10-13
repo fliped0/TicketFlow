@@ -11,6 +11,7 @@ export function createAppRouter(history: RouterHistory) {
       { path: '/register', component: () => import('./views/AuthView.vue') },
       { path: '/orders', component: () => import('./views/OrdersView.vue'), meta: { requiresAuth: true } },
       { path: '/orders/:id', component: () => import('./views/OrderView.vue'), meta: { requiresAuth: true } },
+      { path: '/assistant', component: () => import('./views/AssistantView.vue'), meta: { requiresAuth: true } },
       { path: '/:pathMatch(.*)*', component: () => import('./views/NotFoundView.vue') },
     ],
     scrollBehavior: () => ({ top: 0 }),

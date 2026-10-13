@@ -1,4 +1,4 @@
-// Owns only its Java/preview/test children. Credentials stay in process memory.
+// Owns only its Java/Agent/preview/test children. Credentials stay in process memory.
 import { spawn } from 'node:child_process'
 import { randomBytes, generateKeyPairSync } from 'node:crypto'
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises'
@@ -89,8 +89,18 @@ try {
   report.seedReuse = true
   fixture.runId = runId
   const previewPort = await availablePort()
-  const previewEnv = { ...process.env, TF_FRONTEND_API_TARGET: base }
-  for (const key of Object.keys(previewEnv)) if (/^TF_(DB_|JWT_|ADMIN_)/.test(key)) delete previewEnv[key]
+  const agentPort = await availablePort()
+  const agentUrl = 'http://127.0.0.1:' + agentPort
+  const agentConfig = path.join(directory, 'agent-test.json')
+  await writeFile(agentConfig, '{}')
+  const agentEnv = { ...process.env, PYTHONPATH: path.join(root, 'agent'), TF_AGENT_CONFIG: agentConfig,
+    TF_AGENT_JAVA_URL: base, TF_AGENT_MODEL_MODE: 'demo', TF_AGENT_CONFIRMATION_DB: path.join(directory, 'confirmations.sqlite3') }
+  for (const key of Object.keys(agentEnv)) if (/^TF_(DB_|JWT_|ADMIN_)/.test(key) || key === 'TF_AGENT_API_KEY') delete agentEnv[key]
+  const agent = start(path.join(root, 'agent/.venv/Scripts/python.exe'), ['-m', 'uvicorn', 'ticketflow_agent.app:create_app', '--factory', '--host', '127.0.0.1', '--port', String(agentPort), '--no-access-log'], agentEnv, 'agent.log')
+  await ready(agentUrl + '/health', agent)
+  report.agentMode = 'demo'
+  const previewEnv = { ...process.env, TF_FRONTEND_API_TARGET: base, TF_FRONTEND_AGENT_TARGET: agentUrl }
+  for (const key of Object.keys(previewEnv)) if (/^TF_(DB_|JWT_|ADMIN_)/.test(key) || key === 'TF_AGENT_API_KEY') delete previewEnv[key]
   const preview = start(process.execPath, [path.join(frontend, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(previewPort)], previewEnv, 'preview.log')
   const url = 'http://127.0.0.1:' + previewPort
   await ready(url, preview)
