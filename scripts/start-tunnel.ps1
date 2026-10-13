@@ -1,4 +1,4 @@
-param([string]$Server = $(if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'118.178.253.75'}))
+param([string]$Server = $(if($env:TF_ECS_HOST){$env:TF_ECS_HOST}else{'120.26.2.79'}))
 $ErrorActionPreference = 'Stop'
 $project = Split-Path $PSScriptRoot
 $ports = @(16379,15673,15672)
@@ -11,6 +11,7 @@ if (-not (Test-Path -LiteralPath $sshKey)) { throw 'Missing TicketFlow ECS SSH k
 $ssh = (Get-Command ssh.exe -ErrorAction Stop).Source
 $toolDir = Join-Path $project '.tools'
 New-Item -ItemType Directory -Force -Path $toolDir | Out-Null
+# The IP may change; keep the original known_hosts identity for this same ECS instance.
 $arguments = @('-i',('"' + $sshKey + '"'),'-N','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes',
     '-o','HostKeyAlias=118.178.253.75',
     '-o','ConnectTimeout=8','-o','ExitOnForwardFailure=yes','-o','ServerAliveInterval=30','-o','ServerAliveCountMax=3',
