@@ -17,7 +17,7 @@ public class CatalogMapper {
     public record EventRow(long id, String name, String description, String category, String city,
                            String venue, String status, long version) {}
     public record SessionRow(long id, long eventId, LocalDateTime startsAt, LocalDateTime saleStartAt,
-                             LocalDateTime saleEndAt, LocalDateTime freezeAt, long version) {}
+                             LocalDateTime saleEndAt, LocalDateTime freezeAt, long version, String purchaseMode) {}
     public record TierRow(long id, long sessionId, String name, long priceFen, int capacity,
                           int available, int reserved, int sold, String refundPolicy, long version) {}
 
@@ -26,7 +26,7 @@ public class CatalogMapper {
             r.getString("venue"), r.getString("status"), r.getLong("version"));
     private static final RowMapper<SessionRow> SESSION = (r, n) -> new SessionRow(r.getLong("id"),
             r.getLong("event_id"), at(r, "starts_at"), at(r, "sale_start_at"), at(r, "sale_end_at"),
-            at(r, "freeze_at"), r.getLong("version"));
+            at(r, "freeze_at"), r.getLong("version"), r.getString("purchase_mode"));
     private static final RowMapper<TierRow> TIER = (r, n) -> new TierRow(r.getLong("id"),
             r.getLong("session_id"), r.getString("name"), r.getLong("price_fen"),
             r.getInt("capacity"), r.getInt("available"), r.getInt("reserved"), r.getInt("sold"),

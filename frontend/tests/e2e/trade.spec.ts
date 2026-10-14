@@ -75,7 +75,7 @@ test('lost payment receipt restores the same payment, rather than issuing a new 
   expect(payments).toHaveLength(2); expect(payments[1]!.key).toBe(original.key)
   await expect(page.getByRole('region', { name: '模拟支付记录' })).toContainText('700')
 })
-for (const [code, text] of [['SOLD_OUT', '已售罄'], ['PURCHASE_LIMIT', '同一场次'], ['ASYNC_REQUIRED', '暂不支持网页购票']]) {
+for (const [code, text] of [['SOLD_OUT', '已售罄'], ['PURCHASE_LIMIT', '同一场次'], ['ASYNC_REQUIRED', '请刷新场次后重新确认']]) {
   test(`server ${code} is displayed as a definite rejection`, async ({ page }) => {
     const api = await mockApi(page); await login(page); api.rejectCreate(code!)
     const dialog = await choose(page); await dialog.getByRole('button', { name: '确认提交订单' }).click()

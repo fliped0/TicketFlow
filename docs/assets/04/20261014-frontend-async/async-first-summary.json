@@ -1,0 +1,22 @@
+{
+  "runId": "3cedcea50680",
+  "database": "ticketflow_test",
+  "passed": false,
+  "startedAt": "2026-10-14T02:25:57.871Z",
+  "cleanup": true,
+  "async": true,
+  "seedReuse": true,
+  "agentMode": "demo",
+  "browser": {
+    "startTime": "2026-10-14T02:26:31.715Z",
+    "duration": 35674.693,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 3,
+    "flaky": 0
+  },
+  "retainedPaidOrders": [],
+  "error": "Real browser tests failed; inspect ignored browser report",
+  "brokerCleanup": true,
+  "finishedAt": "2026-10-14T02:27:08.106Z"
+}

@@ -256,7 +256,8 @@
           "saleStartAt",
           "saleEndAt",
           "saleStatus",
-          "version"
+          "version",
+          "purchaseMode"
         ],
         "properties": {
           "id": {
@@ -295,6 +296,14 @@
             "type": "string",
             "description": "UTC ISO 8601",
             "format": "date-time"
+          },
+          "purchaseMode": {
+            "type": "string",
+            "enum": [
+              "SYNC",
+              "ASYNC"
+            ],
+            "description": "购票模式；前端按此选择同步下单或异步受理入口。"
           }
         }
       },

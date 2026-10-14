@@ -98,6 +98,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
             catalog.setStatus(e,"ON_SALE");return new Fixture(e,s,t,o);
         });fixtures.add(f);
         assertEquals("READY",data(mode(f,"ASYNC",0),200).path("phase").asString());
+        assertEquals("ASYNC",data(request("GET","/api/v1/events/"+f.event()+"/sessions",null,null,null),200).path("items").get(0).path("purchaseMode").asString());
         if(open)open(f);return f;
     }
     void open(Fixture f) {

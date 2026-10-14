@@ -1,3 +1,4 @@
+param([switch]$WithAsync)
 # Explicit Windows-only local demo bootstrap; the separate data script requires an existing admin.
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/common.ps1"
@@ -22,9 +23,11 @@ $env:TF_REDIS_ENABLED = 'false'
 $env:TF_ASYNC_ENABLED = 'false'
 $java = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME 'bin/java.exe' } else { (Get-Command java.exe).Source }
 try {
+    if ($WithAsync) { Import-TicketFlowRedisConfig -Mode dev; Import-TicketFlowAsyncConfig }
     & $java -jar "$project/backend/target/ticketflow-0.1.0-SNAPSHOT.jar" --server.address=127.0.0.1 --server.port=8080
     if ($LASTEXITCODE -ne 0) { throw "Demo backend exited: $LASTEXITCODE" }
 } finally {
+    if ($WithAsync) { Remove-TicketFlowRedisConfig; Remove-TicketFlowAsyncConfig }
     @('TF_DB_PASSWORD','TF_ADMIN_USERNAME','TF_ADMIN_PASSWORD','TF_REDIS_ENABLED','TF_ASYNC_ENABLED') | ForEach-Object { Remove-Item "Env:$_" -ErrorAction SilentlyContinue }
     $credential = $null
 }

@@ -88,7 +88,7 @@ export async function mockApi(page: Page) {
       return ok({ items: filtered.slice((current - 1) * size, current * size), total: filtered.length, page: current, size })
     }
     if (path === '/events/101') return ok(example)
-    if (path === '/events/101/sessions') return ok({ items: [11, 12].map((id, index) => ({ id: String(id), eventId: '101', startsAt: `2026-11-0${index + 1}T11:00:00Z`, saleStartAt: '2026-10-01T00:00:00Z', saleEndAt: '2026-11-01T00:00:00Z', saleStatus: 'ON_SALE', version: 0 })), page: 1, size: 6, total: 2 })
+    if (path === '/events/101/sessions') return ok({ items: [11, 12].map((id, index) => ({ id: String(id), eventId: '101', purchaseMode: 'SYNC', startsAt: `2026-11-0${index + 1}T11:00:00Z`, saleStartAt: '2026-10-01T00:00:00Z', saleEndAt: '2026-11-01T00:00:00Z', saleStatus: 'ON_SALE', version: 0 })), page: 1, size: 6, total: 2 })
     if (/^\/sessions\/(11|12)\/tiers$/.test(path)) {
       const first = path.includes('/11/')
       if (delayed && first) await new Promise(resolve => setTimeout(resolve, 350))

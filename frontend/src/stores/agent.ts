@@ -5,6 +5,7 @@ import { ApiError, errorText } from '../api/client'
 import { useAuthStore } from './auth'
 import { accessToken } from './session'
 import { readRecord, storageKey } from '../trade/journal'
+import { pendingPurchase, readPurchase } from '../trade/purchase-journal'
 import { agentRevision, agentStorageKey, agentUnresolved, clearAgentRecord, readAgentRecord, saveAgentRecord, type AgentRecord } from '../trade/agent-journal'
 
 export const useAgentStore = defineStore('agent', () => {
@@ -51,6 +52,7 @@ export const useAgentStore = defineStore('agent', () => {
       const id = current.card.confirmationId; const path = '/confirmations/' + id
       if (expectedId && id !== expectedId) throw new ApiError('CONFIRMATION_CHANGED', '确认记录已变化，请重新核对。')
       if (kind === 'execute' || kind === 'recover') {
+        if (kind === 'execute' && pendingPurchase(readPurchase(owner))) throw new ApiError('TRADE_UNRESOLVED', '请先处理页面顶部的原抢票请求。')
         if (readRecord(owner)?.state === 'UNKNOWN') throw new ApiError('TRADE_UNRESOLVED', '请先恢复页面顶部的原购票交易。')
         if (kind === 'execute' && (current.card.state !== 'PENDING' || Date.now() >= Date.parse(current.card.expiresAt))) throw new ApiError('CONFIRMATION_EXPIRED', '确认已到期或状态变化，请先查询结果。')
         if (kind === 'recover' && current.card.state !== 'UNKNOWN') throw new ApiError('NO_RECOVERY', '请先查询原记录，仅未知结果可以恢复。')

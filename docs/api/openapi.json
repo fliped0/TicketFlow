@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "TicketFlow API",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "description": "认证、公开目录缓存和限流、订单生命周期及报表、可选 Redis/Lua/RabbitMQ 异步抢票；含孤立预占封口、Redis epoch 重建与恢复对账。支付退款为模拟，运维命令不新增 HTTP 路由。"
   },
   "servers": [
@@ -2894,7 +2894,8 @@
           "saleStartAt",
           "saleEndAt",
           "saleStatus",
-          "version"
+          "version",
+          "purchaseMode"
         ],
         "properties": {
           "id": {
@@ -2933,6 +2934,14 @@
             "type": "string",
             "description": "UTC ISO 8601",
             "format": "date-time"
+          },
+          "purchaseMode": {
+            "type": "string",
+            "enum": [
+              "SYNC",
+              "ASYNC"
+            ],
+            "description": "购票模式；前端按此选择同步下单或异步受理入口。"
           }
         }
       },

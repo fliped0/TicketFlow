@@ -1,6 +1,8 @@
 # TicketFlow 接口文档
 
-版本 0.7.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录及可选Redis缓存/下单限流、订单生命周期、本人订单查询、管理员订单查询与统计、可选异步抢票主流程和健康检查，共 30 个 HTTP 操作。支付和退款为本地模拟。
+版本 0.8.0，基地址 `http://localhost:8080`。已实现用户认证、活动目录及可选Redis缓存/下单限流、订单生命周期、本人订单查询、管理员订单查询与统计、可选异步抢票主流程和健康检查，共 30 个 HTTP 操作。支付和退款为本地模拟。
+
+0.8.0 为公开与管理员场次对象增加必填 `purchaseMode`（SYNC/ASYNC）。网页依此选择 `/orders` 或 `/purchase-requests`，不自动跨入口重试。异步受理、查询及原键重放的既有 HTTP 契约保持兼容；无数据库迁移。
 
 [OpenAPI 3.1 JSON](openapi.json) 可导入 Apifox / Postman。当前不提供在线 Swagger UI。
 

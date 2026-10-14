@@ -64,7 +64,7 @@ async function confirmPay(page: Page) {
   return dialog
 }
 async function screenshot(page: Page, name: string, project: string) {
-  const folder = path.resolve('../docs/assets/04/20261013-frontend-agent')
+  const folder = path.resolve('../docs/assets/04/20261014-frontend-async')
   await mkdir(folder, { recursive: true })
   const modal = name.endsWith('-confirm')
   if (modal) await expect(page.getByRole('dialog')).toBeVisible()

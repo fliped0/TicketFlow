@@ -1,0 +1,21 @@
+{
+  "runId": "6093da985bf5",
+  "database": "ticketflow_test",
+  "passed": true,
+  "startedAt": "2026-10-14T02:29:08.178Z",
+  "cleanup": true,
+  "async": true,
+  "seedReuse": true,
+  "agentMode": "demo",
+  "browser": {
+    "startTime": "2026-10-14T02:29:36.651Z",
+    "duration": 43262.981,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "retainedPaidOrders": [],
+  "brokerCleanup": true,
+  "finishedAt": "2026-10-14T02:30:20.722Z"
+}

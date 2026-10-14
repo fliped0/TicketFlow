@@ -6,6 +6,7 @@ export interface Event {
   venue: string; status: string; version: number;
 }
 export interface Session {
+  purchaseMode: 'SYNC' | 'ASYNC';
   id: string; eventId: string; startsAt: string; saleStartAt: string;
   saleEndAt: string; saleStatus: string; version: number;
 }

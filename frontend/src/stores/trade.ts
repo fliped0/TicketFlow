@@ -6,6 +6,7 @@ import { accessToken } from './session'
 import { useAuthStore } from './auth'
 import { definiteRejections, dismissRecord, readRecord, storageKey, validReceipt, writeRecord, type TradeCommand, type TradeRecord } from '../trade/journal'
 import { agentRevision, agentStorageKey, agentUnresolved, readAgentRecord } from '../trade/agent-journal'
+import { pendingPurchase, purchaseRevision, readPurchase } from '../trade/purchase-journal'
 
 export const useTradeStore = defineStore('trade', () => {
   const auth = useAuthStore()
@@ -13,8 +14,9 @@ export const useTradeStore = defineStore('trade', () => {
   const unresolved = computed(() => record.value?.state === 'UNKNOWN')
   const agentBlocked = computed(() => {
     void agentRevision.value
+    void purchaseRevision.value
     if (!auth.user) return false
-    try { return agentUnresolved(readAgentRecord(auth.user.userId)) } catch { return true }
+    try { return agentUnresolved(readAgentRecord(auth.user.userId)) || pendingPurchase(readPurchase(auth.user.userId)) } catch { return true }
   })
   const blocked = computed(() => busy.value || unresolved.value || !!storageError.value || agentBlocked.value)
   function refresh() {
@@ -44,6 +46,7 @@ export const useTradeStore = defineStore('trade', () => {
         const previous = readRecord(owner)
         let current: TradeRecord
         if (command) {
+          if (pendingPurchase(readPurchase(owner))) throw new ApiError('TRADE_UNRESOLVED', '请先处理原抢票请求。')
           if (agentUnresolved(readAgentRecord(owner))) throw new ApiError('TRADE_UNRESOLVED', '请先处理智能助手中已确认的原操作。')
           if (previous?.state === 'UNKNOWN') throw new ApiError('TRADE_UNRESOLVED', '已有结果待确认，请先恢复原操作。')
           current = { ...command, schemaVersion: 1, owner, origin: location.origin, key: crypto.randomUUID(), createdAt: Date.now(), retryAt: 0, state: 'UNKNOWN', result: null, errorCode: '' }

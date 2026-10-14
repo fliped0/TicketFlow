@@ -14,6 +14,15 @@ const runId = randomBytes(6).toString('hex')
 const directory = path.join(root, '.tools', 'frontend-live', runId)
 await mkdir(directory, { recursive: true })
 const report = { runId, database: 'ticketflow_test', passed: false, startedAt: new Date().toISOString(), cleanup: false }
+const withAsync = process.env.TF_FRONTEND_ASYNC === 'true'
+const brokerScope = { vhost: '/ticketflow-web-' + runId, user: 'tf_web_' + runId, prefix: 'tf.test.web_' + runId, password: randomBytes(24).toString('hex') }
+let brokerCreated = false; let brokerUserCreated = false
+async function brokerAdmin(method, route, body) {
+  const response = await fetch('http://127.0.0.1:15672/api/' + route, { method,
+    headers: { Authorization: 'Basic ' + Buffer.from('tf_admin:' + process.env.TF_RABBITMQ_PASSWORD).toString('base64'), 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(8000) })
+  if (!response.ok && !(method === 'DELETE' && response.status === 404)) throw new Error('Isolated test broker management HTTP ' + response.status)
+}
 const children = []
 const admin = { username: 'web_admin_' + runId, password: randomBytes(24).toString('base64url') }
 let base, adminToken, fixture
@@ -57,12 +66,23 @@ async function ready(url, child) {
   throw new Error('Owned server readiness timeout')
 }
 try {
+  if (withAsync) {
+    if (!process.env.TF_REDIS_PASSWORD || !process.env.TF_RABBITMQ_PASSWORD) throw new Error('Async browser tests require authorized test middleware configuration')
+    await brokerAdmin('PUT', 'vhosts/' + encodeURIComponent(brokerScope.vhost), {}); brokerCreated = true
+    await brokerAdmin('PUT', 'users/' + brokerScope.user, { password: brokerScope.password, tags: '' }); brokerUserCreated = true
+    const pattern = '^tf\\.test\\.web_' + runId + '\\..*'
+    await brokerAdmin('PUT', 'permissions/' + encodeURIComponent(brokerScope.vhost) + '/' + brokerScope.user, { configure: pattern, write: pattern, read: pattern })
+    await brokerAdmin('PUT', 'policies/' + encodeURIComponent(brokerScope.vhost) + '/async-dlx', { pattern, priority: 1, 'apply-to': 'queues', definition: { 'dead-letter-strategy': 'at-least-once', overflow: 'reject-publish' } })
+    report.async = true
+  }
   const keys = generateKeyPairSync('rsa', { modulusLength: 2048, privateKeyEncoding: { type: 'pkcs8', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } })
   await writeFile(path.join(directory, 'private.pem'), keys.privateKey)
   await writeFile(path.join(directory, 'public.pem'), keys.publicKey)
   const env = { ...process.env, TF_ADMIN_USERNAME: admin.username, TF_ADMIN_PASSWORD: admin.password,
     TF_JWT_PRIVATE_KEY: path.join(directory, 'private.pem'), TF_JWT_PUBLIC_KEY: path.join(directory, 'public.pem'),
     TF_REDIS_ENABLED: 'false', TF_ASYNC_ENABLED: 'false', TF_ASYNC_JOBS_ENABLED: 'false' }
+  if (withAsync) Object.assign(env, { TF_ASYNC_ENABLED: 'true', TF_ASYNC_JOBS_ENABLED: 'true', TF_REDIS_NAMESPACE: 'tf:test:v1', TF_RABBITMQ_USER: brokerScope.user,
+    TF_RABBITMQ_PASSWORD: brokerScope.password, TF_RABBITMQ_VHOST: brokerScope.vhost, TF_RABBITMQ_PREFIX: brokerScope.prefix })
   const java = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', 'java.exe') : 'java'
   const backend = start(java, ['-jar', path.join(root, 'backend/target/ticketflow-0.1.0-SNAPSHOT.jar'), '--server.address=127.0.0.1', '--server.port=0', '--ticketflow.expiry.enabled=false'], env, 'java.log')
   for (let attempts = 0; attempts < 225; attempts++) {
@@ -95,12 +115,12 @@ try {
   await writeFile(agentConfig, '{}')
   const agentEnv = { ...process.env, PYTHONPATH: path.join(root, 'agent'), TF_AGENT_CONFIG: agentConfig,
     TF_AGENT_JAVA_URL: base, TF_AGENT_MODEL_MODE: 'demo', TF_AGENT_CONFIRMATION_DB: path.join(directory, 'confirmations.sqlite3') }
-  for (const key of Object.keys(agentEnv)) if (/^TF_(DB_|JWT_|ADMIN_)/.test(key) || key === 'TF_AGENT_API_KEY') delete agentEnv[key]
+  for (const key of Object.keys(agentEnv)) if (/^TF_(DB_|JWT_|ADMIN_|REDIS_|RABBITMQ_)/.test(key) || key === 'TF_AGENT_API_KEY') delete agentEnv[key]
   const agent = start(path.join(root, 'agent/.venv/Scripts/python.exe'), ['-m', 'uvicorn', 'ticketflow_agent.app:create_app', '--factory', '--host', '127.0.0.1', '--port', String(agentPort), '--no-access-log'], agentEnv, 'agent.log')
   await ready(agentUrl + '/health', agent)
   report.agentMode = 'demo'
   const previewEnv = { ...process.env, TF_FRONTEND_API_TARGET: base, TF_FRONTEND_AGENT_TARGET: agentUrl }
-  for (const key of Object.keys(previewEnv)) if (/^TF_(DB_|JWT_|ADMIN_)/.test(key) || key === 'TF_AGENT_API_KEY') delete previewEnv[key]
+  for (const key of Object.keys(previewEnv)) if (/^TF_(DB_|JWT_|ADMIN_|REDIS_|RABBITMQ_)/.test(key) || key === 'TF_AGENT_API_KEY') delete previewEnv[key]
   const preview = start(process.execPath, [path.join(frontend, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(previewPort)], previewEnv, 'preview.log')
   const url = 'http://127.0.0.1:' + previewPort
   await ready(url, preview)
@@ -147,6 +167,11 @@ try {
       if (child.exitCode === null) child.kill('SIGKILL')
     }
   }
+  try {
+    if (brokerCreated) await brokerAdmin('DELETE', 'vhosts/' + encodeURIComponent(brokerScope.vhost))
+    if (brokerUserCreated) await brokerAdmin('DELETE', 'users/' + brokerScope.user)
+    if (withAsync) report.brokerCleanup = true
+  } catch { report.brokerCleanup = false; report.passed = false; process.exitCode = 1 }
   await unlink(path.join(directory, 'private.pem')).catch(() => {})
   await unlink(path.join(directory, 'public.pem')).catch(() => {})
   report.finishedAt = new Date().toISOString()

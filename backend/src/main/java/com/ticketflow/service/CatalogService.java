@@ -77,7 +77,7 @@ public class CatalogService {
     }
     private CatalogVO.Session view(SessionRow row, EventRow event, LocalDateTime now) {
         return new CatalogVO.Session(Long.toString(row.id()),Long.toString(row.eventId()),iso(row.startsAt()),
-                iso(row.saleStartAt()),iso(row.saleEndAt()),saleStatus(event,row,db.availableInSession(row.id()),now),row.version());
+                iso(row.saleStartAt()),iso(row.saleEndAt()),saleStatus(event,row,db.availableInSession(row.id()),now),row.version(),row.purchaseMode());
     }
     private CatalogVO.Tier view(TierRow row, SessionRow session, EventRow event, LocalDateTime now) {
         return new CatalogVO.Tier(Long.toString(row.id()),Long.toString(row.sessionId()),row.name(),row.priceFen(),
@@ -201,10 +201,10 @@ public class CatalogService {
             return new CatalogVO.Page<>(db.pageSessions(eventId,size,offset).stream().map(row->view(row,parent,now)).toList(),page,size,db.countSessions(eventId));
         });
         return cache.query(()->{
-            var cached=cache.get("sessions",List.of(eventId,page,size),new TypeReference<CatalogVO.Page<CatalogVO.Session>>() {},()->{
+            var cached=cache.get("sessions",List.of("mode-v1",eventId,page,size),new TypeReference<CatalogVO.Page<CatalogVO.Session>>() {},()->{
                 EventRow parent=requireEvent(eventId,false); if (!parent.status().equals("ON_SALE")) throw missing();
                 return new CatalogVO.Page<>(db.pageSessions(eventId,size,offset).stream().map(row->new CatalogVO.Session(
-                        Long.toString(row.id()),Long.toString(row.eventId()),iso(row.startsAt()),iso(row.saleStartAt()),iso(row.saleEndAt()),"",row.version())).toList(),
+                        Long.toString(row.id()),Long.toString(row.eventId()),iso(row.startsAt()),iso(row.saleStartAt()),iso(row.saleEndAt()),"",row.version(),row.purchaseMode())).toList(),
                         page,size,db.countSessions(eventId));
             },value->value.items().isEmpty());
             EventRow parent=requireEvent(eventId,false); if (!parent.status().equals("ON_SALE")) throw missing();
@@ -212,7 +212,7 @@ public class CatalogService {
             var available=db.availableForSessions(cached.items().stream().map(row->Long.parseLong(row.id())).toList());
             return new CatalogVO.Page<>(cached.items().stream().map(row->new CatalogVO.Session(row.id(),row.eventId(),row.startsAt(),
                     row.saleStartAt(),row.saleEndAt(),saleStatus(parent,new SessionRow(Long.parseLong(row.id()),eventId,utc(row.startsAt()),
-                    utc(row.saleStartAt()),utc(row.saleEndAt()),utc(row.saleStartAt()),row.version()),available.getOrDefault(Long.parseLong(row.id()),0),now),row.version())).toList(),page,size,cached.total());
+                    utc(row.saleStartAt()),utc(row.saleEndAt()),utc(row.saleStartAt()),row.version(),row.purchaseMode()),available.getOrDefault(Long.parseLong(row.id()),0),now),row.version(),row.purchaseMode())).toList(),page,size,cached.total());
         });
     }
     public CatalogVO.Page<CatalogVO.Tier> tiers(long sessionId,boolean admin,Integer p,Integer s) {

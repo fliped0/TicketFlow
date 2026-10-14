@@ -1,0 +1,29 @@
+{
+  "runId": "c044610b46db",
+  "database": "ticketflow_test",
+  "passed": false,
+  "startedAt": "2026-10-14T02:30:44.820Z",
+  "cleanup": true,
+  "seedReuse": true,
+  "agentMode": "demo",
+  "browser": {
+    "startTime": "2026-10-14T02:31:02.973Z",
+    "duration": 71728.28000000001,
+    "expected": 22,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  },
+  "retainedPaidOrders": [
+    {
+      "project": "live-desktop",
+      "reason": "160619: REFUND_CLOSED boundary fixture"
+    },
+    {
+      "project": "live-mobile",
+      "reason": "160629: REFUND_CLOSED boundary fixture"
+    }
+  ],
+  "error": "Real browser tests failed; inspect ignored browser report",
+  "finishedAt": "2026-10-14T02:32:15.149Z"
+}

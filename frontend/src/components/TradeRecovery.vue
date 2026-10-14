@@ -25,7 +25,7 @@ async function recover() {
 }
 async function dismiss() { error.value = ''; try { await trade.dismiss() } catch (failure) { error.value = errorText(failure) } }
 function rejectionMessage(code: string) {
-  return ({ PURCHASE_LIMIT: '同一场次已有有效订单，请查看我的订单。', SOLD_OUT: '票档已售罄。', ASYNC_REQUIRED: '此场次暂不支持网页购票。', ORDER_EXPIRED: '订单已超过支付截止时间。', PAYMENT_SIMULATED_FAILURE: '模拟支付失败，可在窗口内重新确认。', REFUND_CLOSED: '场次已开场，无法模拟退款。', REFUND_SIMULATED_FAILURE: '模拟退款失败，订单仍为已支付，可在开场前重新确认。', NOT_FOUND: '资源不存在或无权访问。' } as Record<string, string>)[code] ?? '服务端已明确拒绝本次操作，请刷新相关信息。'
+  return ({ PURCHASE_LIMIT: '同一场次已有有效订单，请查看我的订单。', SOLD_OUT: '票档已售罄。', ASYNC_REQUIRED: '场次已改为异步抢票，请刷新场次后重新确认。', ORDER_EXPIRED: '订单已超过支付截止时间。', PAYMENT_SIMULATED_FAILURE: '模拟支付失败，可在窗口内重新确认。', REFUND_CLOSED: '场次已开场，无法模拟退款。', REFUND_SIMULATED_FAILURE: '模拟退款失败，订单仍为已支付，可在开场前重新确认。', NOT_FOUND: '资源不存在或无权访问。' } as Record<string, string>)[code] ?? '服务端已明确拒绝本次操作，请刷新相关信息。'
 }
 </script>
 

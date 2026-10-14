@@ -76,3 +76,5 @@ Pop-Location
 
 
 异步开发环境：先执行 `./scripts/setup-async.ps1` 准备独立应用 MQ 权限，再运行 `./scripts/run.ps1 -WithAsync`。完整中间件回归使用 `./scripts/test.ps1 -WithAsync -Clean`，会包含 MQ 实验的一次 Rabbit 重启；云中间件须已运行。默认开关关闭，SYNC 场次仍走原同步下单。具体权限、状态与恢复命令见 [部署说明](docs/05_部署与运维.md)、[恢复与对账](docs/10_异步恢复与对账.md)和[正式 API](docs/api/README.md)。
+
+异步抢票网页已接入：独立确认、受理状态查询、刷新/重登及原键恢复、成功后订单模拟支付。见 [接入计划](docs/13_异步抢票前端计划.md)、[验收报告](docs/assets/04/20261014-frontend-async/summary.md)。开发演示可用 `pwsh -File scripts/run-frontend-demo.ps1 -WithAsync`，需按前端说明提前配置异步场次。
