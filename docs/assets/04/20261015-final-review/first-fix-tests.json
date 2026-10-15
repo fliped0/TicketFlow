@@ -1,0 +1,29 @@
+{
+  "note": "New regressions pass; legacy lifecycle assertion still expected head retry before tail traversal. Final test retains closure and ledger assertions across resume and wrap rounds.",
+  "suites": [
+    {
+      "name": "com.ticketflow.service.OrderExpiryJobTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "10.446"
+    },
+    {
+      "name": "com.ticketflow.BackgroundSweepIT",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "24.931"
+    },
+    {
+      "name": "com.ticketflow.OrderLifecycleIT",
+      "tests": "15",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0",
+      "time": "86.705"
+    }
+  ]
+}

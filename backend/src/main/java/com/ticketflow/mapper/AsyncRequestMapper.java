@@ -33,7 +33,12 @@ public class AsyncRequestMapper {
     public void claim(AsyncRequest r,String owner,LocalDateTime now) {TradeMapper.requireOne(db.update("UPDATE tf_async_request SET state='PROCESSING',work_version=work_version+1,lease_owner=?,lease_until=?,attempt_count=attempt_count+1,updated_at=? WHERE id=?",owner,now.plusSeconds(8),now,r.id()));}
     public void retry(AsyncRequest r,LocalDateTime now,LocalDateTime next) {TradeMapper.requireOne(db.update("UPDATE tf_async_request SET state='RETRY_WAIT',lease_owner=NULL,lease_until=NULL,next_retry_at=?,updated_at=? WHERE id=? AND work_version=?",next,now,r.id(),r.workVersion()));}
     public void complete(AsyncRequest r,Long order,String code,LocalDateTime now) {TradeMapper.requireOne(db.update("UPDATE tf_async_request SET state=?,order_id=?,result_code=?,http_status=200,result_json='{}',completed_at=?,updated_at=?,lease_owner=NULL,lease_until=NULL WHERE id=? AND state IN ('ACCEPTED','PROCESSING','RETRY_WAIT')",order==null?"REJECTED":"SUCCEEDED",order,code,now,now,r.id()));}
-    public List<String> due() {return db.queryForList("SELECT id FROM tf_async_request WHERE state IN ('ACCEPTED','PROCESSING','RETRY_WAIT') AND (create_deadline<=UTC_TIMESTAMP(6) OR (state='PROCESSING' AND lease_until<=UTC_TIMESTAMP(6)) OR (state='RETRY_WAIT' AND next_retry_at<=UTC_TIMESTAMP(6) AND attempt_count<5)) ORDER BY create_deadline,id LIMIT 100",String.class);}
+    public List<AsyncRequest> due(LocalDateTime afterDeadline,String afterId) {
+        String sql="SELECT * FROM tf_async_request WHERE state IN ('ACCEPTED','PROCESSING','RETRY_WAIT') AND (create_deadline<=UTC_TIMESTAMP(6) OR (state='PROCESSING' AND lease_until<=UTC_TIMESTAMP(6)) OR (state='RETRY_WAIT' AND next_retry_at<=UTC_TIMESTAMP(6) AND attempt_count<5))";
+        if(afterDeadline==null)return db.query(sql+" ORDER BY create_deadline,id LIMIT 100",ROW);
+        String at=afterDeadline.toString().replace('T',' ');
+        return db.query(sql+" AND (create_deadline>? OR (create_deadline=? AND id>?)) ORDER BY create_deadline,id LIMIT 100",ROW,at,at,afterId);
+    }
     public List<Map<String,Object>> bootstrap(long session) {return db.queryForList("SELECT t.id,s.available,b.queued_count,b.projection_version FROM tf_tier t JOIN tf_stock s ON s.tier_id=t.id JOIN tf_async_tier_balance b ON b.tier_id=t.id WHERE t.session_id=? ORDER BY t.id",session);}
     public boolean history(long session) {return db.queryForObject("SELECT (SELECT COUNT(*) FROM tf_order WHERE session_id=?)+(SELECT COUNT(*) FROM tf_async_slot WHERE session_id=?)",Long.class,session,session)>0;}
 }

@@ -1,0 +1,299 @@
+{
+  "failures": 16,
+  "cases": [
+    {
+      "failure": "Redis projection backlog for own session",
+      "error": null,
+      "name": "crossSessionOrphanSealingReleasesOnlyLosingToken"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "malformedEnvelopeCannotCreateOrderOrInventARelease"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "actualMalformedRabbitMessageGoesToDurableDeadLetterQueue"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "staleWorkVersionCannotCommitAnOrder"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "actualRabbitDeliveryCreatesOneOrderAndConfirmMarksOutboxSent"
+    },
+    {
+      "failure": null,
+      "error": "Redis command timed out",
+      "name": "oneHundredInFlightConvergeWithinSixtySecondsIncludingRebuild"
+    },
+    {
+      "failure": "expected: <1> but was: <0>",
+      "error": null,
+      "name": "brokerUnavailableLeavesOutboxPendingAndCanLaterPublish"
+    },
+    {
+      "failure": "expected: <REJECTED> but was: <RETRY_WAIT>",
+      "error": null,
+      "name": "retryThresholdDeadLettersButDeadlineScanStillConverges"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "reliable202ContainsFourDurableFactsBeforeBrokerPublication"
+    },
+    {
+      "failure": "Expected org.springframework.dao.DataAccessException to be thrown, but nothing was thrown.",
+      "error": null,
+      "name": "sentMarkerFailureAllowsRetransmissionWithoutAnotherOrder"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "committedAdmissionWithLostResponseIsNotReleasedByOrphanSweep"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "orphanSweepPersistsFenceBeforeReleaseAndLateOriginalKeyCannotBeAccepted"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "concurrentDifferentTiersShareTheSameSessionQualification"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "preSaleCapacityChangePausesViewAndExplicitRefreshUsesNewEpoch"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "sixBuyersCompeteForTheLastTicketWithoutOverselling"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "requestOwnershipValidationAndModeRulesAreEnforced"
+    },
+    {
+      "failure": "expected: <1> but was: <0>",
+      "error": null,
+      "name": "scheduledRecoveryDetectsLostViewAndRebuildsBeforeReopening"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "realCommitDisconnectUsesDurableOutcomeWithoutBlindCompensation(boolean)[1]"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "realCommitDisconnectUsesDurableOutcomeWithoutBlindCompensation(boolean)[2]"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "snapshotMismatchCannotReopenGateOrInventFreeStock"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "asyncExpiryCloseReleasesOnceEvenIfOwnerIsDisabled"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "consumerChecksBusinessDeadlineAfterWaitingForStockLock"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "consumerTransactionFailureCommitsRetryIntentBeforeAcknowledgement"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "admissionCommitWinsAgainstOrphanSealingWaitingForOwnerLock"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "admissionRechecksSaleTimeAfterLuaReservation"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "syncSessionRetainsOriginalPathAndAsyncModeUsesOptimisticVersion"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "sameKeyReplaysQueuedAndTerminalResultAndChangedParametersConflict"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "deadReplayIsDurableIdempotentAndKeepsOriginalDeadline"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "maintenanceOwnerChangeFencesStaleCoordinatorBeforeReady"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "expiredWorkerLeaseRetriesWithoutReleasingBeforeBusinessDeadline"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "concurrentIdenticalRequestsAndDuplicateMessagesDoNotCreateTwice"
+    },
+    {
+      "failure": "expected: <1> but was: <0>",
+      "error": null,
+      "name": "partialRedisTokenLossRetiresOldEpochWithoutReleasingCommittedRequest"
+    },
+    {
+      "failure": "expected: <REJECTED> but was: <ACCEPTED>",
+      "error": null,
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[1]"
+    },
+    {
+      "failure": "expected: <REJECTED> but was: <ACCEPTED>",
+      "error": null,
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[2]"
+    },
+    {
+      "failure": "expected: <REJECTED> but was: <ACCEPTED>",
+      "error": null,
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[3]"
+    },
+    {
+      "failure": "expected: <REJECTED> but was: <ACCEPTED>",
+      "error": null,
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[4]"
+    },
+    {
+      "failure": "expected: <REJECTED> but was: <ACCEPTED>",
+      "error": null,
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[5]"
+    },
+    {
+      "failure": "expected: <REJECTED> but was: <ACCEPTED>",
+      "error": null,
+      "name": "killedRebuildAtEveryPublishedBoundaryCanResume(String)[6]"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "killedAdmissionResolvesFromDurableFacts(String)[1]"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "killedAdmissionResolvesFromDurableFacts(String)[2]"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "newAdmissionQuotaDoesNotPersist429OrBlockOriginalKeyRecovery"
+    },
+    {
+      "failure": "Missing window in C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-order-before-9964040107408150199; child alive=true ==> expected: <true> but was: <false>",
+      "error": null,
+      "name": "killedConsumerRedeliveryHasOnlyOneCommittedOrder(String)[1]"
+    },
+    {
+      "failure": "Missing window in C:\\Users\\17956\\AppData\\Local\\Temp\\tf-async-order-after-4019524502832587871; child alive=true ==> expected: <true> but was: <false>",
+      "error": null,
+      "name": "killedConsumerRedeliveryHasOnlyOneCommittedOrder(String)[2]"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "orphanFenceWinsAgainstAnHttpRequestPausedAfterLua"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "queryQuotaIsIndependentAndExistingResultNeedsNoRedis"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "cancellationAndRefundReturnInventoryOnceAndHistoricalSuccessRemains"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "offSaleBetweenAdmissionAndConsumptionRejectsAndReleases"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "projectionDuplicateGapAndWrongRedisTypeDoNotDoubleRelease"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "projectionGapReplaysEvenPreviouslySentPredecessorBeforeRelease"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "redisLossRebuildsQueuedAndPaidTokensAndOldEventsCannotDoubleRelease"
+    },
+    {
+      "failure": "expected: <1> but was: <0>",
+      "error": null,
+      "name": "failedSnapshotWriteStaysClosedAndExpiredMaintenanceUsesFreshEpoch"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "crossSessionSameKeyReleasesOnlyTheLosingCandidate"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "initialSoldOutFailureRemainsImmutableAfterCancellation"
+    },
+    {
+      "failure": "expected: <5> but was: <4>",
+      "error": null,
+      "name": "actualDeadLetterReplaySurvivesLostAckWithoutSchedulingTwice"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "rebuildSealsVisibleOrphansAndDoesNotExtendAcceptedDeadlines"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "failedRecoveryWriteStopsConsumerAndKeepsDurableClaimForScanner"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "admissionTransactionFailureRollsBackAllFourDurableFactsAndSameKeyRetries"
+    },
+    {
+      "failure": null,
+      "error": null,
+      "name": "disabledOwnerAndDeadlineScannerReleaseDurableQueuedBalance"
+    }
+  ],
+  "skipped": 0,
+  "errors": 1,
+  "run": "async-recheck-20261015-1351",
+  "tests": 58
+}

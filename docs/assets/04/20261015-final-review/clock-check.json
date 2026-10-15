@@ -1,0 +1,60 @@
+{
+  "note": "First probe UNIX_TIMESTAMP(UTC_TIMESTAMP) used MySQL local session zone and introduced a spurious 8-hour conversion; do not use it as clock skew evidence. Corrected probe uses UTC TIMESTAMPDIFF. Current probe cannot reconstruct historical skew during failed run.",
+  "invalid_first_probe": [
+    {
+      "db_ms": 1792014616253.039,
+      "redis_ms": 1792043416311.635,
+      "redis_minus_db_ms": 28800058.596,
+      "sample_wall_ms": 207.0,
+      "local_midpoint_ms": 1792043416243.721
+    },
+    {
+      "db_ms": 1792014616574.924,
+      "redis_ms": 1792043416616.722,
+      "redis_minus_db_ms": 28800041.798,
+      "sample_wall_ms": 102.616,
+      "local_midpoint_ms": 1792043416599.0864
+    },
+    {
+      "db_ms": 1792014616880.087,
+      "redis_ms": 1792043416966.866,
+      "redis_minus_db_ms": 28800086.779,
+      "sample_wall_ms": 154.616,
+      "local_midpoint_ms": 1792043416929.0269
+    },
+    {
+      "db_ms": 1792014617238.009,
+      "redis_ms": 1792043417297.091,
+      "redis_minus_db_ms": 28800059.082,
+      "sample_wall_ms": 129.714,
+      "local_midpoint_ms": 1792043417271.6978
+    },
+    {
+      "db_ms": 1792014617562.21,
+      "redis_ms": 1792043417617.143,
+      "redis_minus_db_ms": 28800054.933,
+      "sample_wall_ms": 115.637,
+      "local_midpoint_ms": 1792043417595.168
+    }
+  ],
+  "corrected_db_probe": [
+    {
+      "db_utc_ms": 1792043445869.322,
+      "local_before_ms": 1792043445844.7087,
+      "local_after_ms": 1792043445873.3,
+      "db_minus_local_midpoint_ms": 10.318
+    },
+    {
+      "db_utc_ms": 1792043446113.558,
+      "local_before_ms": 1792043446074.3413,
+      "local_after_ms": 1792043446118.3374,
+      "db_minus_local_midpoint_ms": 17.219
+    },
+    {
+      "db_utc_ms": 1792043446351.049,
+      "local_before_ms": 1792043446319.2917,
+      "local_after_ms": 1792043446355.8184,
+      "db_minus_local_midpoint_ms": 13.494
+    }
+  ]
+}

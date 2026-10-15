@@ -242,7 +242,10 @@ class OrderLifecycleIT extends OrderTestSupport {
             job.scan(); // Reentrant/concurrent tick cannot start a second round.
             round.get(12,TimeUnit.SECONDS); assertTrue(Duration.ofNanos(System.nanoTime()-began).toMillis()<10_500);
             assertEquals(1,attempts.get()); assertEquals("PENDING",status(one)); assertEquals("PENDING",status(two));
-            reset(service); job.scan(); assertEquals("CLOSED",status(one)); assertEquals("CLOSED",status(two)); ledger(f);
+            reset(service); job.scan();
+            assertEquals("CLOSED",status(two)); // Resume after the slow candidate first.
+            job.scan(); // After reaching the end, revisit the earlier failed candidate.
+            assertEquals("CLOSED",status(one)); assertEquals("CLOSED",status(two)); ledger(f);
         } finally { pool.shutdownNow(); }
     }
     @Test void inconsistentSuccessfulRecordsAreSystemErrorsAndDoNotPersistRejection() throws Exception {

@@ -1,0 +1,13 @@
+{
+  "files": {
+    "backend/src/main/java/com/ticketflow/service/OrderExpiryJob.java": "c2c9fc4f81b19bfd2914d32898dc71a91783e839f6abe4fea28ac7e93b84a673",
+    "backend/src/main/java/com/ticketflow/service/AsyncOrderService.java": "fa7404ba30ed6fd5dd2d304883400dc776b61099e261836348c37fd839e6d9e7",
+    "backend/src/main/java/com/ticketflow/mapper/AsyncRequestMapper.java": "adae00616df802c0765c5cad15c1382756884695c4fbe38315ba254cf27f732f",
+    "backend/src/test/java/com/ticketflow/service/OrderExpiryJobTest.java": "4bbc4a8f6f95d27932828aab9a227e0d3075f113304324fd52cf88e93cb8728c",
+    "backend/src/test/java/com/ticketflow/BackgroundSweepIT.java": "b6dc011f99a61c0e17ca164ff56ce01b16200b7bfc8595e7d34c4112f75dea7f",
+    "backend/src/test/java/com/ticketflow/OrderLifecycleIT.java": "538888c66baadddc3974532757ab9eeb28339c3996997b2ac4a8e79cbb5df704",
+    "backend/src/test/java/com/ticketflow/AsyncPurchaseIT.java": "d10de3df97b8616056dc6b03a0243ebc063dc25771cae7245b0714b352a75087"
+  },
+  "hashNormalization": "UTF-8 text with LF newlines",
+  "baseline": "223e08079e5d8d9ee8dae2dfc81ceb0d5724060c"
+}

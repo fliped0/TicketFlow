@@ -1,0 +1,52 @@
+{
+  "note": "AsyncPurchaseIT 3 cases and OrderExpiryJobTest: final focused run; BackgroundSweepIT: preceding cleanup run, unchanged afterwards",
+  "suites": [
+    {
+      "skipped": 0,
+      "errors": 0,
+      "name": "com.ticketflow.AsyncPurchaseIT",
+      "tests": 3,
+      "failures": 0,
+      "cases": [
+        {
+          "passed": true,
+          "name": "crossSessionOrphanSealingReleasesOnlyLosingToken"
+        },
+        {
+          "passed": true,
+          "name": "staleWorkVersionCannotCommitAnOrder"
+        },
+        {
+          "passed": true,
+          "name": "failedRecoveryWriteStopsConsumerAndKeepsDurableClaimForScanner"
+        }
+      ]
+    },
+    {
+      "skipped": 0,
+      "errors": 0,
+      "name": "com.ticketflow.BackgroundSweepIT",
+      "tests": 1,
+      "failures": 0,
+      "cases": [
+        {
+          "passed": true,
+          "name": "pausedFirstHundredMustNotStarveHealthyDeadlineAndMustBeRetried"
+        }
+      ]
+    },
+    {
+      "skipped": 0,
+      "errors": 0,
+      "name": "com.ticketflow.service.OrderExpiryJobTest",
+      "tests": 1,
+      "failures": 0,
+      "cases": [
+        {
+          "passed": true,
+          "name": "persistentSlowHeadMustNotStarveLaterOrdersAcrossRounds"
+        }
+      ]
+    }
+  ]
+}

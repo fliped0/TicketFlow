@@ -1,0 +1,124 @@
+{
+  "suites": [
+    {
+      "name": "com.ticketflow.AdminReportingIT",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "53.324"
+    },
+    {
+      "name": "com.ticketflow.AsyncPurchaseIT",
+      "tests": "58",
+      "failures": "55",
+      "errors": "2",
+      "skipped": "0",
+      "time": "393.6"
+    },
+    {
+      "name": "com.ticketflow.BackgroundSweepIT",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "7.937"
+    },
+    {
+      "name": "com.ticketflow.IdentityIntegrationIT",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "20.573"
+    },
+    {
+      "name": "com.ticketflow.OrderIntegrationIT",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "36.558"
+    },
+    {
+      "name": "com.ticketflow.OrderLifecycleIT",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "76.176"
+    },
+    {
+      "name": "com.ticketflow.RabbitMqLabIT",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "66.236"
+    },
+    {
+      "name": "com.ticketflow.RedisCatalogIT",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "151.318"
+    },
+    {
+      "name": "com.ticketflow.RedisOutageIT",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "5.001"
+    },
+    {
+      "name": "com.ticketflow.config.AdminInitializerTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.302"
+    },
+    {
+      "name": "com.ticketflow.config.OperationalMetricsSamplerTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.494"
+    },
+    {
+      "name": "com.ticketflow.service.AccountRulesTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.015"
+    },
+    {
+      "name": "com.ticketflow.service.IdentityServiceTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.049"
+    },
+    {
+      "name": "com.ticketflow.service.OrderExpiryJobTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "9.439"
+    },
+    {
+      "name": "com.ticketflow.service.OrderPolicyTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.065"
+    }
+  ]
+}

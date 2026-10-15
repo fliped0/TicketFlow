@@ -88,7 +88,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
             db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE session_id=? AND state IN ('ACCEPTED','PROCESSING','RETRY_WAIT')",f.session());
             db.update("UPDATE tf_async_request SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE session_id=? AND state='PROCESSING'",f.session());
         }
-        worker.sweep();publisher.tick();broker.close();fixtures.clear();
+        for(int i=0;i<4;i++)worker.sweep();publisher.tick();broker.close();fixtures.clear();
     }
     Fixture asyncFixture(int capacity,boolean open)throws Exception {
         Fixture f=new TransactionTemplate(manager).execute(status->{
@@ -118,6 +118,16 @@ class AsyncPurchaseIT extends OrderTestSupport {
     }
     void consume(String id) {assertEquals(AsyncDisposition.ACK,worker.consume(message(id)));}
     String state(String id) {return async.get(id,false).state();}
+    void sweepUntilState(String id,String expected) {
+        for(int i=0;i<10 && !expected.equals(state(id));i++)worker.sweep();
+        assertEquals(expected,state(id),"lease scan must converge within ten rounds");
+    }
+    void sweepUntilTerminal(String id) {
+        // A fair scan may wrap before revisiting a request whose deadline was
+        // moved backwards by this test. Keep the final state/balance assertions.
+        for(int i=0;i<10 && !async.get(id,false).terminal();i++)worker.sweep();
+        assertTrue(async.get(id,false).terminal(),"deadline scan must converge within ten rounds");
+    }
     long order(String id){return async.get(id,false).orderId();}
     long free(Fixture f){return Long.parseLong(redis.opsForHash().get(lua.keys(f.session(),gates.read(f.session()).epoch()).get(1),Long.toString(f.tier())).toString());}
     void balance(Fixture f,int queued,int reserved,int sold) {
@@ -184,7 +194,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         var f=asyncFixture(2,true);String pending=accepted(actor(false),f);var deadline=async.get(pending,false).deadline();
         var t=orphan(actor(false),f,key());assertTrue(recovery.rebuild(f.session()));
         assertEquals("REJECTED",state(t.id()));assertEquals(deadline,async.get(pending,false).deadline());assertEquals(1,free(f));balance(f,1,0,0);
-        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",pending);worker.sweep();flush(f);assertEquals(2,free(f));
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",pending);sweepUntilTerminal(pending);flush(f);assertEquals(2,free(f));
     }
     @Test void failedSnapshotWriteStaysClosedAndExpiredMaintenanceUsesFreshEpoch()throws Exception {
         var f=asyncFixture(1,true);String id=accepted(actor(false),f);long epoch=gates.read(f.session()).epoch();
@@ -193,7 +203,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         assertEquals("REBUILDING",gates.read(f.session()).phase());assertFalse(recovery.rebuild(f.session()));assertEquals(1,count("SELECT COUNT(*) FROM tf_async_alert WHERE category='REBUILD' AND resource_id=? AND resolved_at IS NULL",Long.toString(f.session())));
         expireMaintenance(f);assertTrue(recovery.rebuild(f.session()));assertEquals(epoch+2,gates.read(f.session()).epoch());assertEquals(0,free(f));balance(f,1,0,0);
         assertEquals(0,count("SELECT COUNT(*) FROM tf_async_alert WHERE category='REBUILD' AND resource_id=? AND resolved_at IS NULL",Long.toString(f.session())));
-        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();flush(f);assertEquals(1,free(f));
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);sweepUntilTerminal(id);flush(f);assertEquals(1,free(f));
     }
     @Test void snapshotMismatchCannotReopenGateOrInventFreeStock()throws Exception {
         var f=asyncFixture(2,true);String id=accepted(actor(false),f);db.update("UPDATE tf_async_tier_balance SET queued_count=0 WHERE tier_id=?",f.tier());
@@ -304,7 +314,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         var f=asyncFixture(1,true);String id=accepted(actor(false),f);long old=gates.read(f.session()).epoch();
         redis.delete(lua.keys(f.session(),old).get(2));assertTrue(recovery.rebuild(f.session()));
         assertEquals(old+1,gates.read(f.session()).epoch());assertEquals(0,free(f));balance(f,1,0,0);
-        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();flush(f);assertEquals(1,free(f));
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);sweepUntilTerminal(id);flush(f);assertEquals(1,free(f));
     }
     @Test void orphanFenceWinsAgainstAnHttpRequestPausedAfterLua()throws Exception {
         var f=asyncFixture(1,true);var a=actor(false);String k=key();var reserved=new CountDownLatch(1);var resume=new CountDownLatch(1);
@@ -334,7 +344,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         var f=asyncFixture(1,true);String id=accepted(actor(false),f);long old=gates.read(f.session()).epoch();redis.delete(lua.keys(f.session(),old));
         doReturn(List.of(f.session())).when(recoveryMapper).sessions(anyLong());recovery.tick();reset(recoveryMapper);
         assertEquals("READY",gates.read(f.session()).phase());assertEquals(old+1,gates.read(f.session()).epoch());assertEquals(0,free(f));balance(f,1,0,0);
-        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();flush(f);assertEquals(1,free(f));
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);sweepUntilTerminal(id);flush(f);assertEquals(1,free(f));
     }
 
     @org.junit.jupiter.params.ParameterizedTest
@@ -379,7 +389,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         var folder=java.nio.file.Files.createTempDirectory("tf-async-"+mode+"-");var process=child(mode,folder,f,a,id,key());
         try {marker(process,folder,"window");kill(process);}finally{if(process.isAlive())kill(process);}
         expireMaintenance(f);assertTrue(recovery.rebuild(f.session()));assertEquals(deadline,async.get(id,false).deadline());
-        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();flush(f);
+        db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);sweepUntilTerminal(id);flush(f);
         assertEquals("REJECTED",state(id));assertEquals(1,free(f));balance(f,0,0,0);assertTrue(recoveryMapper.differences(f.session()).isEmpty());
         System.out.println("BATCH10_KILL window="+mode+" folder="+folder);
     }
@@ -520,7 +530,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         doThrow(new org.springframework.dao.DataAccessResourceFailureException("test only")).when(async).complete(any(AsyncRequest.class),notNull(),eq("OK"),any(LocalDateTime.class));
         doThrow(new org.springframework.dao.DataAccessResourceFailureException("test only")).when(async).retry(any(AsyncRequest.class),any(LocalDateTime.class),any(LocalDateTime.class));
         assertEquals(AsyncDisposition.STOP,worker.consume(message(id)));assertEquals("PROCESSING",state(id));balance(f,1,0,0);
-        reset(async);db.update("UPDATE tf_async_request SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();assertEquals("RETRY_WAIT",state(id));
+        reset(async);db.update("UPDATE tf_async_request SET lease_until=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);sweepUntilState(id,"RETRY_WAIT");assertEquals("RETRY_WAIT",state(id));
         db.update("UPDATE tf_async_request SET next_retry_at=UTC_TIMESTAMP(6)-INTERVAL 1 MICROSECOND WHERE id=?",id);consume(id);balance(f,0,1,0);
     }
     @Test void brokerUnavailableLeavesOutboxPendingAndCanLaterPublish()throws Exception {
@@ -584,7 +594,7 @@ class AsyncPurchaseIT extends OrderTestSupport {
         var f=asyncFixture(1,true);String id=accepted(actor(false),f);db.update("UPDATE tf_async_request SET attempt_count=4 WHERE id=?",id);
         doThrow(new org.springframework.dao.DataAccessResourceFailureException("test fifth failure")).when(async).complete(any(AsyncRequest.class),notNull(),eq("OK"),any(LocalDateTime.class));
         assertEquals(AsyncDisposition.DEAD_LETTER,worker.consume(message(id)));assertEquals(5,async.get(id,false).attempts());assertEquals("RETRY_WAIT",state(id));balance(f,1,0,0);
-        reset(async);db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);worker.sweep();assertEquals("REJECTED",state(id));balance(f,0,0,0);flush(f);
+        reset(async);db.update("UPDATE tf_async_request SET create_deadline=accepted_at+INTERVAL 1 MICROSECOND WHERE id=?",id);sweepUntilTerminal(id);assertEquals("REJECTED",state(id));balance(f,0,0,0);flush(f);
     }
     @Test void preSaleCapacityChangePausesViewAndExplicitRefreshUsesNewEpoch()throws Exception {
         var f=asyncFixture(1,false);long epoch=gates.read(f.session()).epoch();

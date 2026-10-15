@@ -1,0 +1,20 @@
+{
+  "agent": {
+    "command": "pwsh -File scripts/test-agent.ps1",
+    "passed": 266,
+    "failures": 0,
+    "warnings": [
+      "Starlette TestClient/httpx deprecation"
+    ],
+    "realModelCalled": false
+  },
+  "frontend": {
+    "command": "pwsh -File scripts/test-frontend.ps1",
+    "typecheck": "passed",
+    "build": "passed",
+    "unitPassed": 33,
+    "mockBrowserPassed": 50,
+    "demoDataScriptPassed": 4,
+    "liveBrowserRunInThisReview": false
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "note": "Intentional pre-fix regression run; failure-ignore allows both suites to run. BUILD SUCCESS is NOT a test pass.",
+  "suites": [
+    {
+      "name": "com.ticketflow.service.OrderExpiryJobTest",
+      "tests": "1",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0",
+      "time": "20.248"
+    },
+    {
+      "name": "com.ticketflow.BackgroundSweepIT",
+      "tests": "1",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0",
+      "time": "57.745"
+    }
+  ]
+}

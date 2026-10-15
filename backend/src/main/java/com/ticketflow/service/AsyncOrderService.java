@@ -13,6 +13,8 @@ public class AsyncOrderService {
     private final OutboxMapper outbox;private final OrderMapper orders;private final TradeMapper users;
     private final InventoryService stock;private final DatabaseClock clock;private final AsyncEvents events;private final JsonMapper json;
     private final String owner=UUID.randomUUID().toString();
+    private LocalDateTime sweepAfter;
+    private String sweepAfterId;
     private final io.micrometer.core.instrument.MeterRegistry metrics;
     public AsyncOrderService(AsyncTransactions tx,AsyncGateMapper gates,AsyncRequestMapper requests,OutboxMapper outbox,OrderMapper orders,TradeMapper users,InventoryService stock,DatabaseClock clock,AsyncEvents events,JsonMapper json,io.micrometer.core.instrument.MeterRegistry metrics) {
         this.tx=tx;this.gates=gates;this.requests=requests;this.outbox=outbox;this.orders=orders;this.users=users;this.stock=stock;this.clock=clock;this.events=events;this.json=json;this.metrics=metrics;
@@ -78,12 +80,16 @@ public class AsyncOrderService {
         }
     }
     /** Work/deadline liveness remains independent from broker availability. */
-    public void sweep() {
+    public synchronized void sweep() {
         long end=System.nanoTime()+5_000_000_000L;
-        for(String id:requests.due()) {
-            if(System.nanoTime()>end)break;
+        var batch=requests.due(sweepAfter,sweepAfterId);
+        if(batch.isEmpty()){sweepAfter=null;sweepAfterId=null;return;}
+        for(var route:batch) {
+            if(System.nanoTime()>end)return;
+            // Visit failed/paused candidates only once per traversal; the tail must
+            // progress too. Durable state is always re-read under the existing locks.
+            sweepAfter=route.deadline();sweepAfterId=route.id();
             try {
-                var route=requests.get(id,false);
                 tx.execute(()->{
                     var r=locked(route);if(r.terminal())return null;var now=clock.nowUtc();
                     if("PROCESSING".equals(r.state()) && now.isBefore(r.leaseUntil()))return null;
@@ -93,7 +99,8 @@ public class AsyncOrderService {
                     } else {requests.retry(r,now,now.plusSeconds(1));events.broker(r,now.plusSeconds(1));}
                     return null;
                 });
-            } catch(RuntimeException failure) {org.slf4j.LoggerFactory.getLogger(getClass()).warn("async_scan_failed requestId={} type={}",id,failure.getClass().getSimpleName());}
+            } catch(RuntimeException failure) {org.slf4j.LoggerFactory.getLogger(getClass()).warn("async_scan_failed requestId={} type={}",route.id(),failure.getClass().getSimpleName());}
         }
+        if(batch.size()<100){sweepAfter=null;sweepAfterId=null;}
     }
 }

@@ -19,6 +19,10 @@ public class OrderExpiryJob {
     private final OrderApplicationService service;
     private final DatabaseClock clock;
     private final AtomicBoolean running=new AtomicBoolean();
+    // Continue after a budget-limited round, including failed candidates. Wrap only
+    // at the end, so a persistently blocked head cannot starve unrelated orders.
+    private LocalDateTime after;
+    private long afterId;
     public OrderExpiryJob(OrderMapper orders, OrderApplicationService service, DatabaseClock clock) { this.orders=orders; this.service=service; this.clock=clock; }
     @EventListener(ApplicationReadyEvent.class)
     public void onReady() { scan(); }
@@ -28,9 +32,10 @@ public class OrderExpiryJob {
         String previous=MDC.get("traceId"); MDC.put("traceId",UUID.randomUUID().toString());
         try {
             long deadline=System.nanoTime()+10_000_000_000L;
-            LocalDateTime cutoff=clock.nowUtc(), after=null; long afterId=0;
+            LocalDateTime cutoff=clock.nowUtc();
             while (deadline-System.nanoTime()>=1_000_000_000L) {
-                var batch=orders.expired(cutoff,after,afterId); if (batch.isEmpty()) break;
+                var batch=orders.expired(cutoff,after,afterId);
+                if (batch.isEmpty()) { after=null; afterId=0; break; }
                 for (var candidate:batch) {
                     if (deadline-System.nanoTime()<1_000_000_000L) return;
                     try { service.closeExpired(candidate.id(),deadline); }
